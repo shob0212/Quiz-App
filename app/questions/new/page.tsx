@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { Home, Plus, Target, BarChart3, ArrowLeft, Check, List, Eye } from "lucide-react"
+import { Home, Plus, Target, BarChart3, ArrowLeft, Check, List, Eye, EyeOff } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils"
 
 // --- タイプ定義 ---
 type ParsedDataType = { category?: string; question?: string; options?: string[]; correct_answers?: number[]; explanation?: string; error?: string; } | null;
+type PreviewMode = "side" | "hover";
 
 // --- ヘルパー関数 ---
 const parseForPreview = (text: string): ParsedDataType => {
@@ -55,7 +56,21 @@ export default function AddNewQuestionPage() {
   const [clickedAnswers, setClickedAnswers] = useState<number[]>([]);
   const [isHoverPreviewVisible, setIsHoverPreviewVisible] = useState(false);
 
-  // --- Effect ---
+  const [previewMode, setPreviewMode] = useState<PreviewMode>("side");
+
+  // --- 初期化 ---
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("previewMode");
+      if (stored === "hover" || stored === "side") setPreviewMode(stored);
+    } catch (e) { }
+  }, []);
+
+  useEffect(() => {
+    try { localStorage.setItem("previewMode", previewMode); } catch (e) { }
+  }, [previewMode]);
+
+  // --- プレビュー更新 ---
   useEffect(() => {
     const parsed = parseForPreview(inputValue);
     setPreviewData(parsed);
@@ -63,9 +78,9 @@ export default function AddNewQuestionPage() {
     if (JSON.stringify(answerNumbers) !== JSON.stringify(clickedAnswers)) {
       setClickedAnswers(answerNumbers);
     }
-  }, [inputValue, clickedAnswers]);
+  }, [inputValue]);
 
-  // --- ハンドラ ---
+  // --- 質問追加 ---
   const parseAndAddQuestion = async (): Promise<{success: boolean, category: string | null}> => {
     const text = inputValue.trim();
     if (!text) return { success: false, category: null };
@@ -134,7 +149,7 @@ export default function AddNewQuestionPage() {
     setInputValue(newText);
   };
 
-  // --- レンダリング ---
+  // --- 右カラムコンポーネント ---
   const RightColumnContent = () => (
     <>
       <QuestionPreview 
@@ -161,23 +176,24 @@ export default function AddNewQuestionPage() {
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      {/* --- 縦長画面用のホバープレビュー --- */}
-      <div className="lg:hidden group fixed right-0 top-0 h-full w-6 z-30" 
-        onMouseEnter={() => setIsHoverPreviewVisible(true)}
-        onMouseLeave={() => setIsHoverPreviewVisible(false)}
-      >
-        {/* ホバー領域のタブ */}
-        <div className="absolute top-1/2 -translate-y-1/2 right-0 h-32 w-full bg-secondary/80 rounded-l-lg flex items-center justify-center">
-            <Eye className="w-4 h-4 text-muted-foreground" />
+      {/* hoverモード用ホバーパネル */}
+      {previewMode === "hover" && (
+        <div className="lg:hidden group fixed right-0 top-0 h-60 w-6 z-30 absolute top-7/20 bg-gray-200 rounded-l-sm" 
+          onMouseEnter={() => setIsHoverPreviewVisible(true)}
+          onMouseLeave={() => setIsHoverPreviewVisible(false)}
+        >
+          <div className="absolute top-1/2 -translate-y-1/2 right-0 h-32 w-full bg-secondary/80 rounded-l-lg flex items-center justify-center">
+              <Eye className="w-4 h-4 text-muted-foreground" />
+          </div>
+          <div className={cn(
+            "fixed top-0 right-0 h-full w-80 overflow-y-auto bg-card/90 p-4 border-l shadow-lg transition-transform duration-300 ease-in-out backdrop-blur-lg",
+            isHoverPreviewVisible ? "translate-x-0" : "translate-x-full"
+          )}>
+            <div className="mt-20"></div>
+            <RightColumnContent />
+          </div>
         </div>
-        {/* プレビュー本体 */}
-        <div className={cn(
-          "fixed top-0 right-0 h-full w-80 overflow-y-auto bg-card/90 p-4 border-l shadow-lg transition-transform duration-300 ease-in-out backdrop-blur-lg",
-          isHoverPreviewVisible ? "translate-x-0" : "translate-x-full"
-        )}>
-          <RightColumnContent />
-        </div>
-      </div>
+      )}
 
       <div className="container mx-auto px-4 py-6">
         {/* Header */}
@@ -191,31 +207,47 @@ export default function AddNewQuestionPage() {
             <h1 className="text-2xl font-bold text-foreground">問題登録</h1>
             <p className="text-sm text-muted-foreground">新しい問題を追加</p>
           </div>
+          <div className="items-center ml-auto gap-4">
+            <div className="flex items-center mb-2">
+              <Switch id="sticky-category" checked={isCategorySticky} onCheckedChange={setIsCategorySticky} className="data-[state=unchecked]:bg-zinc-700" />
+              <Label htmlFor="sticky-category" className="ml-2">カテゴリを維持する</Label>
+            </div>
+            <div className="flex items-center lg:hidden">
+              <Switch
+                id="preview-mode"
+                checked={previewMode === "side"}
+                onCheckedChange={(v) => setPreviewMode(v ? "side" : "hover")}
+                className="data-[state=unchecked]:bg-zinc-700"
+              />
+              <Label htmlFor="preview-mode" className="ml-2 flex items-center gap-2">
+                {previewMode === "side" ? <><Eye className="w-4 h-4" /> 横並び</> : <><EyeOff className="w-4 h-4" /> ホバー</>}
+              </Label>
+            </div>
+          </div>
         </div>
-
         
 
-        {/* --- メインレイアウト --- */}
-        <div className="lg:grid lg:grid-cols-2 lg:gap-8 items-start">
+        {/* メインレイアウト */}
+        <div
+          className={cn(
+            previewMode === "side" ? "grid grid-cols-2 gap-8 items-start" : "grid grid-cols-1 items-start"
+          )}
+        >
           {/* Left Column: Form */}
-          <div className="space-y-4">
+          <div className="space-y-4 w-full">
             <div className="flex items-center space-x-2 mb-4">
               <h2 className="text-lg font-semibold">問題を入力</h2>
-              <div className="flex items-center ml-auto">
-                <Switch id="sticky-category" checked={isCategorySticky} onCheckedChange={setIsCategorySticky} className="data-[state=unchecked]:bg-zinc-700" />
-                <Label htmlFor="sticky-category">カテゴリを維持する</Label>
-              </div>
             </div>
+
             <Card className="p-6 border-border">
               <div className="space-y-4">
                 <div>
-                  
                   <label className="text-sm font-medium text-foreground mb-2 block">問題内容</label>
                   <Textarea
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
-                    placeholder={`S3\nS3に保存するデータをAWS管理のキーで暗号化し、利用状況を自動記録したい。この要件に最も適した暗号化方式はどれか？\n\nSSE-S3\nSSE-KMS\nSSE-C\nクライアント側暗号化\n\n2\nSSE-KMSは、KMSで管理されるキーを使用してサーバー側の暗号化を行います。キーの使用状況はCloudTrailで追跡可能です。`}
-                    className="min-h-[calc(100vh-20rem)] resize-none bg-secondary border-border text-foreground placeholder:text-gray-300"
+                    placeholder={`AWSの概要\n履歴世界中のAWSデータセンターを地域で区切ったものを何というか。\n\nリージョン\nアベイラビリティーゾーン\nグローバル\nゾーングループ\n\n1`}
+                    className="min-h-[calc(100vh-20rem)] resize-none bg-secondary border-border text-foreground placeholder:text-gray-300 w-full"
                   />
                 </div>
                 <div className="flex gap-3">
@@ -231,10 +263,16 @@ export default function AddNewQuestionPage() {
             </Card>
           </div>
 
-          {/* Right Column: Preview (横長画面でのみ表示) */}
-          <div className="hidden lg:block sticky top-6">
-            <RightColumnContent />
-          </div>
+          {/* Right Column: Preview */}
+          {previewMode === "side" ? (
+            <div className="sticky top-6">
+              <RightColumnContent />
+            </div>
+          ) : (
+            <div className="hidden lg:block sticky top-6 w-full">
+              <RightColumnContent />
+            </div>
+          )}
         </div>
       </div>
 
@@ -254,7 +292,7 @@ export default function AddNewQuestionPage() {
       )}
 
       {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 border-t border-border" style={{ backgroundColor: 'rgb(230, 230, 230)' }}>
+      <nav className="fixed bottom-0 left-0 right-0 border-t border-border bg-background" style={{ backgroundColor: 'rgb(230, 230, 230)' }}>
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-around h-16">
             <Link href="/" className="flex flex-col items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"><Home className="w-5 h-5" /><span className="text-xs font-medium">ホーム</span></Link>
