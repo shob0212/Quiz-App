@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from "react"
 import Link from "next/link"
 import { supabase } from "@/lib/supabase"
 import { 
-  Home, Plus, Target, BarChart3, ArrowLeft, GripVertical, ChevronDown, Search 
+  Home, Plus, List, Target, BarChart3, ArrowLeft, GripVertical, ChevronDown, Search 
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -103,17 +103,29 @@ function CategoryDropdown({
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="end"
-        className="bg-white dark:bg-neutral-900 shadow-lg border border-border rounded-md"
+        className="bg-white dark:bg-neutral-900 shadow-lg rounded-md max-h-64"
       >
-        <DropdownMenuItem onSelect={() => onSelect(null)}>
+        <DropdownMenuItem className="mb-2 ml-2 font-semibold" onSelect={() => onSelect(null)}>
           すべてのカテゴリ
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        {categories.map((cat) => (
-          <DropdownMenuItem key={cat} onSelect={() => onSelect(cat)}>
-            {cat}
-          </DropdownMenuItem>
-        ))}
+        {categories.map((cat) => {
+          const isSelected = selected === cat;
+          return (
+            <div
+              key={cat}
+              className={`w-auto mx-auto `}
+            >
+              <DropdownMenuItem
+                onSelect={() => onSelect(cat)}
+                className={`py-2 pl-6 pr-3 ${isSelected ? "font-semibold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900" : ""}`}
+              >
+                {cat}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+            </div>
+          );
+        })}
       </DropdownMenuContent>
     </DropdownMenu>
   )
@@ -267,7 +279,7 @@ export default function ManagePage() {
         </div>
 
         {/* Bottom Navigation */}
-        <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border">
+        <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border" style={{ backgroundColor: 'rgb(230, 230, 230)' }}>
           <div className="container mx-auto px-4">
             <div className="flex items-center justify-around h-16">
               <Link
@@ -281,7 +293,7 @@ export default function ManagePage() {
                 href="/add"
                 className="flex flex-col items-center gap-1 text-primary"
               >
-                <Target className="w-5 h-5" />
+                <List className="w-5 h-5" />
                 <span className="text-xs font-medium">管理</span>
               </Link>
               <Link
