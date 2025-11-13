@@ -13,13 +13,13 @@
     "question": "AWSリソースをWebブラウザからGUIで操作するには何を使えばよいか。",
     "created_at": "2025-10-16T15:58:29.621742+00:00",
     "explanation": null,
-    "last_answered": null,
+    "last_answered": "2025-11-13T14:03:43.928Z",
     "correct_answers": [
       0
     ],
-    "memory_strength": 0,
+    "memory_strength": 20,
     "consecutive_wrong": 0,
-    "consecutive_correct": 0
+    "consecutive_correct": 1
   },
   {
     "id": "3fef31d2-c3d2-45de-b67b-12add439e12f",
@@ -36,14 +36,14 @@
     "question": "AWSの責任共有モデルにおいて、ユーザー側で責任を持って実施するのは次のうちどれか。（2つ選択）",
     "created_at": "2025-10-16T16:00:48.754357+00:00",
     "explanation": null,
-    "last_answered": null,
+    "last_answered": "2025-11-13T14:03:43.928Z",
     "correct_answers": [
       0,
       1
     ],
-    "memory_strength": 0,
+    "memory_strength": 20,
     "consecutive_wrong": 0,
-    "consecutive_correct": 0
+    "consecutive_correct": 1
   },
   {
     "id": "533f247c-e532-4bc3-99eb-2db3ac9e0e51",
@@ -59,13 +59,13 @@
     "question": "全世界に共通するAWSサービスの提供範囲は、次のうちどれか。",
     "created_at": "2025-10-16T15:59:31.576888+00:00",
     "explanation": null,
-    "last_answered": null,
+    "last_answered": "2025-11-13T14:03:43.928Z",
     "correct_answers": [
       0
     ],
-    "memory_strength": 0,
+    "memory_strength": 20,
     "consecutive_wrong": 0,
-    "consecutive_correct": 0
+    "consecutive_correct": 1
   },
   {
     "id": "a6d970e6-204e-4950-91cb-ec8aed3453e0",
@@ -128,13 +128,13 @@
     "question": "AWSの責任共有モデルにおいて、AWS側で責任を持って実施するのは次のうちどれか。（2つ選択）",
     "created_at": "2025-10-16T16:00:12.773255+00:00",
     "explanation": null,
-    "last_answered": null,
+    "last_answered": "2025-11-13T14:03:43.928Z",
     "correct_answers": [
       0,
       1
     ],
     "memory_strength": 0,
-    "consecutive_wrong": 0,
+    "consecutive_wrong": 1,
     "consecutive_correct": 0
   },
   {
@@ -197,12 +197,12 @@
     "question": "Well-Architected Frameworkにおける「一般的な設計原則」に従った設計はどれか。",
     "created_at": "2025-10-16T15:59:55.960782+00:00",
     "explanation": null,
-    "last_answered": null,
+    "last_answered": "2025-11-13T14:03:43.928Z",
     "correct_answers": [
       0
     ],
     "memory_strength": 0,
-    "consecutive_wrong": 0,
+    "consecutive_wrong": 1,
     "consecutive_correct": 0
   },
   {
@@ -241,12 +241,12 @@
     "question": "AWSにおける「責任共有モデル」の説明として、正しいのはどれか。",
     "created_at": "2025-10-16T15:58:11.798865+00:00",
     "explanation": null,
-    "last_answered": null,
+    "last_answered": "2025-11-13T14:03:43.928Z",
     "correct_answers": [
       0
     ],
     "memory_strength": 0,
-    "consecutive_wrong": 0,
+    "consecutive_wrong": 1,
     "consecutive_correct": 0
   },
   {
@@ -263,12 +263,12 @@
     "question": "AWSリソースをコマンドラインから操作したい。AWSから提供されているツールはどれか。",
     "created_at": "2025-10-16T15:59:00.593405+00:00",
     "explanation": null,
-    "last_answered": null,
+    "last_answered": "2025-11-13T14:03:43.928Z",
     "correct_answers": [
       0
     ],
     "memory_strength": 0,
-    "consecutive_wrong": 0,
+    "consecutive_wrong": 1,
     "consecutive_correct": 0
   },
   {
@@ -285,12 +285,12 @@
     "question": "リージョン内の物理的および論理的に区切られた1つ以上のデータセンターを何というか。",
     "created_at": "2025-10-16T15:59:16.082804+00:00",
     "explanation": null,
-    "last_answered": null,
+    "last_answered": "2025-11-13T14:03:43.928Z",
     "correct_answers": [
       0
     ],
     "memory_strength": 0,
-    "consecutive_wrong": 0,
+    "consecutive_wrong": 1,
     "consecutive_correct": 0
   },
   {
@@ -307,13 +307,13 @@
     "question": "Well-Architected Frameworkの説明で正しいのはどれか。",
     "created_at": "2025-10-16T15:56:44.559797+00:00",
     "explanation": null,
-    "last_answered": null,
+    "last_answered": "2025-11-13T14:03:43.928Z",
     "correct_answers": [
       0
     ],
-    "memory_strength": 0,
+    "memory_strength": 20,
     "consecutive_wrong": 0,
-    "consecutive_correct": 0
+    "consecutive_correct": 1
   },
   {
     "id": "11b67518-6e37-496b-ae72-1a6034a53527",
@@ -330,13 +330,13 @@
     "question": "AWSの責任共有モデルにおいて、AWS側で責任を持って実施するのは次のうちどれか。（2つ選択）",
     "created_at": "2025-10-16T16:00:27.470224+00:00",
     "explanation": null,
-    "last_answered": null,
+    "last_answered": "2025-11-13T14:03:43.928Z",
     "correct_answers": [
       0,
       1
     ],
     "memory_strength": 0,
-    "consecutive_wrong": 0,
+    "consecutive_wrong": 1,
     "consecutive_correct": 0
   },
   {

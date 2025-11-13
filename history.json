@@ -136,5 +136,65 @@
     "question_id": "76ec64d2-e4eb-4b89-a814-9824c04a81ac",
     "result": true,
     "answered_at": "2025-11-04T02:16:02.777Z"
+  },
+  {
+    "id": "229d9278-1cc6-48fb-bf93-685539f1c46d",
+    "question_id": "94d17824-e0d7-4c2c-8c8d-7f18c6959f7c",
+    "result": false,
+    "answered_at": "2025-11-13T14:03:43.925Z"
+  },
+  {
+    "id": "6d62b6fe-fcb3-43b1-8ba2-c6613685f86b",
+    "question_id": "11b67518-6e37-496b-ae72-1a6034a53527",
+    "result": false,
+    "answered_at": "2025-11-13T14:03:43.928Z"
+  },
+  {
+    "id": "38be383b-3f66-438d-8176-a47decf25f03",
+    "question_id": "cf13896c-171f-45c7-9026-00d0303271bd",
+    "result": true,
+    "answered_at": "2025-11-13T14:03:43.928Z"
+  },
+  {
+    "id": "cd5bb723-2e25-4999-b753-8bb07231df96",
+    "question_id": "0872e7f4-f40b-44da-a801-c0dc9c90dd5a",
+    "result": true,
+    "answered_at": "2025-11-13T14:03:43.928Z"
+  },
+  {
+    "id": "5e9c0371-1337-4da7-a955-9854f22a803b",
+    "question_id": "533f247c-e532-4bc3-99eb-2db3ac9e0e51",
+    "result": true,
+    "answered_at": "2025-11-13T14:03:43.928Z"
+  },
+  {
+    "id": "81625851-4075-4d1b-872b-44e01034c4b4",
+    "question_id": "df672f3b-b967-4300-aaaf-1c02dee640a3",
+    "result": false,
+    "answered_at": "2025-11-13T14:03:43.928Z"
+  },
+  {
+    "id": "2ff11902-44de-412e-8f88-50efe12b3305",
+    "question_id": "3fef31d2-c3d2-45de-b67b-12add439e12f",
+    "result": true,
+    "answered_at": "2025-11-13T14:03:43.928Z"
+  },
+  {
+    "id": "f8868c0b-91e2-4524-b648-3ca2a2d268bb",
+    "question_id": "95bbf86d-ac17-4314-affb-d7bfcd5db18e",
+    "result": false,
+    "answered_at": "2025-11-13T14:03:43.928Z"
+  },
+  {
+    "id": "1b5f9ab3-bf8c-4277-bf30-3a1d01c88591",
+    "question_id": "908b9223-c96d-4601-b5d2-b17df9ad3c2a",
+    "result": false,
+    "answered_at": "2025-11-13T14:03:43.928Z"
+  },
+  {
+    "id": "b0136bb3-555e-4836-b7b5-488d26d44d24",
+    "question_id": "166ebe00-5626-4638-9265-ff9a8b716363",
+    "result": false,
+    "answered_at": "2025-11-13T14:03:43.928Z"
   }
 ]

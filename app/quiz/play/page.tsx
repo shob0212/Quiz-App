@@ -47,6 +47,7 @@ export default function QuizPlayPage() {
   const [showTimer, setShowTimer] = useState(false);
   const { toast } = useToast();
   const [isProgressModalOpen, setIsProgressModalOpen] = useState(false);
+  const [history, setHistory] = useState<Record<string, History[]>>({});
 
   const handleJumpToQuestion = (index: number) => {
     setShowAnswer(false);
@@ -55,6 +56,11 @@ export default function QuizPlayPage() {
   };
 
   const currentQuestion = useMemo(() => questions[currentQuestionIndex], [questions, currentQuestionIndex]);
+
+  const currentQuestionHistory = useMemo(() => {
+    if (!currentQuestion) return [];
+    return history[currentQuestion.id] || [];
+  }, [currentQuestion, history]);
 
   useEffect(() => {
     if (currentQuestion) {
@@ -82,6 +88,20 @@ export default function QuizPlayPage() {
   useEffect(() => {
     const loadQuestions = async () => {
       setIsLoading(true);
+
+      const allHistory = await getHistory();
+      const historyByQuestionId: Record<string, History[]> = {};
+      for (const h of allHistory) {
+        if (!historyByQuestionId[h.question_id]) {
+          historyByQuestionId[h.question_id] = [];
+        }
+        historyByQuestionId[h.question_id].push(h);
+      }
+      for (const qId in historyByQuestionId) {
+        historyByQuestionId[qId].sort((a, b) => new Date(b.answered_at).getTime() - new Date(a.answered_at).getTime());
+      }
+      setHistory(historyByQuestionId);
+
       const categories = searchParams.get("categories")?.split(",") || [];
       const limit = Number(searchParams.get("limit"));
       const showTimerParam = searchParams.get("showTimer");
@@ -274,6 +294,33 @@ export default function QuizPlayPage() {
 
         {/* Question Card */}
         <Card className="p-6 mb-6 border-border">
+          
+          <div className="mb-6 text-sm text-muted-foreground border-t border-b py-3">
+            <div className="flex items-center justify-between">
+              <span>最終回答: {currentQuestionHistory.length > 0 ? new Date(currentQuestionHistory[0].answered_at).toLocaleString('ja-JP') : "-"}</span>
+              <div className="flex items-center gap-2">
+                <span>直近5回:</span>
+                <div className="flex gap-1 font-mono tracking-widest">
+                  {(currentQuestionHistory.length > 0
+                    ? currentQuestionHistory.slice(0, 5).map(h => h.result ? "〇" : "×")
+                    : []
+                  ).join("").padEnd(5, "-").split("").map((char, index) => (
+                    <span
+                      key={index}
+                      className={
+                        char === "〇" ? "text-red-500" :
+                        char === "×" ? "text-blue-500" :
+                        ""
+                      }
+                    >
+                      {char}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+          
           <h2 className="text-lg font-semibold text-foreground mb-6 leading-relaxed whitespace-pre-wrap">{currentQuestion.question}</h2>
           <div className="space-y-3">
             {currentQuestion.type === 'single' ? (
