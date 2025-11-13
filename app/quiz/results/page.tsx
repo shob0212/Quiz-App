@@ -1,22 +1,41 @@
 "use client"
 
-import { useSearchParams, useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Check, X } from "lucide-react"
+import { Spinner } from "@/components/ui/spinner"
 
 export default function ResultsPage() {
-  const searchParams = useSearchParams();
   const router = useRouter();
-  const resultsString = searchParams.get("results") || "[]";
-  const results = JSON.parse(resultsString);
-  const userAnswers = JSON.parse(searchParams.get("answers") || "{}");
+  const [results, setResults] = useState<any[]>([]);
+  const [userAnswers, setUserAnswers] = useState<Record<string, number[]>>({});
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const resultsString = sessionStorage.getItem("quizResults");
+    const answersString = sessionStorage.getItem("quizUserAnswers");
+
+    if (resultsString && answersString) {
+      setResults(JSON.parse(resultsString));
+      setUserAnswers(JSON.parse(answersString));
+    }
+    setIsLoading(false);
+  }, []);
+
+  const totalQuestions = results.length;
+  const correctAnswers = results.filter((r: any) => r.isCorrect).length;
+  const accuracy = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
 
   const handleQuestionClick = (questionId: string) => {
-    const answers = userAnswers[questionId] || [];
-    router.push(`/quiz/review?questionId=${questionId}&userAnswers=${JSON.stringify(answers)}&results=${resultsString}`);
+    router.push(`/quiz/review?questionId=${questionId}`);
   };
+
+  if (isLoading) {
+    return <div className="min-h-screen flex items-center justify-center"><Spinner size="lg" /></div>;
+  }
 
   if (results.length === 0) {
     return (
@@ -30,7 +49,24 @@ export default function ResultsPage() {
   return (
     <div className="min-h-screen bg-background pb-20">
       <div className="container mx-auto px-4 py-6 max-w-2xl">
-        <h1 className="text-3xl font-bold text-foreground mb-6">クイズ結果</h1>
+        <h1 className="text-3xl font-bold text-foreground mb-6 text-center">クイズ結果</h1>
+
+        <div className="mb-8 p-6 bg-secondary rounded-xl text-center">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="text-lg text-muted-foreground">正解数</p>
+              <p className="text-4xl font-bold text-foreground my-1">
+                {correctAnswers} <span className="text-xl text-muted-foreground">/ {totalQuestions}</span>
+              </p>
+            </div>
+            <div>
+              <p className="text-lg text-muted-foreground">正答率</p>
+              <p className="text-4xl font-bold text-foreground my-1">{accuracy}<span className="text-xl text-muted-foreground">%</span></p>
+            </div>
+          </div>
+        </div>
+
+        <h2 className="text-xl font-bold text-foreground mb-4">解答一覧</h2>
         <div className="space-y-3">
           {results.map((result: any, index: number) => (
             <Card key={result.questionId} onClick={() => handleQuestionClick(result.questionId)} className="p-4 flex items-center justify-between cursor-pointer hover:bg-secondary/50">

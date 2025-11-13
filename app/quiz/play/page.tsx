@@ -215,7 +215,14 @@ export default function QuizPlayPage() {
     await writeHistory([...allHistory, ...newHistoryEntries]);
     await writeQuestions(updatedQuestions);
 
-    router.push(`/quiz/results?results=${encodeURIComponent(JSON.stringify(results))}&answers=${encodeURIComponent(JSON.stringify(userAnswers))}`);
+    const resultsString = JSON.stringify(results);
+    const answersString = JSON.stringify(userAnswers);
+    console.log('Results string length:', resultsString.length);
+    console.log('Answers string length:', answersString.length);
+
+    sessionStorage.setItem('quizResults', resultsString);
+    sessionStorage.setItem('quizUserAnswers', answersString);
+    router.push(`/quiz/results`);
   };
 
   if (isLoading || !currentQuestion) {

@@ -12,39 +12,61 @@ export default function ReviewPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const questionId = searchParams.get("questionId");
-  const userAnswers = JSON.parse(searchParams.get("userAnswers") || "[]");
-  const results = searchParams.get("results");
 
   const [question, setQuestion] = useState<Question | null>(null);
+  const [userAnswers, setUserAnswers] = useState<number[]>([]);
+  const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchQuestion = async () => {
-      if (!questionId) return;
+    const fetchQuestionAndAnswers = async () => {
+      if (!questionId) {
+        setIsLoading(false);
+        return;
+      }
       setIsLoading(true);
+
+      // Fetch question from local data
       const allQuestions = await getQuestions();
       const foundQuestion = allQuestions.find(q => q.id === questionId);
       setQuestion(foundQuestion || null);
+
+      // Get answers and result from sessionStorage
+      const answersString = sessionStorage.getItem('quizUserAnswers');
+      const resultsString = sessionStorage.getItem('quizResults');
+      
+      if (answersString && resultsString) {
+        const allUserAnswers = JSON.parse(answersString);
+        const allResults = JSON.parse(resultsString);
+        
+        setUserAnswers(allUserAnswers[questionId] || []);
+
+        const result = allResults.find((r: any) => r.questionId === questionId);
+        setIsCorrect(result ? result.isCorrect : null);
+      }
+
       setIsLoading(false);
     };
-    fetchQuestion();
+    fetchQuestionAndAnswers();
   }, [questionId]);
 
   const handleBackToResults = () => {
-    // We need to pass the original results back to the results page
-    router.push(`/quiz/results?results=${results}`);
+    router.push('/quiz/results');
   };
 
-  if (isLoading || !question) {
+  if (isLoading) {
     return <div className="min-h-screen flex items-center justify-center"><Spinner size="lg" /></div>;
   }
 
-  const isCorrect = (
-    userAnswers.length === question.correct_answers.length &&
-    userAnswers.every((val: number) => question.correct_answers.includes(val))
-  );
-
-  return (
+  if (!question) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center">
+        <p className="text-lg text-muted-foreground mb-4">問題データが見つかりません。</p>
+        <Button onClick={handleBackToResults}>結果一覧に戻る</Button>
+      </div>
+    )
+  }
+  
     <div className="min-h-screen bg-background pb-20">
       <div className="container mx-auto px-4 py-6 max-w-2xl">
         <div className="flex items-center gap-4 mb-6">
@@ -55,7 +77,7 @@ export default function ReviewPage() {
         </div>
 
         <Card className="p-6 mb-6 border-border">
-          <h2 className="text-lg font-semibold text-foreground mb-6 leading-relaxed">{question.question}</h2>
+          <h2 className="text-lg font-semibold text-foreground mb-6 leading-relaxed whitespace-pre-wrap">{question.question}</h2>
           <div className="space-y-3">
             {question.options.map((option, index) => {
               const isSelected = userAnswers.includes(index);
@@ -86,12 +108,14 @@ export default function ReviewPage() {
           </div>
         </Card>
 
-        <Card className={`p-6 mb-6 border-2 ${isCorrect ? "border-green-500 bg-green-500/5" : "border-red-500 bg-red-500/5"}`}>
-            <h3 className={`text-lg font-bold mb-2 ${isCorrect ? "text-green-500" : "text-red-500"}`}>
-              {isCorrect ? "正解！" : "不正解"}
-            </h3>
-            <p className="text-sm text-foreground leading-relaxed">{question.explanation}</p>
-        </Card>
+        {isCorrect !== null && (
+          <Card className={`p-6 mb-6 border-2 ${isCorrect ? "border-green-500 bg-green-500/5" : "border-red-500 bg-red-500/5"}`}>
+              <h3 className={`text-lg font-bold mb-2 ${isCorrect ? "text-green-500" : "text-red-500"}`}>
+                {isCorrect ? "正解！" : "不正解"}
+              </h3>
+              <p className="text-sm text-foreground leading-relaxed">{question.explanation}</p>
+          </Card>
+        )}
 
         <Button onClick={handleBackToResults} className="w-full">結果一覧に戻る</Button>
       </div>
