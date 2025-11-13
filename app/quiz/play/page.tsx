@@ -48,13 +48,12 @@ export default function QuizPlayPage() {
   const [isProgressModalOpen, setIsProgressModalOpen] = useState(false);
 
   const handleJumpToQuestion = (index: number) => {
+    setShowAnswer(false);
     setCurrentQuestionIndex(index);
     setIsProgressModalOpen(false);
   };
 
   const currentQuestion = useMemo(() => questions[currentQuestionIndex], [questions, currentQuestionIndex]);
-
-
 
   useEffect(() => {
     if (currentQuestion) {
@@ -266,30 +265,47 @@ export default function QuizPlayPage() {
           <h2 className="text-lg font-semibold text-foreground mb-6 leading-relaxed">{currentQuestion.question}</h2>
           <div className="space-y-3">
             {currentQuestion.type === 'single' ? (
-              <RadioGroup
-                value={userAnswers[currentQuestion.id]?.[0]?.toString() ?? ""}
-                onValueChange={(value) => handleAnswerToggle(parseInt(value))}
-              >
-                {currentQuestion.options.map((option, index) => {
-                  const isCorrect = currentQuestion.correct_answers.includes(index);
-                  const isSelected = (userAnswers[currentQuestion.id] || []).includes(index);
-                  return (
-                    <Label
-                      key={index}
-                      htmlFor={`option-${index}`}
-                      className={`w-full p-4 rounded-xl border text-left transition-all flex items-center gap-3 cursor-pointer leading-normal ${
-                        showAnswer && isCorrect ? "border-green-500 bg-green-500/20" 
-                        : showAnswer && isSelected && !isCorrect ? "border-red-500 bg-red-500/20" 
-                        : isSelected ? "border-primary bg-primary/20" 
-                        : "border-border bg-secondary hover:bg-secondary/80"
-                      }`}
+              <>
+                <RadioGroup
+                  value={userAnswers[currentQuestion.id]?.[0]?.toString() ?? ""}
+                  onValueChange={(value) => handleAnswerToggle(parseInt(value))}
+                >
+                  {currentQuestion.options.map((option, index) => {
+                    const isCorrect = currentQuestion.correct_answers.includes(index);
+                    const isSelected = (userAnswers[currentQuestion.id] || []).includes(index);
+                    return (
+                      <Label
+                        key={index}
+                        htmlFor={`option-${index}`}
+                        className={`w-full p-4 rounded-xl border text-left transition-all flex items-center gap-3 cursor-pointer leading-relaxed ${
+                          showAnswer && isCorrect ? "border-green-500 bg-green-500/20" 
+                          : showAnswer && isSelected && !isCorrect ? "border-red-500 bg-red-500/20" 
+                          : isSelected ? "border-primary bg-primary/20 border-2" 
+                          : "border-border bg-secondary hover:bg-secondary/80"
+                        }`}
+                      >
+                        <RadioGroupItem value={index.toString()} id={`option-${index}`} />
+                        {option}
+                      </Label>
+                    )
+                  })}
+                </RadioGroup>
+                {currentQuestion.type === 'single' && userAnswers[currentQuestion.id] && (
+                  <div className="mt-4 flex justify-start">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const newUserAnswers = { ...userAnswers };
+                        delete newUserAnswers[currentQuestion.id];
+                        setUserAnswers(newUserAnswers);
+                      }}
                     >
-                      <RadioGroupItem value={index.toString()} id={`option-${index}`} />
-                      {option}
-                    </Label>
-                  )
-                })}
-              </RadioGroup>
+                      選択を解除
+                    </Button>
+                  </div>
+                )}
+              </>
             ) : (
               currentQuestion.options.map((option, index) => {
                 const isCorrect = currentQuestion.correct_answers.includes(index);
@@ -356,11 +372,17 @@ export default function QuizPlayPage() {
 
         {/* Navigation */}
         <div className="flex gap-3 mb-10">
-          <Button onClick={() => setCurrentQuestionIndex(prev => Math.max(0, prev - 1))} disabled={currentQuestionIndex === 0} className="flex-1">
+          <Button onClick={() => {
+            setShowAnswer(false);
+            setCurrentQuestionIndex(prev => Math.max(0, prev - 1));
+          }} disabled={currentQuestionIndex === 0} className="flex-1">
             <ChevronLeft className="w-4 h-4 mr-2" />
             前の問題
           </Button>
-          <Button onClick={() => setCurrentQuestionIndex(prev => Math.min(questions.length - 1, prev + 1))} disabled={currentQuestionIndex === questions.length - 1} className="flex-1">
+          <Button onClick={() => {
+            setShowAnswer(false);
+            setCurrentQuestionIndex(prev => Math.min(questions.length - 1, prev + 1));
+          }} disabled={currentQuestionIndex === questions.length - 1} className="flex-1">
             次の問題
             <ChevronRight className="w-4 h-4 ml-2" />
           </Button>
@@ -386,7 +408,7 @@ export default function QuizPlayPage() {
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>キャンセル</AlertDialogCancel>
-                <AlertDialogAction onClick={handleFinishQuiz} className="bg-green-300 hover:bg-green-600 hover:text-white">終了する</AlertDialogAction>
+                <AlertDialogAction onClick={handleFinishQuiz} className="outline outline-green-600 bg-green-300 hover:bg-green-600 hover:text-white">終了する</AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
