@@ -21,20 +21,21 @@ import { List } from "lucide-react"
 
 // Fisher-Yates (aka Knuth) Shuffle Algorithm
 const shuffleArray = (array: any[]) => {
-  let currentIndex = array.length, randomIndex;
+  const newArray = [...array];
+  let currentIndex = newArray.length, randomIndex;
   while (currentIndex !== 0) {
     randomIndex = Math.floor(Math.random() * currentIndex);
     currentIndex--;
-    [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+    [newArray[currentIndex], newArray[randomIndex]] = [newArray[randomIndex], newArray[currentIndex]];
   }
-  return array;
+  return newArray;
 }
 
 export default function QuizPlayPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [questions, setQuestions] = useState<Question[]>([]);
+  const [questions, setQuestions] = useState<(Question & { shuffledOptions: { option: string; originalIndex: number }[] })[]>([]);
   const [userAnswers, setUserAnswers] = useState<Record<string, number[]>>({});
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
@@ -92,7 +93,18 @@ export default function QuizPlayPage() {
       const shuffled = shuffleArray(filtered);
       const selectedQuestions = shuffled.slice(0, limit);
 
-      setQuestions(selectedQuestions);
+      const questionsWithShuffledOptions = selectedQuestions.map(q => {
+        const optionsWithOriginalIndex = q.options.map((option, index) => ({
+          option,
+          originalIndex: index,
+        }));
+        return {
+          ...q,
+          shuffledOptions: shuffleArray(optionsWithOriginalIndex),
+        };
+      });
+
+      setQuestions(questionsWithShuffledOptions);
       setStartTime(new Date());
       setIsLoading(false);
     };
@@ -270,13 +282,13 @@ export default function QuizPlayPage() {
                   value={userAnswers[currentQuestion.id]?.[0]?.toString() ?? ""}
                   onValueChange={(value) => handleAnswerToggle(parseInt(value))}
                 >
-                  {currentQuestion.options.map((option, index) => {
-                    const isCorrect = currentQuestion.correct_answers.includes(index);
-                    const isSelected = (userAnswers[currentQuestion.id] || []).includes(index);
+                  {currentQuestion.shuffledOptions.map(({ option, originalIndex }) => {
+                    const isCorrect = currentQuestion.correct_answers.includes(originalIndex);
+                    const isSelected = (userAnswers[currentQuestion.id] || []).includes(originalIndex);
                     return (
                       <Label
-                        key={index}
-                        htmlFor={`option-${index}`}
+                        key={originalIndex}
+                        htmlFor={`option-${originalIndex}`}
                         className={`w-full p-4 rounded-xl border text-left transition-all flex items-center gap-3 cursor-pointer leading-relaxed ${
                           showAnswer && isCorrect ? "border-green-500 bg-green-500/20" 
                           : showAnswer && isSelected && !isCorrect ? "border-red-500 bg-red-500/20" 
@@ -284,7 +296,7 @@ export default function QuizPlayPage() {
                           : "border-border bg-secondary hover:bg-secondary/80"
                         }`}
                       >
-                        <RadioGroupItem value={index.toString()} id={`option-${index}`} />
+                        <RadioGroupItem value={originalIndex.toString()} id={`option-${originalIndex}`} />
                         {option}
                       </Label>
                     )
@@ -307,13 +319,13 @@ export default function QuizPlayPage() {
                 )}
               </>
             ) : (
-              currentQuestion.options.map((option, index) => {
-                const isCorrect = currentQuestion.correct_answers.includes(index);
-                const isSelected = (userAnswers[currentQuestion.id] || []).includes(index);
+              currentQuestion.shuffledOptions.map(({ option, originalIndex }) => {
+                const isCorrect = currentQuestion.correct_answers.includes(originalIndex);
+                const isSelected = (userAnswers[currentQuestion.id] || []).includes(originalIndex);
                 return (
                   <Label
-                    key={index}
-                    htmlFor={`option-${index}`}
+                    key={originalIndex}
+                    htmlFor={`option-${originalIndex}`}
                     className={`w-full p-4 rounded-xl border-2 text-left transition-all flex items-center gap-3 cursor-pointer ${
                       showAnswer && isCorrect ? "border-green-500 bg-green-500/20" 
                       : showAnswer && isSelected && !isCorrect ? "border-red-500 bg-red-500/20" 
@@ -321,7 +333,7 @@ export default function QuizPlayPage() {
                       : "border-border bg-secondary hover:bg-secondary/80"
                     }`}
                   >
-                    <Checkbox id={`option-${index}`} checked={isSelected} onCheckedChange={() => handleAnswerToggle(index)} />
+                    <Checkbox id={`option-${originalIndex}`} checked={isSelected} onCheckedChange={() => handleAnswerToggle(originalIndex)} />
                     {option}
                   </Label>
                 )
