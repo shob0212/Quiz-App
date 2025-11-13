@@ -81,8 +81,8 @@ export default function ResultsPage() {
             </Card>
           ))}
         </div>
-        <Link href="/" className="mt-8 inline-block w-full">
-          <Button className="w-full">ホームに戻る</Button>
+        <Link href="/quiz" className="mt-8 inline-block w-full">
+          <Button className="w-full">出題設定に戻る</Button>
         </Link>
       </div>
     </div>

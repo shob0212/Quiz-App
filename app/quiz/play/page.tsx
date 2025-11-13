@@ -256,7 +256,7 @@ export default function QuizPlayPage() {
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>キャンセル</AlertDialogCancel>
-                  <AlertDialogAction onClick={() => router.push("/")} className="bg-red-500 hover:bg-red-600 text-white">中断して戻る</AlertDialogAction>
+                  <AlertDialogAction onClick={() => router.push("/quiz")} className="bg-red-500 hover:bg-red-600 text-white">中断して戻る</AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>

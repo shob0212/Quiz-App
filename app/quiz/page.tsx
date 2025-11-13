@@ -25,6 +25,27 @@ export default function QuizSettingsPage() {
   const router = useRouter();
 
   useEffect(() => {
+    const savedSettings = sessionStorage.getItem('quizSettings');
+    if (savedSettings) {
+      const { selectedCategories, numQuestions, showTimer } = JSON.parse(savedSettings);
+      if (selectedCategories) setSelectedCategories(selectedCategories);
+      if (numQuestions) setNumQuestions(numQuestions);
+      if (typeof showTimer === 'boolean') setShowTimer(showTimer);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!isLoading) {
+      const settings = {
+        selectedCategories,
+        numQuestions,
+        showTimer,
+      };
+      sessionStorage.setItem('quizSettings', JSON.stringify(settings));
+    }
+  }, [selectedCategories, numQuestions, showTimer, isLoading]);
+
+  useEffect(() => {
     const fetchCategories = async () => {
       setIsLoading(true);
       const allQuestions = await getQuestions();
@@ -35,7 +56,11 @@ export default function QuizSettingsPage() {
 
       const categoryInfo = Object.entries(categoryCounts).map(([name, count]) => ({ name, count }));
       setCategories(categoryInfo);
-      setSelectedCategories(categoryInfo.map(c => c.name)); // Default to all selected
+
+      const savedSettings = sessionStorage.getItem('quizSettings');
+      if (!savedSettings) {
+        setSelectedCategories(categoryInfo.map(c => c.name));
+      }
       setIsLoading(false);
     };
     fetchCategories();
