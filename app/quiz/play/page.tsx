@@ -253,8 +253,8 @@ export default function QuizPlayPage() {
                   {questions.map((q, index) => (
                     <Button
                       key={q.id}
-                      variant={userAnswers[q.id] ? "outline" : "outline"}
-                      className={`justify-center ${index === currentQuestionIndex ? 'border-2 border-blue-500' : ''}`}
+                      variant="outline"
+                      className={`justify-center ${index === currentQuestionIndex ? 'border-3 border-blue-500' : ''} ${userAnswers[q.id] ? 'bg-gray-500 text-gray-900' : ''}`}
                       onClick={() => handleJumpToQuestion(index)}
                     >
                       {index + 1}
