@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { supabase } from "@/lib/supabase"
+import { getQuestions, getHistory, Question, History } from "@/lib/data"
 import { Home, Plus, Target, BarChart3, ArrowLeft, Check, X, TrendingUp, Award, Calendar, Zap, List } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -21,29 +21,6 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts"
-
-// DBの型定義
-interface Question {
-  id: string;
-  category: string;
-  question: string;
-  options: string[];
-  correct_answers: number[];
-  explanation: string | null;
-  type: 'single' | 'multiple';
-  memory_strength: number;
-  created_at: string;
-  last_answered: string | null;
-  consecutive_correct: number;
-  consecutive_wrong: number;
-}
-
-interface History {
-  id: string;
-  question_id: string;
-  result: boolean;
-  answered_at: string;
-}
 
 // 画面表示用に加工したデータ型
 interface AnalyticsData {
@@ -66,17 +43,10 @@ export default function HistoryPage() {
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
-      const questionsPromise = supabase.from('questions').select('*');
-      const historyPromise = supabase.from('history').select('*');
-      
-      const [questionsRes, historyRes] = await Promise.all([questionsPromise, historyPromise]);
-
-      if (questionsRes.error || historyRes.error) {
-        console.error("Error fetching data:", questionsRes.error || historyRes.error);
-      } else {
-        setQuestions(questionsRes.data || []);
-        setHistory(historyRes.data || []);
-      }
+      const questionsData = await getQuestions();
+      const historyData = await getHistory();
+      setQuestions(questionsData);
+      setHistory(historyData);
       setIsLoading(false);
     };
     fetchData();

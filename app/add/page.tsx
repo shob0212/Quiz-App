@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react"
 import Link from "next/link"
-import { supabase } from "@/lib/supabase"
+import { getQuestions, getHistory, writeQuestions, Question, History } from "@/lib/data"
 import { 
   Home, Plus, List, Target, BarChart3, ArrowLeft, GripVertical, ChevronDown, Search 
 } from "lucide-react"
@@ -25,20 +25,6 @@ import {
 } from '@dnd-kit/core'
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-
-interface Question {
-  id: string
-  category: string
-  question: string
-  memory_strength: number
-  last_answered: string | null
-  position: number
-}
-
-interface History {
-  question_id: string
-  result: boolean
-}
 
 interface ManagedQuestion extends Question {
   attempts: number
@@ -72,7 +58,7 @@ const DraggableTableRow = ({ row }: { row: ManagedQuestion }) => {
       </TableCell>
       <TableCell>{row.correctRate}%</TableCell>
       <TableCell>{row.last_answered ? new Date(row.last_answered).toLocaleDateString() : "未回答"}</TableCell>
-      <TableCell className="text-right"></TableCell>
+
     </TableRow>
   )
 }
@@ -143,24 +129,16 @@ export default function ManagePage() {
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true)
-      const { data: questionsData, error: qError } = await supabase
-        .from("questions")
-        .select("id, category, question, memory_strength, last_answered, position")
-      const { data: historyData, error: hError } = await supabase
-        .from("history")
-        .select("question_id, result")
+      const questionsData = await getQuestions();
+      const historyData = await getHistory();
 
-      if (qError || hError) {
-        console.error("Error fetching data:", qError || hError)
-      } else {
-        const processed = (questionsData || []).map((q) => {
-          const qh = (historyData || []).filter((h) => h.question_id === q.id)
-          const correct = qh.filter((h) => h.result).length
-          const correctRate = qh.length ? Math.round((correct / qh.length) * 100) : 0
-          return { ...q, attempts: qh.length, correctRate }
-        })
-        setQuestions(processed.sort((a, b) => a.position - b.position))
-      }
+      const processed = (questionsData || []).map((q) => {
+        const qh = (historyData || []).filter((h) => h.question_id === q.id)
+        const correct = qh.filter((h) => h.result).length
+        const correctRate = qh.length ? Math.round((correct / qh.length) * 100) : 0
+        return { ...q, attempts: qh.length, correctRate }
+      })
+      setQuestions(processed.sort((a, b) => a.position - b.position))
       setIsLoading(false)
     }
     fetchData()
@@ -183,14 +161,20 @@ export default function ManagePage() {
       const newIndex = questions.findIndex((q) => q.id === over.id)
       const newOrder = arrayMove(questions, oldIndex, newIndex)
       setQuestions(newOrder)
-      const updates = newOrder.map((q, i) =>
-        supabase.from("questions").update({ position: i }).eq("id", q.id)
-      )
-      await Promise.all(updates)
+      
+      const allQuestions = await getQuestions();
+      const updatedQuestions = newOrder.map((q, i) => {
+        const originalQuestion = allQuestions.find(aq => aq.id === q.id);
+        if (originalQuestion) {
+          originalQuestion.position = i;
+        }
+        return originalQuestion;
+      });
+
+      await writeQuestions(allQuestions);
     }
     setActiveId(null)
   }
-
   if (isLoading)
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -261,7 +245,7 @@ export default function ManagePage() {
                   <TableHead>記憶度</TableHead>
                   <TableHead>正答率</TableHead>
                   <TableHead>最終回答日</TableHead>
-                  <TableHead className="text-right">アクション</TableHead>
+
                 </TableRow>
               </TableHeader>
               <TableBody>

@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { QuestionPreview } from "@/components/ui/question-preview"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
-import { supabase } from "@/lib/supabase";
+import { getQuestions, writeQuestions, Question } from "@/lib/data";
 import { cn } from "@/lib/utils"
 
 // --- タイプ定義 ---
@@ -102,12 +102,28 @@ export default function AddNewQuestionPage() {
       const explanation = answerLines.slice(1).join('\n').trim();
       const correctAnswers = correctAnswersStr.split(',').map(n => parseInt(n.trim(), 10) - 1);
       if (correctAnswers.some(isNaN)) throw new Error("無効な形式です。正答は数字である必要があります。");
-      const newQuestion = { category, question, options, correct_answers: correctAnswers, explanation: explanation || null, type: correctAnswers.length > 1 ? "multiple" : "single", memory_strength: 0 };
-      const { error } = await supabase.from('questions').insert([newQuestion]);
-      if (error) throw error;
+      
+      const questions = await getQuestions();
+      const newQuestion: Question = {
+        id: crypto.randomUUID(),
+        category,
+        question,
+        options,
+        correct_answers: correctAnswers,
+        explanation: explanation || null,
+        type: correctAnswers.length > 1 ? "multiple" : "single",
+        memory_strength: 0,
+        position: questions.length, // Add to the end
+        created_at: new Date().toISOString(),
+        last_answered: null,
+        consecutive_correct: 0,
+        consecutive_wrong: 0
+      };
+
+      await writeQuestions([...questions, newQuestion]);
       return { success: true, category: category };
-    } catch (error) { 
-      console.error("Supabase Error:", error);
+    } catch (error) {
+      console.error("Error adding question:", error);
       alert(`エラーが発生しました: ${(error as Error).message}`);
       return { success: false, category: null };
     }

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { supabase } from "@/lib/supabase"
+import { getQuestions, getHistory, Question, History } from "@/lib/data";
 import { Home, Target, BarChart3, List } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -21,27 +21,29 @@ export default function HomePage() {
     const fetchStats = async () => {
       setIsLoading(true);
       try {
-        // 3つのシンプルなRPC関数を並列で呼び出す
-        const [
-          { data: total_questions_count, error: qError },
-          { data: answered_questions_count, error: aError },
-          { data: latest_attempt_correct_count, error: cError }
-        ] = await Promise.all([
-          supabase.rpc('rpc_get_total_questions_count'),
-          supabase.rpc('rpc_get_answered_questions_count'),
-          supabase.rpc('rpc_get_latest_attempt_correct_count')
-        ]);
+        const questions = await getQuestions();
+        const history = await getHistory();
 
-        if (qError || aError || cError) {
-          console.error("Error fetching stats:", qError || aError || cError);
-          setStats(null);
-        } else {
-          setStats({
-            total_questions_count: total_questions_count ?? 0,
-            answered_questions_count: answered_questions_count ?? 0,
-            latest_attempt_correct_count: latest_attempt_correct_count ?? 0,
-          });
+        const total_questions_count = questions.length;
+
+        const answeredQuestionIds = new Set(history.map(h => h.question_id));
+        const answered_questions_count = answeredQuestionIds.size;
+
+        let latest_attempt_correct_count = 0;
+        for (const questionId of answeredQuestionIds) {
+          const questionHistory = history
+            .filter(h => h.question_id === questionId)
+            .sort((a, b) => new Date(b.answered_at).getTime() - new Date(a.answered_at).getTime());
+          if (questionHistory.length > 0 && questionHistory[0].result) {
+            latest_attempt_correct_count++;
+          }
         }
+
+        setStats({
+          total_questions_count,
+          answered_questions_count,
+          latest_attempt_correct_count,
+        });
       } catch (e) {
         console.error("A critical error occurred while fetching stats:", e);
         setStats(null);
