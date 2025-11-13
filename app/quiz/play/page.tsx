@@ -274,7 +274,7 @@ export default function QuizPlayPage() {
 
         {/* Question Card */}
         <Card className="p-6 mb-6 border-border">
-          <h2 className="text-lg font-semibold text-foreground mb-6 leading-relaxed">{currentQuestion.question}</h2>
+          <h2 className="text-lg font-semibold text-foreground mb-6 leading-relaxed whitespace-pre-wrap">{currentQuestion.question}</h2>
           <div className="space-y-3">
             {currentQuestion.type === 'single' ? (
               <>
