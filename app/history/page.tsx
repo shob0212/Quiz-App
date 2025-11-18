@@ -83,6 +83,8 @@ export default function HistoryPage() {
 
   // --- 以下、統計データの計算ロジック (analyticsDataを使用するように変更) ---
   const totalQuestions = analyticsData.length
+  const answeredQuestionIds = new Set(history.map(h => h.question_id));
+  const answered_questions_count = answeredQuestionIds.size;
   const correctCount = analyticsData.filter((h) => h.isCorrect).length
   const incorrectCount = totalQuestions - correctCount
   const correctRate = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0
@@ -209,7 +211,7 @@ export default function HistoryPage() {
                 <Target className="w-5 h-5 text-foreground" />
               </div>
               <div>
-                <div className="text-2xl font-bold text-foreground">{totalQuestions}</div>
+                <div className="text-2xl font-bold text-foreground">{answered_questions_count}  /  {totalQuestions}</div>
                 <div className="text-xs text-muted-foreground">学習済み問題</div>
               </div>
             </div>
@@ -238,9 +240,9 @@ export default function HistoryPage() {
                 data={memoryPieData}
                 cx="50%"
                 cy="50%"
-                labelLine={false}
+                labelLine={true}
                 label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                outerRadius={80}
+                outerRadius={120}
                 fill="#8884d8"
                 dataKey="value"
               >
@@ -250,7 +252,7 @@ export default function HistoryPage() {
               </Pie>
               <Tooltip
                 contentStyle={{
-                  backgroundColor: "hsl(var(--card))",
+                  backgroundColor: "white",
                   border: "1px solid hsl(var(--border))",
                   borderRadius: "8px",
                 }}
@@ -278,14 +280,15 @@ export default function HistoryPage() {
             <TrendingUp className="w-4 h-4" />
             カテゴリ別パフォーマンス
           </h3>
-          <ResponsiveContainer width="100%" height={280}>
+          <div className="overflow-x-auto w-full">
+          <ResponsiveContainer width="800%" height={280}>
             <BarChart data={categoryChartData} margin={{ top: 5, right: 10, left: -20, bottom: 5 }} onClick={handleCategoryClick} className="cursor-pointer">
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="name" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} />
+              <XAxis dataKey="name" tickFormatter={(value) => value.length>8 ? value.slice(0, 10)+"..." : value} tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12, angle: -45, textAnchor: "end" }} height={80}/>
               <YAxis tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: "hsl(var(--card))",
+                  backgroundColor: "white",
                   border: "1px solid hsl(var(--border))",
                   borderRadius: "8px",
                 }}
@@ -295,11 +298,12 @@ export default function HistoryPage() {
               <Bar dataKey="記憶度" fill="hsl(var(--success))" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
+          </div>
         </Card>
 
         {/* Filters */}
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-semibold text-foreground">問題一覧</h3>
+          <h3 className="text-sm font-semibold text-foreground">直近10回の履歴</h3>
           <div className="flex gap-2">
             <Button
               variant={filter === "all" ? "default" : "outline"}
@@ -340,7 +344,7 @@ export default function HistoryPage() {
 
         {/* History List */}
         <div className="space-y-3">
-          {filteredHistory.map((item) => (
+          {filteredHistory.slice(0, 10).map((item) => (
             <Card key={item.id} className="p-4 border-border hover:bg-card/80 transition-colors">
               <div className="flex items-start gap-3">
                 <div
