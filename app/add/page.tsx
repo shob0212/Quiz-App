@@ -380,6 +380,12 @@ export default function ManagePage() {
     )
 
   return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Spinner size="lg" />
+        <p className="ml-4 text-muted-foreground">読み込み中...</p>
+      </div>
+    }>
     <div>
       <DndContext
         sensors={sensors}
@@ -588,6 +594,7 @@ export default function ManagePage() {
         </form>
       </DialogContent>
     </Dialog>
-  </div>
+    </div>
+  </Suspense>
   )
 }
