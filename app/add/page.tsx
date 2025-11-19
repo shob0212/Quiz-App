@@ -2,13 +2,33 @@
 
 import { useState, useEffect, useMemo, memo } from "react"
 import Link from "next/link"
-import { getQuestions, getHistory, writeQuestions, Question, History } from "@/lib/data"
+import { getQuestions, getHistory, writeQuestions, writeHistory, Question, History } from "@/lib/data"
 import { 
-  Home, Plus, List, Target, BarChart3, ArrowLeft, GripVertical, ChevronDown, Search 
+  Home, Plus, List, Target, BarChart3, ArrowLeft, GripVertical, ChevronDown, Search, Trash2, PenSquare
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Card } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
 import { Progress } from "@/components/ui/progress"
+import { Textarea } from "@/components/ui/textarea"
 import { 
   Table, TableHeader, TableRow, TableHead, TableBody, TableCell 
 } from "@/components/ui/table"
@@ -38,6 +58,15 @@ interface ManagedQuestion extends Question {
   correctRate: number
 }
 
+// 編集フォーム用のデータ型
+type EditFormData = {
+  question?: string;
+  options?: string[];
+  correct_answers_str?: string; // String representation of correct answers (e.g., "1,3")
+  explanation?: string;
+  category?: string;
+};
+
 // --- Row Content (Memoized) ---
 const QuestionRowContent = memo(({ row }: { row: ManagedQuestion }) => {
   return (
@@ -59,7 +88,7 @@ const QuestionRowContent = memo(({ row }: { row: ManagedQuestion }) => {
 QuestionRowContent.displayName = 'QuestionRowContent';
 
 // --- ドラッグ可能な行 ---
-const DraggableTableRow = ({ row, isEditMode }: { row: ManagedQuestion, isEditMode: boolean }) => {
+const DraggableTableRow = ({ row, isEditMode, onEditClick }: { row: ManagedQuestion, isEditMode: boolean, onEditClick: (question: ManagedQuestion) => void }) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: row.id })
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -70,12 +99,19 @@ const DraggableTableRow = ({ row, isEditMode }: { row: ManagedQuestion, isEditMo
 
   return (
     <TableRow ref={setNodeRef} style={style} {...attributes}>
-      <TableCell className="w-10">
-        {isEditMode && (
-          <Button variant="ghost" size="icon" {...listeners} className="cursor-grab">
-            <GripVertical className="w-5 h-5 text-muted-foreground" />
-          </Button>
-        )}
+      <TableCell className="w-20">
+        <div className="flex items-center">
+          {isEditMode && (
+            <>
+              <Button variant="ghost" size="icon" {...listeners} className="cursor-grab">
+                <GripVertical className="w-5 h-5 text-muted-foreground" />
+              </Button>
+              <Button variant="ghost" size="icon" onClick={() => onEditClick(row)}>
+                <PenSquare className="w-5 h-5 text-muted-foreground" />
+              </Button>
+            </>
+          )}
+        </div>
       </TableCell>
       <QuestionRowContent row={row} />
     </TableRow>
@@ -144,8 +180,119 @@ export default function ManagePage() {
   const [filterCategory, setFilterCategory] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState("") // 🔍 追加
   const [isEditMode, setIsEditMode] = useState(false)
+  const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingQuestion, setEditingQuestion] = useState<ManagedQuestion | null>(null);
+  const [currentFormData, setCurrentFormData] = useState<EditFormData>({});
   const sensors = useSensors(useSensor(PointerSensor))
   const activeQuestion = useMemo(() => questions.find((q) => q.id === activeId), [activeId, questions]);
+
+  const handleEditClick = (question: ManagedQuestion) => {
+    setEditingQuestion(question);
+    // Initialize form data, converting correct_answers array to a comma-separated string for input
+    setCurrentFormData({
+      question: question.question,
+      options: question.options,
+      correct_answers_str: question.correct_answers.map(n => n + 1).join(','), // Convert number[] to string for input
+      explanation: question.explanation || '',
+      category: question.category,
+    });
+    setIsEditDialogOpen(true);
+  };
+
+  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    if (name.startsWith('option')) { // Changed from 'choice' to 'option'
+      const index = parseInt(name.replace('option', ''));
+      setCurrentFormData(prev => {
+        const newOptions = [...(prev.options || [])]; // `options` in prev
+        newOptions[index] = value;
+        return { ...prev, options: newOptions };
+      });
+    } else {
+      setCurrentFormData(prev => ({ ...prev, [name]: value }));
+    }
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingQuestion) return;
+
+    // Parse correct_answers_str to number[]
+    const parsedCorrectAnswers = currentFormData.correct_answers_str
+      ? currentFormData.correct_answers_str.split(',').map(s => parseInt(s.trim(), 10) - 1).filter(n => !isNaN(n) && n >= 0)
+      : [];
+
+    // Determine question type based on parsed correct answers
+    const questionType = parsedCorrectAnswers.length > 1 ? "multiple" : "single";
+
+    // Build the core Question object from currentFormData and immutable fields from editingQuestion
+    const updatedCoreQuestion: Question = {
+      id: editingQuestion.id,
+      question: currentFormData.question || editingQuestion.question,
+      options: currentFormData.options || editingQuestion.options,
+      correct_answers: parsedCorrectAnswers,
+      explanation: currentFormData.explanation || editingQuestion.explanation,
+      category: currentFormData.category || editingQuestion.category,
+      position: editingQuestion.position, // Keep original
+      memory_strength: editingQuestion.memory_strength, // Keep original
+      last_answered: editingQuestion.last_answered, // Keep original
+      created_at: editingQuestion.created_at, // Keep original
+      consecutive_correct: editingQuestion.consecutive_correct, // Keep original
+      consecutive_wrong: editingQuestion.consecutive_wrong, // Keep original
+      type: questionType, // Set based on correct_answers
+    };
+
+    // Update local state with the new ManagedQuestion properties
+    const updatedManagedQuestion: ManagedQuestion = {
+      ...editingQuestion, // Keep attempts, correctRate, etc. from original ManagedQuestion
+      ...updatedCoreQuestion, // Overlay with updated core data
+    };
+
+    const newQuestionsState = questions.map(q =>
+      q.id === updatedManagedQuestion.id ? updatedManagedQuestion : q
+    );
+    setQuestions(newQuestionsState);
+
+    // Prepare data for persistence (strip UI-only fields)
+    const questionsToPersist: Question[] = newQuestionsState.map(({ attempts, correctRate, ...q }) => q);
+
+    await writeQuestions(questionsToPersist);
+
+    setIsEditDialogOpen(false);
+    setEditingQuestion(null);
+    setCurrentFormData({});
+  };
+
+
+  const handleResetHistoryClick = () => {
+    setIsResetDialogOpen(true);
+  };
+
+  const handleResetHistoryConfirm = async () => {
+    // 1. Clear history file
+    await writeHistory([]);
+    
+    // 2. Create the array with reset values
+    const resetQuestions = questions.map(q => ({
+      ...q,
+      attempts: 0,
+      correctRate: 0,
+      last_answered: null,
+      memory_strength: 0,
+    }));
+    
+    // 3. Update local state for immediate UI feedback
+    setQuestions(resetQuestions);
+    
+    // 4. Prepare question data for saving (strip UI-only fields)
+    const questionsToSave: Question[] = resetQuestions.map(({ attempts, correctRate, ...q }) => q);
+    
+    // 5. Write updated questions to the data source
+    await writeQuestions(questionsToSave);
+
+    // 6. Close the dialog
+    setIsResetDialogOpen(false);
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -239,12 +386,19 @@ export default function ManagePage() {
                 selected={filterCategory}
                 onSelect={setFilterCategory}
               />
-              <Link href="/questions/new">
-                <Button className="bg-green-600 hover:bg-green-700 text-white">
-                  <Plus className="w-4 h-4 mr-2" />
-                  新規登録
+              {isEditMode ? (
+                <Button variant="default" className="bg-red-600 text-white" onClick={handleResetHistoryClick}>
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  学習履歴リセット
                 </Button>
-              </Link>
+              ) : (
+                <Link href="/questions/new">
+                  <Button className="bg-green-600 hover:bg-green-700 text-white">
+                    <Plus className="w-4 h-4 mr-2" />
+                    新規登録
+                  </Button>
+                </Link>
+              )}
             </div>
           </div>
 
@@ -264,7 +418,7 @@ export default function ManagePage() {
           <Card className="border-border">
             <Table>
               <TableHeader>
-                <TableRow><TableHead className="w-10"></TableHead><TableHead>問題</TableHead><TableHead className="w-20"></TableHead><TableHead className="w-30">カテゴリ</TableHead><TableHead className="w-20">記憶度</TableHead><TableHead className="w-20">正答率</TableHead><TableHead className="w-30">最終回答日</TableHead></TableRow>
+                <TableRow><TableHead className="w-20"></TableHead><TableHead>問題</TableHead><TableHead className="w-20"></TableHead><TableHead className="w-30">カテゴリ</TableHead><TableHead className="w-20">記憶度</TableHead><TableHead className="w-20">正答率</TableHead><TableHead className="w-30">最終回答日</TableHead></TableRow>
               </TableHeader>
               <TableBody>
                 <SortableContext
@@ -273,7 +427,7 @@ export default function ManagePage() {
                   disabled={!isEditMode}
                 >
                   {filteredQuestions.map((q) => (
-                    <DraggableTableRow key={q.id} row={q} isEditMode={isEditMode} />
+                    <DraggableTableRow key={q.id} row={q} isEditMode={isEditMode} onEditClick={handleEditClick} />
                   ))}
                 </SortableContext>
               </TableBody>
@@ -308,6 +462,100 @@ export default function ManagePage() {
         ) : null}
       </DragOverlay>
     </DndContext>
+    <AlertDialog open={isResetDialogOpen} onOpenChange={setIsResetDialogOpen}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>学習履歴の削除</AlertDialogTitle>
+          <AlertDialogDescription>
+            本当にすべての学習履歴をリセットしますか？この操作は元に戻せません。問題データは削除されません。
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>キャンセル</AlertDialogCancel>
+          <AlertDialogAction className="bg-red-500 text-white" onClick={handleResetHistoryConfirm}>削除</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+      <DialogContent className="bg-white sm:max-w-[500px]">
+        <DialogHeader>
+          <DialogTitle>問題を編集</DialogTitle>
+          <DialogDescription>
+            問題の内容を編集し、保存してください。
+          </DialogDescription>
+        </DialogHeader>
+        <form onSubmit={(e) => { e.preventDefault(); handleSaveEdit(); }}>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="question" className="text-right">
+                問題文
+              </Label>
+              <Textarea
+                id="question"
+                name="question"
+                value={currentFormData.question || ''}
+                onChange={handleFormChange}
+                className="col-span-3"
+              />
+            </div>
+            {/* Options */}
+            {currentFormData.options && currentFormData.options.map((option, index) => (
+              <div key={index} className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor={`option${index}`} className="text-right">
+                  選択肢 {index + 1}
+                </Label>
+                <Input
+                  id={`option${index}`}
+                  name={`option${index}`} // Unique name for each option
+                  value={option}
+                  onChange={handleFormChange}
+                  className="col-span-3"
+                />
+              </div>
+            ))}
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="correct_answers_str">
+                正答番号(例: 1,3)
+              </Label>
+              <Input
+                id="correct_answers_str"
+                name="correct_answers_str"
+                value={currentFormData.correct_answers_str || ''}
+                onChange={handleFormChange}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="explanation" className="text-right">
+                解説
+              </Label>
+              <Textarea
+                id="explanation"
+                name="explanation"
+                value={currentFormData.explanation || ''}
+                onChange={handleFormChange}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="category" className="text-right">
+                カテゴリ
+              </Label>
+              <Input
+                id="category"
+                name="category"
+                value={currentFormData.category || ''}
+                onChange={handleFormChange}
+                className="col-span-3"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button type="submit">変更を保存</Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   </div>
   )
 }

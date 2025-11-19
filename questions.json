@@ -1,5 +1,49 @@
 [
   {
+    "id": "cf13896c-171f-45c7-9026-00d0303271bd",
+    "type": "single",
+    "options": [
+      "AWSが提唱するクラウド設計・運用のベストプラクティス集",
+      "AWSが保有する物理サーバーの設計書",
+      "AWSが提供する仮想サーバーの標準設計書",
+      "AWSサービスの標準運用手順書および障害対応マニュアル"
+    ],
+    "category": "AWSの概要",
+    "position": 0,
+    "question": "Well-Architected Frameworkの説明で正しいのはどれか。",
+    "created_at": "2025-10-16T15:56:44.559797+00:00",
+    "explanation": null,
+    "last_answered": null,
+    "correct_answers": [
+      0
+    ],
+    "memory_strength": 0,
+    "consecutive_wrong": 0,
+    "consecutive_correct": 2
+  },
+  {
+    "id": "95bbf86d-ac17-4314-affb-d7bfcd5db18e",
+    "type": "single",
+    "options": [
+      "AWSのセキュリティ対策の責任をAWSとユーザーで分担するモデル",
+      "AWSクラウドにかかるコストの責任をAWSとユーザーで分担するモデル",
+      "AWSとユーザー間のSLAを規定したモデル",
+      "AWSサービスの監査の責任をAWSとユーザーで分担するモデル"
+    ],
+    "category": "AWSの概要",
+    "position": 1,
+    "question": "AWSにおける「責任共有モデル」の説明として、正しいのはどれか。",
+    "created_at": "2025-10-16T15:58:11.798865+00:00",
+    "explanation": null,
+    "last_answered": null,
+    "correct_answers": [
+      0
+    ],
+    "memory_strength": 0,
+    "consecutive_wrong": 0,
+    "consecutive_correct": 2
+  },
+  {
     "id": "0872e7f4-f40b-44da-a801-c0dc9c90dd5a",
     "type": "single",
     "options": [
@@ -13,37 +57,57 @@
     "question": "AWSリソースをWebブラウザからGUIで操作するには何を使えばよいか。",
     "created_at": "2025-10-16T15:58:29.621742+00:00",
     "explanation": null,
-    "last_answered": "2025-11-13T14:37:38.741Z",
+    "last_answered": null,
     "correct_answers": [
       0
     ],
-    "memory_strength": 40,
+    "memory_strength": 0,
     "consecutive_wrong": 0,
     "consecutive_correct": 2
   },
   {
-    "id": "3fef31d2-c3d2-45de-b67b-12add439e12f",
-    "type": "multiple",
+    "id": "94d17824-e0d7-4c2c-8c8d-7f18c6959f7c",
+    "type": "single",
     "options": [
-      "ユーザーが保存したデータの暗号化",
-      "ユーザーが作成したAWSアカウントの管理",
-      "ネットワーク機器のファームウェアのバージョンアップ",
-      "データセンターの入退室管理",
-      "ハイパーバイザー（ホストOS）のシステムログの監視"
+      "AWS CLI",
+      "telnet",
+      "SSH",
+      "AWS マネジメントコンソール"
     ],
     "category": "AWSの概要",
-    "position": 9,
-    "question": "AWSの責任共有モデルにおいて、ユーザー側で責任を持って実施するのは次のうちどれか。（2つ選択）",
-    "created_at": "2025-10-16T16:00:48.754357+00:00",
+    "position": 3,
+    "question": "AWSリソースをコマンドラインから操作したい。AWSから提供されているツールはどれか。",
+    "created_at": "2025-10-16T15:59:00.593405+00:00",
     "explanation": null,
-    "last_answered": "2025-11-13T14:14:29.316Z",
+    "last_answered": null,
     "correct_answers": [
-      0,
-      1
+      0
     ],
-    "memory_strength": 80,
+    "memory_strength": 0,
     "consecutive_wrong": 0,
-    "consecutive_correct": 4
+    "consecutive_correct": 5
+  },
+  {
+    "id": "df672f3b-b967-4300-aaaf-1c02dee640a3",
+    "type": "single",
+    "options": [
+      "アベイラビリティーゾーン",
+      "グローバル",
+      "エッジロケーション",
+      "オンプレミス"
+    ],
+    "category": "AWSの概要",
+    "position": 4,
+    "question": "リージョン内の物理的および論理的に区切られた1つ以上のデータセンターを何というか。",
+    "created_at": "2025-10-16T15:59:16.082804+00:00",
+    "explanation": null,
+    "last_answered": null,
+    "correct_answers": [
+      0
+    ],
+    "memory_strength": 0,
+    "consecutive_wrong": 0,
+    "consecutive_correct": 1
   },
   {
     "id": "533f247c-e532-4bc3-99eb-2db3ac9e0e51",
@@ -59,59 +123,35 @@
     "question": "全世界に共通するAWSサービスの提供範囲は、次のうちどれか。",
     "created_at": "2025-10-16T15:59:31.576888+00:00",
     "explanation": null,
-    "last_answered": "2025-11-13T14:31:09.909Z",
+    "last_answered": null,
     "correct_answers": [
       0
     ],
-    "memory_strength": 80,
+    "memory_strength": 0,
     "consecutive_wrong": 0,
     "consecutive_correct": 4
   },
   {
-    "id": "a6d970e6-204e-4950-91cb-ec8aed3453e0",
+    "id": "908b9223-c96d-4601-b5d2-b17df9ad3c2a",
     "type": "single",
     "options": [
-      "リージョン",
-      "アベイラビリティーゾーン",
-      "グローバル",
-      "ゾーングループ"
+      "システムの作成や複製の処理を自動化することで、新機能の適用や動作確認といった実験的な作業が容易にできる",
+      "各リソースのメトリクスを手動で収集することにより、データの収集漏れを防ぐことができる",
+      "需要を十分に推測し余裕のあるキャパシティーで実装することで、リソース変更の手間を省くことができる",
+      "実際の本番環境を使ってテストすることで、改善箇所の発見やイベントに対応する運用者の経験を積むことができる"
     ],
     "category": "AWSの概要",
-    "position": 11,
-    "question": "世界中のAWSデータセンターを地域で区切ったものを何というか。",
-    "created_at": "2025-10-16T13:59:08.960088+00:00",
+    "position": 6,
+    "question": "Well-Architected Frameworkにおける「一般的な設計原則」に従った設計はどれか。",
+    "created_at": "2025-10-16T15:59:55.960782+00:00",
     "explanation": null,
-    "last_answered": "2025-11-13T14:37:38.741Z",
+    "last_answered": null,
     "correct_answers": [
       0
     ],
-    "memory_strength": 100,
-    "consecutive_wrong": 0,
-    "consecutive_correct": 7
-  },
-  {
-    "id": "f3e31074-7630-49ed-b270-9be2fc324973",
-    "type": "multiple",
-    "options": [
-      "データベース監査ログの管理",
-      "ゲストOSへのセキュリティパッチの適用",
-      "ネットワーク機器のファームウェアのバージョンアップ",
-      "不要になった物理ディスクの破棄",
-      "ハイパーバイザー（ホストOS）へのセキュリティパッチの適用"
-    ],
-    "category": "AWSの概要",
-    "position": 10,
-    "question": "AWSの責任共有モデルにおいて、ユーザー側で責任を持って実施するのは次のうちどれか。（2つ選択）",
-    "created_at": "2025-10-16T16:01:08.289598+00:00",
-    "explanation": null,
-    "last_answered": "2025-11-13T14:31:09.909Z",
-    "correct_answers": [
-      0,
-      1
-    ],
     "memory_strength": 0,
-    "consecutive_wrong": 7,
-    "consecutive_correct": 0
+    "consecutive_wrong": 0,
+    "consecutive_correct": 5
   },
   {
     "id": "166ebe00-5626-4638-9265-ff9a8b716363",
@@ -128,7 +168,7 @@
     "question": "AWSの責任共有モデルにおいて、AWS側で責任を持って実施するのは次のうちどれか。（2つ選択）",
     "created_at": "2025-10-16T16:00:12.773255+00:00",
     "explanation": null,
-    "last_answered": "2025-11-13T14:26:31.626Z",
+    "last_answered": null,
     "correct_answers": [
       0,
       1
@@ -138,26 +178,98 @@
     "consecutive_correct": 0
   },
   {
-    "id": "e46eebe7-ead8-4c3b-89ce-928522e7322a",
-    "type": "single",
+    "id": "11b67518-6e37-496b-ae72-1a6034a53527",
+    "type": "multiple",
     "options": [
-      "ストレージ",
-      "サーバーレスコンピューティング",
-      "仮想サーバー",
-      "仮想ネットワーク"
+      "不要になった物理ディスクの破棄",
+      "ハイパーバイザー（ホストOS）へのセキュリティパッチの適用",
+      "ネットワークトラフィックの監視",
+      "アプリケーションログの収集および監視",
+      "データベース監査ログの収集および監視"
     ],
-    "category": "EC2",
-    "position": 13,
-    "question": "Amazon EC2が提供するサービスは次のうちどれか。",
-    "created_at": "2025-10-15T02:41:07.399828+00:00",
+    "category": "AWSの概要",
+    "position": 8,
+    "question": "AWSの責任共有モデルにおいて、AWS側で責任を持って実施するのは次のうちどれか。（2つ選択）",
+    "created_at": "2025-10-16T16:00:27.470224+00:00",
     "explanation": null,
-    "last_answered": "2025-10-16T15:29:54.79924+00:00",
+    "last_answered": null,
     "correct_answers": [
-      2
+      0,
+      1
     ],
-    "memory_strength": 79.2276419618165,
+    "memory_strength": 0,
     "consecutive_wrong": 0,
     "consecutive_correct": 3
+  },
+  {
+    "id": "3fef31d2-c3d2-45de-b67b-12add439e12f",
+    "type": "multiple",
+    "options": [
+      "ユーザーが保存したデータの暗号化",
+      "ユーザーが作成したAWSアカウントの管理",
+      "ネットワーク機器のファームウェアのバージョンアップ",
+      "データセンターの入退室管理",
+      "ハイパーバイザー（ホストOS）のシステムログの監視"
+    ],
+    "category": "AWSの概要",
+    "position": 9,
+    "question": "AWSの責任共有モデルにおいて、ユーザー側で責任を持って実施するのは次のうちどれか。（2つ選択）",
+    "created_at": "2025-10-16T16:00:48.754357+00:00",
+    "explanation": null,
+    "last_answered": null,
+    "correct_answers": [
+      0,
+      1
+    ],
+    "memory_strength": 0,
+    "consecutive_wrong": 0,
+    "consecutive_correct": 4
+  },
+  {
+    "id": "f3e31074-7630-49ed-b270-9be2fc324973",
+    "type": "multiple",
+    "options": [
+      "データベース監査ログの管理",
+      "ゲストOSへのセキュリティパッチの適用",
+      "ネットワーク機器のファームウェアのバージョンアップ",
+      "不要になった物理ディスクの破棄",
+      "ハイパーバイザー（ホストOS）へのセキュリティパッチの適用"
+    ],
+    "category": "AWSの概要",
+    "position": 10,
+    "question": "AWSの責任共有モデルにおいて、ユーザー側で責任を持って実施するのは次のうちどれか。（2つ選択）",
+    "created_at": "2025-10-16T16:01:08.289598+00:00",
+    "explanation": null,
+    "last_answered": null,
+    "correct_answers": [
+      0,
+      1
+    ],
+    "memory_strength": 0,
+    "consecutive_wrong": 7,
+    "consecutive_correct": 0
+  },
+  {
+    "id": "a6d970e6-204e-4950-91cb-ec8aed3453e0",
+    "type": "single",
+    "options": [
+      "リージョン",
+      "アベイラビリティーゾーン",
+      "グローバル",
+      "ゾーングループ"
+    ],
+    "category": "AWSの概要",
+    "position": 11,
+    "question": "世界中のAWSデータセンターを地域で区切ったものを何というか。",
+    "created_at": "2025-10-16T13:59:08.960088+00:00",
+    "explanation": null,
+    "last_answered": null,
+    "correct_answers": [
+      0
+    ],
+    "memory_strength": 0,
+    "consecutive_wrong": 0,
+    "consecutive_correct": 7
   },
   {
     "id": "ac39d6dd-e41a-40d1-a254-92a857394d4c",
@@ -173,37 +285,37 @@
     "question": "AWSリソースを操作するために、AWSから提供されているものはどれか。（3つ選択）",
     "created_at": "2025-10-16T13:43:10.108927+00:00",
     "explanation": null,
-    "last_answered": "2025-11-13T14:31:09.909Z",
+    "last_answered": null,
     "correct_answers": [
       0,
       1,
       2
     ],
-    "memory_strength": 60,
+    "memory_strength": 0,
     "consecutive_wrong": 0,
     "consecutive_correct": 3
   },
   {
-    "id": "908b9223-c96d-4601-b5d2-b17df9ad3c2a",
+    "id": "e46eebe7-ead8-4c3b-89ce-928522e7322a",
     "type": "single",
     "options": [
-      "システムの作成や複製の処理を自動化することで、新機能の適用や動作確認といった実験的な作業が容易にできる",
-      "各リソースのメトリクスを手動で収集することにより、データの収集漏れを防ぐことができる",
-      "需要を十分に推測し余裕のあるキャパシティーで実装することで、リソース変更の手間を省くことができる",
-      "実際の本番環境を使ってテストすることで、改善箇所の発見やイベントに対応する運用者の経験を積むことができる"
+      "ストレージ",
+      "サーバーレスコンピューティング",
+      "仮想サーバー",
+      "仮想ネットワーク"
     ],
-    "category": "AWSの概要",
-    "position": 6,
-    "question": "Well-Architected Frameworkにおける「一般的な設計原則」に従った設計はどれか。",
-    "created_at": "2025-10-16T15:59:55.960782+00:00",
+    "category": "EC2",
+    "position": 13,
+    "question": "Amazon EC2が提供するサービスは次のうちどれか。",
+    "created_at": "2025-10-15T02:41:07.399828+00:00",
     "explanation": null,
-    "last_answered": "2025-11-13T14:37:38.741Z",
+    "last_answered": null,
     "correct_answers": [
-      0
+      2
     ],
-    "memory_strength": 100,
+    "memory_strength": 0,
     "consecutive_wrong": 0,
-    "consecutive_correct": 5
+    "consecutive_correct": 3
   },
   {
     "id": "c729e240-9003-4865-b682-322f10a36db1",
@@ -226,118 +338,6 @@
     "memory_strength": 0,
     "consecutive_wrong": 0,
     "consecutive_correct": 0
-  },
-  {
-    "id": "95bbf86d-ac17-4314-affb-d7bfcd5db18e",
-    "type": "single",
-    "options": [
-      "AWSのセキュリティ対策の責任をAWSとユーザーで分担するモデル",
-      "AWSクラウドにかかるコストの責任をAWSとユーザーで分担するモデル",
-      "AWSとユーザー間のSLAを規定したモデル",
-      "AWSサービスの監査の責任をAWSとユーザーで分担するモデル"
-    ],
-    "category": "AWSの概要",
-    "position": 1,
-    "question": "AWSにおける「責任共有モデル」の説明として、正しいのはどれか。",
-    "created_at": "2025-10-16T15:58:11.798865+00:00",
-    "explanation": null,
-    "last_answered": "2025-11-13T14:37:38.741Z",
-    "correct_answers": [
-      0
-    ],
-    "memory_strength": 40,
-    "consecutive_wrong": 0,
-    "consecutive_correct": 2
-  },
-  {
-    "id": "94d17824-e0d7-4c2c-8c8d-7f18c6959f7c",
-    "type": "single",
-    "options": [
-      "AWS CLI",
-      "telnet",
-      "SSH",
-      "AWS マネジメントコンソール"
-    ],
-    "category": "AWSの概要",
-    "position": 3,
-    "question": "AWSリソースをコマンドラインから操作したい。AWSから提供されているツールはどれか。",
-    "created_at": "2025-10-16T15:59:00.593405+00:00",
-    "explanation": null,
-    "last_answered": "2025-11-13T14:37:38.741Z",
-    "correct_answers": [
-      0
-    ],
-    "memory_strength": 100,
-    "consecutive_wrong": 0,
-    "consecutive_correct": 5
-  },
-  {
-    "id": "df672f3b-b967-4300-aaaf-1c02dee640a3",
-    "type": "single",
-    "options": [
-      "アベイラビリティーゾーン",
-      "グローバル",
-      "エッジロケーション",
-      "オンプレミス"
-    ],
-    "category": "AWSの概要",
-    "position": 4,
-    "question": "リージョン内の物理的および論理的に区切られた1つ以上のデータセンターを何というか。",
-    "created_at": "2025-10-16T15:59:16.082804+00:00",
-    "explanation": null,
-    "last_answered": "2025-11-13T14:26:31.626Z",
-    "correct_answers": [
-      0
-    ],
-    "memory_strength": 20,
-    "consecutive_wrong": 0,
-    "consecutive_correct": 1
-  },
-  {
-    "id": "cf13896c-171f-45c7-9026-00d0303271bd",
-    "type": "single",
-    "options": [
-      "AWSが提唱するクラウド設計・運用のベストプラクティス集",
-      "AWSが保有する物理サーバーの設計書",
-      "AWSが提供する仮想サーバーの標準設計書",
-      "AWSサービスの標準運用手順書および障害対応マニュアル"
-    ],
-    "category": "AWSの概要",
-    "position": 0,
-    "question": "Well-Architected Frameworkの説明で正しいのはどれか。",
-    "created_at": "2025-10-16T15:56:44.559797+00:00",
-    "explanation": null,
-    "last_answered": "2025-11-13T14:37:38.741Z",
-    "correct_answers": [
-      0
-    ],
-    "memory_strength": 40,
-    "consecutive_wrong": 0,
-    "consecutive_correct": 2
-  },
-  {
-    "id": "11b67518-6e37-496b-ae72-1a6034a53527",
-    "type": "multiple",
-    "options": [
-      "不要になった物理ディスクの破棄",
-      "ハイパーバイザー（ホストOS）へのセキュリティパッチの適用",
-      "ネットワークトラフィックの監視",
-      "アプリケーションログの収集および監視",
-      "データベース監査ログの収集および監視"
-    ],
-    "category": "AWSの概要",
-    "position": 8,
-    "question": "AWSの責任共有モデルにおいて、AWS側で責任を持って実施するのは次のうちどれか。（2つ選択）",
-    "created_at": "2025-10-16T16:00:27.470224+00:00",
-    "explanation": null,
-    "last_answered": "2025-11-13T14:31:09.909Z",
-    "correct_answers": [
-      0,
-      1
-    ],
-    "memory_strength": 60,
-    "consecutive_wrong": 0,
-    "consecutive_correct": 3
   },
   {
     "id": "f8daf5e2-28a8-4e57-bcc1-5c3b99cadc8c",
@@ -558,28 +558,6 @@
     "last_answered": null,
     "correct_answers": [
       3
-    ],
-    "memory_strength": 0,
-    "consecutive_wrong": 0,
-    "consecutive_correct": 0
-  },
-  {
-    "id": "8b99ca13-d569-44e2-9c7c-2ff605e92c87",
-    "type": "single",
-    "options": [
-      "オブジェクトストレージ",
-      "ファイルストレージ",
-      "ブロックストレージ",
-      "ドライブストレージ"
-    ],
-    "category": "S3",
-    "position": 1760860597128728,
-    "question": "Amazon S3のストレージタイプはどれか。",
-    "created_at": "2025-10-19T07:56:37.128728+00:00",
-    "explanation": null,
-    "last_answered": null,
-    "correct_answers": [
-      0
     ],
     "memory_strength": 0,
     "consecutive_wrong": 0,
@@ -862,6 +840,28 @@
     "position": 1760860587602819,
     "question": "バックアップデータの保存先をオンプレミスからAmazon S3に移行したい。下記の条件の場合、もっともコストパフォーマンスが高いストレージクラスはどれか。\n・データは1年間以上保存する\n・年に1回程度バックアップデータからデータを復元する\n・データを取り出す時は数時間の遅延が発生しても問題ない",
     "created_at": "2025-10-19T07:56:27.602819+00:00",
+    "explanation": null,
+    "last_answered": null,
+    "correct_answers": [
+      0
+    ],
+    "memory_strength": 0,
+    "consecutive_wrong": 0,
+    "consecutive_correct": 0
+  },
+  {
+    "id": "8b99ca13-d569-44e2-9c7c-2ff605e92c87",
+    "type": "single",
+    "options": [
+      "オブジェクトストレージ",
+      "ファイルストレージ",
+      "ブロックストレージ",
+      "ドライブストレージ"
+    ],
+    "category": "S3",
+    "position": 1760860597128728,
+    "question": "Amazon S3のストレージタイプはどれか。",
+    "created_at": "2025-10-19T07:56:37.128728+00:00",
     "explanation": null,
     "last_answered": null,
     "correct_answers": [
@@ -1957,28 +1957,6 @@
     "consecutive_correct": 0
   },
   {
-    "id": "0b498385-0a08-4e7b-aa47-11e0a22295d5",
-    "type": "single",
-    "options": [
-      "AWS Lambda",
-      "Amazon EC2インスタンス",
-      "Amazon API Gateway",
-      "Elastic Load Balancing"
-    ],
-    "category": "Lambda/API Gateway",
-    "position": 1760863117704178,
-    "question": "Webアプリケーションの実行環境を用意する。\n・仮想サーバーのプロビジョニング（構築）が不要である\n・マルチAZ構成である\n・スケーリングが自動的に行われる\n以上の要件に合うAWSサービスはどれか。",
-    "created_at": "2025-10-19T08:38:37.704178+00:00",
-    "explanation": null,
-    "last_answered": null,
-    "correct_answers": [
-      0
-    ],
-    "memory_strength": 0,
-    "consecutive_wrong": 0,
-    "consecutive_correct": 0
-  },
-  {
     "id": "1d5df793-5326-4143-9eef-31132b869e54",
     "type": "single",
     "options": [
@@ -3005,28 +2983,6 @@
     "consecutive_correct": 0
   },
   {
-    "id": "7cdd0577-7281-4adc-8d76-ee05c4f00cef",
-    "type": "single",
-    "options": [
-      "リクエストが不定期に発生し、1リクエストが数秒で終わる処理",
-      "1リクエストの処理時間が15分以上のバッチ処理",
-      "常時リクエストが発生しているオンライン処理",
-      "実行環境のOSに固有の設定が必要な処理"
-    ],
-    "category": "Lambda/API Gateway",
-    "position": 1760863129349219,
-    "question": "Lambda関数として実行する処理のうち、もっとも適しているのは次のうちどれか",
-    "created_at": "2025-10-19T08:38:49.349219+00:00",
-    "explanation": null,
-    "last_answered": null,
-    "correct_answers": [
-      0
-    ],
-    "memory_strength": 0,
-    "consecutive_wrong": 0,
-    "consecutive_correct": 0
-  },
-  {
     "id": "be28cd93-4458-4964-a609-a30e4e87babd",
     "type": "single",
     "options": [
@@ -3511,28 +3467,6 @@
     "consecutive_correct": 0
   },
   {
-    "id": "87c431a0-a616-49dc-a5d8-84a9c98cd537",
-    "type": "single",
-    "options": [
-      "コンテナを実行・管理するサービス",
-      "コンテンツ配信ネットワークを提供するサービス",
-      "EC2インスタンス上にブロックデバイスを提供するストレージサービス",
-      "コンテナイメージを登録・管理するサービス"
-    ],
-    "category": "Lambda/API Gateway",
-    "position": 1760863305769494,
-    "question": "Amazon ECSの説明で正しいものはどれか",
-    "created_at": "2025-10-19T08:41:45.769494+00:00",
-    "explanation": null,
-    "last_answered": null,
-    "correct_answers": [
-      0
-    ],
-    "memory_strength": 0,
-    "consecutive_wrong": 0,
-    "consecutive_correct": 0
-  },
-  {
     "id": "864e87bb-71e3-49c1-a572-c472022d8cb8",
     "type": "multiple",
     "options": [
@@ -3781,18 +3715,40 @@
     "consecutive_correct": 0
   },
   {
-    "id": "d81685b9-603a-469e-88f0-5ea806028247",
+    "id": "0b498385-0a08-4e7b-aa47-11e0a22295d5",
     "type": "single",
     "options": [
-      "Amazon ECS",
-      "Amazon EC2",
-      "Amazon EBS",
-      "Amazon API Gateway"
+      "AWS Lambda",
+      "Amazon EC2インスタンス",
+      "Amazon API Gateway",
+      "Elastic Load Balancing"
     ],
     "category": "Lambda/API Gateway",
-    "position": 1760863320267383,
-    "question": "ある企業では複数のDockerコンテナを使用したシステムを運用している。コンテナ群を一括管理したいとき、最も適切なAWSサービスはどれか。",
-    "created_at": "2025-10-19T08:42:00.267383+00:00",
+    "position": 1760863117704178,
+    "question": "Webアプリケーションの実行環境を用意する。\n・仮想サーバーのプロビジョニング（構築）が不要である\n・マルチAZ構成である\n・スケーリングが自動的に行われる\n以上の要件に合うAWSサービスはどれか。",
+    "created_at": "2025-10-19T08:38:37.704178+00:00",
+    "explanation": null,
+    "last_answered": null,
+    "correct_answers": [
+      0
+    ],
+    "memory_strength": 0,
+    "consecutive_wrong": 0,
+    "consecutive_correct": 0
+  },
+  {
+    "id": "7cdd0577-7281-4adc-8d76-ee05c4f00cef",
+    "type": "single",
+    "options": [
+      "リクエストが不定期に発生し、1リクエストが数秒で終わる処理",
+      "1リクエストの処理時間が15分以上のバッチ処理",
+      "常時リクエストが発生しているオンライン処理",
+      "実行環境のOSに固有の設定が必要な処理"
+    ],
+    "category": "Lambda/API Gateway",
+    "position": 1760863129349219,
+    "question": "Lambda関数として実行する処理のうち、もっとも適しているのは次のうちどれか",
+    "created_at": "2025-10-19T08:38:49.349219+00:00",
     "explanation": null,
     "last_answered": null,
     "correct_answers": [
@@ -4061,6 +4017,50 @@
     "position": 1760863277384463,
     "question": "Amazon API Gatewayの使用量プランについて、正しい説明はどれか。",
     "created_at": "2025-10-19T08:41:17.384463+00:00",
+    "explanation": null,
+    "last_answered": null,
+    "correct_answers": [
+      0
+    ],
+    "memory_strength": 0,
+    "consecutive_wrong": 0,
+    "consecutive_correct": 0
+  },
+  {
+    "id": "87c431a0-a616-49dc-a5d8-84a9c98cd537",
+    "type": "single",
+    "options": [
+      "コンテナを実行・管理するサービス",
+      "コンテンツ配信ネットワークを提供するサービス",
+      "EC2インスタンス上にブロックデバイスを提供するストレージサービス",
+      "コンテナイメージを登録・管理するサービス"
+    ],
+    "category": "Lambda/API Gateway",
+    "position": 1760863305769494,
+    "question": "Amazon ECSの説明で正しいものはどれか",
+    "created_at": "2025-10-19T08:41:45.769494+00:00",
+    "explanation": null,
+    "last_answered": null,
+    "correct_answers": [
+      0
+    ],
+    "memory_strength": 0,
+    "consecutive_wrong": 0,
+    "consecutive_correct": 0
+  },
+  {
+    "id": "d81685b9-603a-469e-88f0-5ea806028247",
+    "type": "single",
+    "options": [
+      "Amazon ECS",
+      "Amazon EC2",
+      "Amazon EBS",
+      "Amazon API Gateway"
+    ],
+    "category": "Lambda/API Gateway",
+    "position": 1760863320267383,
+    "question": "ある企業では複数のDockerコンテナを使用したシステムを運用している。コンテナ群を一括管理したいとき、最も適切なAWSサービスはどれか。",
+    "created_at": "2025-10-19T08:42:00.267383+00:00",
     "explanation": null,
     "last_answered": null,
     "correct_answers": [
@@ -6180,28 +6180,6 @@
     "consecutive_correct": 0
   },
   {
-    "id": "69150169-e63d-4af8-9c24-18983b2eaff6",
-    "type": "single",
-    "options": [
-      "EC2インスタンスに対してリモートでコマンドやスクリプトを安全に実行する",
-      "ブラウザからEC2インスタンスへログインできる",
-      "サーバーレスでプログラムコードを実行する",
-      "アプリケーションが動作する定番の環境を自動で構成する"
-    ],
-    "category": "Systems Manager",
-    "position": 1760865911881796,
-    "question": "AWS Systems Manager Run Command について正しく説明しているのはどれか。",
-    "created_at": "2025-10-19T09:25:11.881796+00:00",
-    "explanation": null,
-    "last_answered": null,
-    "correct_answers": [
-      0
-    ],
-    "memory_strength": 0,
-    "consecutive_wrong": 0,
-    "consecutive_correct": 0
-  },
-  {
     "id": "1fd633a5-56fa-4e65-9611-e79db7f91738",
     "type": "single",
     "options": [
@@ -7004,28 +6982,6 @@
     "consecutive_correct": 0
   },
   {
-    "id": "6926d5d2-a1d4-48b4-8f68-cb9c5a8cecb5",
-    "type": "single",
-    "options": [
-      "DDoS攻撃からの保護に特化したサービス",
-      "脆弱性を突く攻撃からWebアプリケーションを保護するサービス",
-      "VPC向けのファイアウォール機能を提供するサービス",
-      "ファイアウォールのルールを一元的に設定・管理するサービス"
-    ],
-    "category": "基礎知識",
-    "position": 1760921830302755,
-    "question": "AWS Network Firewallについて正しく説明しているのはどれか。",
-    "created_at": "2025-10-20T00:57:10.302755+00:00",
-    "explanation": null,
-    "last_answered": null,
-    "correct_answers": [
-      2
-    ],
-    "memory_strength": 0,
-    "consecutive_wrong": 0,
-    "consecutive_correct": 0
-  },
-  {
     "id": "eb872da4-112a-42ef-824f-e1376215aea0",
     "type": "single",
     "options": [
@@ -7216,28 +7172,6 @@
     "position": 1760865613274496,
     "question": "AWS Elastic Beanstalkについて正しく述べているものはどれか",
     "created_at": "2025-10-19T09:20:13.274496+00:00",
-    "explanation": null,
-    "last_answered": null,
-    "correct_answers": [
-      0
-    ],
-    "memory_strength": 0,
-    "consecutive_wrong": 0,
-    "consecutive_correct": 0
-  },
-  {
-    "id": "47603044-40f5-4450-914a-34bab233ce3a",
-    "type": "single",
-    "options": [
-      "AWSリソースへの操作をランブックに従って自動で実行するサービス",
-      "EC2インスタンスなどのAWSリソースを負荷状況に基づいて、自動的にスケーリングするサービス",
-      "AWSリソースのバックアップを自動化し、管理するサービス",
-      "AWSで使用する鍵（キー）を管理し、自動でローテーションするサービス"
-    ],
-    "category": "Systems Manager",
-    "position": 1760865922937491,
-    "question": "AWS Systems Manager Automationについて正しく説明しているのはどれか。",
-    "created_at": "2025-10-19T09:25:22.937491+00:00",
     "explanation": null,
     "last_answered": null,
     "correct_answers": [
@@ -7507,6 +7441,50 @@
     "position": 1760865902036791,
     "question": "AWS Systems Manager Session Managerについて正しく説明しているのはどれか。",
     "created_at": "2025-10-19T09:25:02.036791+00:00",
+    "explanation": null,
+    "last_answered": null,
+    "correct_answers": [
+      0
+    ],
+    "memory_strength": 0,
+    "consecutive_wrong": 0,
+    "consecutive_correct": 0
+  },
+  {
+    "id": "69150169-e63d-4af8-9c24-18983b2eaff6",
+    "type": "single",
+    "options": [
+      "EC2インスタンスに対してリモートでコマンドやスクリプトを安全に実行する",
+      "ブラウザからEC2インスタンスへログインできる",
+      "サーバーレスでプログラムコードを実行する",
+      "アプリケーションが動作する定番の環境を自動で構成する"
+    ],
+    "category": "Systems Manager",
+    "position": 1760865911881796,
+    "question": "AWS Systems Manager Run Command について正しく説明しているのはどれか。",
+    "created_at": "2025-10-19T09:25:11.881796+00:00",
+    "explanation": null,
+    "last_answered": null,
+    "correct_answers": [
+      0
+    ],
+    "memory_strength": 0,
+    "consecutive_wrong": 0,
+    "consecutive_correct": 0
+  },
+  {
+    "id": "47603044-40f5-4450-914a-34bab233ce3a",
+    "type": "single",
+    "options": [
+      "AWSリソースへの操作をランブックに従って自動で実行するサービス",
+      "EC2インスタンスなどのAWSリソースを負荷状況に基づいて、自動的にスケーリングするサービス",
+      "AWSリソースのバックアップを自動化し、管理するサービス",
+      "AWSで使用する鍵（キー）を管理し、自動でローテーションするサービス"
+    ],
+    "category": "Systems Manager",
+    "position": 1760865922937491,
+    "question": "AWS Systems Manager Automationについて正しく説明しているのはどれか。",
+    "created_at": "2025-10-19T09:25:22.937491+00:00",
     "explanation": null,
     "last_answered": null,
     "correct_answers": [
@@ -8033,28 +8011,6 @@
     "consecutive_correct": 0
   },
   {
-    "id": "f6d4a5fb-238a-4611-aaab-a76e615fdb07",
-    "type": "single",
-    "options": [
-      "ユーザーからAWSリソースまでのアクセス経路をAWSグローバルネットワークを利用して最適化するサービス",
-      "複数のVPCや複数のオンプレミスネットワークを相互に接続するハブ機能を持つサービス",
-      "AWS上で動作する安全で高速なコンテンツ配信ネットワーク",
-      "オンプレミスなどのユーザー環境からAWSへ、専用回線を使ってセキュアに接続するサービス"
-    ],
-    "category": "Global Accelerator",
-    "position": 1760920291967866,
-    "question": "AWS Global Acceleratorについて正しく説明しているのはどれか",
-    "created_at": "2025-10-20T00:31:31.967866+00:00",
-    "explanation": null,
-    "last_answered": null,
-    "correct_answers": [
-      0
-    ],
-    "memory_strength": 0,
-    "consecutive_wrong": 0,
-    "consecutive_correct": 0
-  },
-  {
     "id": "bd0ae024-1eb9-44c4-85e3-f4df31aaa79d",
     "type": "single",
     "options": [
@@ -8271,28 +8227,6 @@
     "last_answered": null,
     "correct_answers": [
       0
-    ],
-    "memory_strength": 0,
-    "consecutive_wrong": 0,
-    "consecutive_correct": 0
-  },
-  {
-    "id": "11c8de3e-afd8-479d-b6d9-d6196d960844",
-    "type": "single",
-    "options": [
-      "AWSサービスのリソース使用状況を把握し、値に応じてアラームをあげたりアクションをとる",
-      "AWSサービスに対して誰がどのような操作を行ったのかを記録する",
-      "アプリケーションやサービス間を連携するメッセージキューイングサービスである",
-      "イベントが発生した際にプッシュ通知を行うサービスである"
-    ],
-    "category": "SQS",
-    "position": 1760920520034019,
-    "question": "Amazon Simple Queue Service（SQS）について正しく説明しているものはどれか。",
-    "created_at": "2025-10-20T00:35:20.034019+00:00",
-    "explanation": null,
-    "last_answered": null,
-    "correct_answers": [
-      2
     ],
     "memory_strength": 0,
     "consecutive_wrong": 0,
@@ -8565,6 +8499,28 @@
     "consecutive_correct": 0
   },
   {
+    "id": "f6d4a5fb-238a-4611-aaab-a76e615fdb07",
+    "type": "single",
+    "options": [
+      "ユーザーからAWSリソースまでのアクセス経路をAWSグローバルネットワークを利用して最適化するサービス",
+      "複数のVPCや複数のオンプレミスネットワークを相互に接続するハブ機能を持つサービス",
+      "AWS上で動作する安全で高速なコンテンツ配信ネットワーク",
+      "オンプレミスなどのユーザー環境からAWSへ、専用回線を使ってセキュアに接続するサービス"
+    ],
+    "category": "Global Accelerator",
+    "position": 1760920291967866,
+    "question": "AWS Global Acceleratorについて正しく説明しているのはどれか",
+    "created_at": "2025-10-20T00:31:31.967866+00:00",
+    "explanation": null,
+    "last_answered": null,
+    "correct_answers": [
+      0
+    ],
+    "memory_strength": 0,
+    "consecutive_wrong": 0,
+    "consecutive_correct": 0
+  },
+  {
     "id": "8c273598-3cbd-4dc9-a559-f5f461ccb081",
     "type": "single",
     "options": [
@@ -8807,22 +8763,22 @@
     "consecutive_correct": 0
   },
   {
-    "id": "23690efa-7319-42d4-b5cd-11ced0e873e9",
+    "id": "11c8de3e-afd8-479d-b6d9-d6196d960844",
     "type": "single",
     "options": [
-      "複数のデータソースからデータを抽出し、変換・統合したデータをターゲットへ格納する",
-      "ビッグデータの分散処理や分析を行う",
-      "S3内のデータに対してサーバーレスで直接SQLクエリを実行する",
-      "ストリーミングデータをリアルタイムで収集・処理する"
+      "AWSサービスのリソース使用状況を把握し、値に応じてアラームをあげたりアクションをとる",
+      "AWSサービスに対して誰がどのような操作を行ったのかを記録する",
+      "アプリケーションやサービス間を連携するメッセージキューイングサービスである",
+      "イベントが発生した際にプッシュ通知を行うサービスである"
     ],
-    "category": "Glue",
-    "position": 1760920889367573,
-    "question": "AWS Glueの特徴として正しいものはどれか。",
-    "created_at": "2025-10-20T00:41:29.367573+00:00",
+    "category": "SQS",
+    "position": 1760920520034019,
+    "question": "Amazon Simple Queue Service（SQS）について正しく説明しているものはどれか。",
+    "created_at": "2025-10-20T00:35:20.034019+00:00",
     "explanation": null,
     "last_answered": null,
     "correct_answers": [
-      0
+      2
     ],
     "memory_strength": 0,
     "consecutive_wrong": 0,
@@ -9025,28 +8981,6 @@
     "last_answered": null,
     "correct_answers": [
       0
-    ],
-    "memory_strength": 0,
-    "consecutive_wrong": 0,
-    "consecutive_correct": 0
-  },
-  {
-    "id": "e7ba5b27-27ab-4f40-a5c1-148055fa53cf",
-    "type": "single",
-    "options": [
-      "ストリーミングデータをリアルタイムで収集・処理するサービス",
-      "AWSのリソースやその設定情報をコード化し、環境構築を自動で行うサービス",
-      "データレイクを簡単かつ迅速に構築・運用するためのサービス",
-      "AWS上で簡単にコンテナを実行・管理するサービス"
-    ],
-    "category": "基礎知識",
-    "position": 1760921818524371,
-    "question": "AWS Lake Formationについて正しく説明しているのはどれか。",
-    "created_at": "2025-10-20T00:56:58.524371+00:00",
-    "explanation": null,
-    "last_answered": null,
-    "correct_answers": [
-      2
     ],
     "memory_strength": 0,
     "consecutive_wrong": 0,
@@ -9356,6 +9290,28 @@
     "position": 1760920858807123,
     "question": "Amazon EMRクラスターで処理した結果をAmazon S3へ保存する際に利用する機能はどれか。",
     "created_at": "2025-10-20T00:40:58.807123+00:00",
+    "explanation": null,
+    "last_answered": null,
+    "correct_answers": [
+      0
+    ],
+    "memory_strength": 0,
+    "consecutive_wrong": 0,
+    "consecutive_correct": 0
+  },
+  {
+    "id": "23690efa-7319-42d4-b5cd-11ced0e873e9",
+    "type": "single",
+    "options": [
+      "複数のデータソースからデータを抽出し、変換・統合したデータをターゲットへ格納する",
+      "ビッグデータの分散処理や分析を行う",
+      "S3内のデータに対してサーバーレスで直接SQLクエリを実行する",
+      "ストリーミングデータをリアルタイムで収集・処理する"
+    ],
+    "category": "Glue",
+    "position": 1760920889367573,
+    "question": "AWS Glueの特徴として正しいものはどれか。",
+    "created_at": "2025-10-20T00:41:29.367573+00:00",
     "explanation": null,
     "last_answered": null,
     "correct_answers": [
@@ -10474,6 +10430,50 @@
     "consecutive_correct": 0
   },
   {
+    "id": "e7ba5b27-27ab-4f40-a5c1-148055fa53cf",
+    "type": "single",
+    "options": [
+      "ストリーミングデータをリアルタイムで収集・処理するサービス",
+      "AWSのリソースやその設定情報をコード化し、環境構築を自動で行うサービス",
+      "データレイクを簡単かつ迅速に構築・運用するためのサービス",
+      "AWS上で簡単にコンテナを実行・管理するサービス"
+    ],
+    "category": "基礎知識",
+    "position": 1760921818524371,
+    "question": "AWS Lake Formationについて正しく説明しているのはどれか。",
+    "created_at": "2025-10-20T00:56:58.524371+00:00",
+    "explanation": null,
+    "last_answered": null,
+    "correct_answers": [
+      2
+    ],
+    "memory_strength": 0,
+    "consecutive_wrong": 0,
+    "consecutive_correct": 0
+  },
+  {
+    "id": "6926d5d2-a1d4-48b4-8f68-cb9c5a8cecb5",
+    "type": "single",
+    "options": [
+      "DDoS攻撃からの保護に特化したサービス",
+      "脆弱性を突く攻撃からWebアプリケーションを保護するサービス",
+      "VPC向けのファイアウォール機能を提供するサービス",
+      "ファイアウォールのルールを一元的に設定・管理するサービス"
+    ],
+    "category": "基礎知識",
+    "position": 1760921830302755,
+    "question": "AWS Network Firewallについて正しく説明しているのはどれか。",
+    "created_at": "2025-10-20T00:57:10.302755+00:00",
+    "explanation": null,
+    "last_answered": null,
+    "correct_answers": [
+      2
+    ],
+    "memory_strength": 0,
+    "consecutive_wrong": 0,
+    "consecutive_correct": 0
+  },
+  {
     "id": "7aa4375b-da7c-4314-815c-c842dec42fc7",
     "type": "single",
     "options": [
@@ -11248,28 +11248,6 @@
     "consecutive_correct": 0
   },
   {
-    "id": "1b2fa60c-92de-4b1e-bc54-23bd5f673cdb",
-    "type": "single",
-    "options": [
-      "IAMリソースを監視するAWS Configルールを作成する。設定変更があった場合、SNSトピックへの通知を行う",
-      "AWS CloudTrailでIAMリソースの運用を監視し、Lambda関数で設定変更を検知する。検知した際はLambda関数からSQSキューへの通知を行う",
-      "Amazon CloudWatchでIAMのメトリクスを監視する。設定変更がされた時にLambda関数で検知し、検知した際はLambda関数からSNS FIFOトピックへの通知を行う",
-      "AWS TrustedAdvisorでIAMの運用を監視する。設定変更があった場合にSNSトピックへ通知されるよう設定する"
-    ],
-    "category": "セキュリティ",
-    "position": 1760922744220920,
-    "question": "ある開発チームでは、監査チームからセキュリティポリシーを適切に運用するよう通達があったため、IAMユーザーおよびIAMグループ、IAMロールなどの運用を見直した。以降、IAMリソースの設定が変更された場合に検知したい。\n適切なアクションは次のうちどれか。",
-    "created_at": "2025-10-20T01:12:24.22092+00:00",
-    "explanation": null,
-    "last_answered": null,
-    "correct_answers": [
-      0
-    ],
-    "memory_strength": 0,
-    "consecutive_wrong": 0,
-    "consecutive_correct": 0
-  },
-  {
     "id": "7ba4d267-8fcc-4d4b-b34a-7c0600742f87",
     "type": "single",
     "options": [
@@ -11473,28 +11451,6 @@
     "consecutive_correct": 0
   },
   {
-    "id": "344f0cac-054b-4696-a89a-a9fd4f849600",
-    "type": "single",
-    "options": [
-      "AWS Secrets Managerを利用して認証する",
-      "AWS Key Management Serviceを利用して認証する",
-      "AWS CloudHSMに保存された鍵を使用して認証する",
-      "AWS Key Management Serviceのデータキーを使って認証情報を取得する"
-    ],
-    "category": "セキュリティ",
-    "position": 1760922758208047,
-    "question": "データベースへアクセスするアプリケーションがある。データベースの認証情報はアプリケーションから切り離して安全に管理され、また情報漏洩を防ぐため定期的にローテーションされている必要がある。\n安全に認証を行う方法として適切なものはどれか。",
-    "created_at": "2025-10-20T01:12:38.208047+00:00",
-    "explanation": null,
-    "last_answered": null,
-    "correct_answers": [
-      0
-    ],
-    "memory_strength": 0,
-    "consecutive_wrong": 0,
-    "consecutive_correct": 0
-  },
-  {
     "id": "f344c0f0-bbb9-40a6-9c85-f8c70326167e",
     "type": "multiple",
     "options": [
@@ -11621,6 +11577,50 @@
     "position": 1760922730944942,
     "question": "ある企業では、セキュリティおよび運用監査のために、作成済みのS3バケットに対して、パブリックでの書き込みアクセスを許可されていないことと、バージョン管理が有効化されているかを確認する必要がある。また、今後の構成変更はすべて記録したい。\nこれらの要件を満たすAWSサービスはどれか。",
     "created_at": "2025-10-20T01:12:10.944942+00:00",
+    "explanation": null,
+    "last_answered": null,
+    "correct_answers": [
+      0
+    ],
+    "memory_strength": 0,
+    "consecutive_wrong": 0,
+    "consecutive_correct": 0
+  },
+  {
+    "id": "1b2fa60c-92de-4b1e-bc54-23bd5f673cdb",
+    "type": "single",
+    "options": [
+      "IAMリソースを監視するAWS Configルールを作成する。設定変更があった場合、SNSトピックへの通知を行う",
+      "AWS CloudTrailでIAMリソースの運用を監視し、Lambda関数で設定変更を検知する。検知した際はLambda関数からSQSキューへの通知を行う",
+      "Amazon CloudWatchでIAMのメトリクスを監視する。設定変更がされた時にLambda関数で検知し、検知した際はLambda関数からSNS FIFOトピックへの通知を行う",
+      "AWS TrustedAdvisorでIAMの運用を監視する。設定変更があった場合にSNSトピックへ通知されるよう設定する"
+    ],
+    "category": "セキュリティ",
+    "position": 1760922744220920,
+    "question": "ある開発チームでは、監査チームからセキュリティポリシーを適切に運用するよう通達があったため、IAMユーザーおよびIAMグループ、IAMロールなどの運用を見直した。以降、IAMリソースの設定が変更された場合に検知したい。\n適切なアクションは次のうちどれか。",
+    "created_at": "2025-10-20T01:12:24.22092+00:00",
+    "explanation": null,
+    "last_answered": null,
+    "correct_answers": [
+      0
+    ],
+    "memory_strength": 0,
+    "consecutive_wrong": 0,
+    "consecutive_correct": 0
+  },
+  {
+    "id": "344f0cac-054b-4696-a89a-a9fd4f849600",
+    "type": "single",
+    "options": [
+      "AWS Secrets Managerを利用して認証する",
+      "AWS Key Management Serviceを利用して認証する",
+      "AWS CloudHSMに保存された鍵を使用して認証する",
+      "AWS Key Management Serviceのデータキーを使って認証情報を取得する"
+    ],
+    "category": "セキュリティ",
+    "position": 1760922758208047,
+    "question": "データベースへアクセスするアプリケーションがある。データベースの認証情報はアプリケーションから切り離して安全に管理され、また情報漏洩を防ぐため定期的にローテーションされている必要がある。\n安全に認証を行う方法として適切なものはどれか。",
+    "created_at": "2025-10-20T01:12:38.208047+00:00",
     "explanation": null,
     "last_answered": null,
     "correct_answers": [
@@ -11791,28 +11791,6 @@
     "consecutive_correct": 0
   },
   {
-    "id": "fdc227ca-d6aa-4d7e-a3c0-14a99129a4c6",
-    "type": "single",
-    "options": [
-      "Cognitoのアダプティブ認証を利用する",
-      "API GatewayとLambda関数を組み合わせてIPアドレスを確認し、Cognitoの認証フローを制御する",
-      "WAFを使用してIPアドレスをモニタリングし、異常を検出した場合にCognitoのMFA設定を動的に変更する",
-      "GuardDutyを使用して異常なIPアドレスを検出し、Cognitoの設定を自動的に更新する"
-    ],
-    "category": "セキュリティ",
-    "position": 1760923903613702,
-    "question": "ある企業は、Amazon Cognitoを使用してユーザー認証を行っている。セキュリティポリシーを強化するため、普段と違うIPアドレスからログインしようとした場合、多要素認証（MFA）を要求するようにしたい。どのような手段が最適か。",
-    "created_at": "2025-10-20T01:31:43.613702+00:00",
-    "explanation": null,
-    "last_answered": null,
-    "correct_answers": [
-      0
-    ],
-    "memory_strength": 0,
-    "consecutive_wrong": 0,
-    "consecutive_correct": 0
-  },
-  {
     "id": "dce4a8af-ebc7-4767-8d50-6e98fffcdbfa",
     "type": "single",
     "options": [
@@ -11935,28 +11913,6 @@
     "position": 1760922945793366,
     "question": "ある会社はEC2インスタンス上でWebアプリケーションを開発した。EC2インスタンスは開発環境用AWSアカウントで構築されている。開発したWebアプリケーションを本番環境に移行するために、開発環境のEC2インスタンスからAMI（Amazon マシンイメージ）を作成し、本番環境用AWSアカウントに共有したい。共有対象のAMIはAmazon EBSのスナップショットによってバックアップされており、AWS KMSで管理しているKMSキーを使用してスナップショットを暗号化している。\n開発環境から本番環境へ、AMIをセキュアに共有する方法は次のうちどれか。",
     "created_at": "2025-10-20T01:15:45.793366+00:00",
-    "explanation": null,
-    "last_answered": null,
-    "correct_answers": [
-      0
-    ],
-    "memory_strength": 0,
-    "consecutive_wrong": 0,
-    "consecutive_correct": 0
-  },
-  {
-    "id": "d76965bf-4283-46ed-a2bc-3e3a968149bf",
-    "type": "single",
-    "options": [
-      "Inspectorを使用して、ECR内のコンテナイメージをスキャンし、脆弱性を検出する",
-      "Configコンフォーマンスパックを使用して、コンテナイメージのセキュリティ脆弱性をスキャンする",
-      "Security Hubを有効化し、ECRに保存されたコンテナイメージをスキャンし、脆弱性を検出する",
-      "Systems Manager Patch Managerを使用して、ECRに保存されたコンテナイメージをスキャンし、脆弱性を検出する"
-    ],
-    "category": "セキュリティ",
-    "position": 1760924746116083,
-    "question": "ある企業は、社内向けの学習管理アプリケーションをAWS上で開発・運用している。アプリケーションはECS on Fargateで動作しており、コンテナイメージはECRに格納されている。セキュリティチームは、ECRに保存されたコンテナイメージに脆弱性が含まれていないかを継続的に評価したいと考えている。これらの要件を満たす選択肢はどれか。",
-    "created_at": "2025-10-20T01:45:46.116083+00:00",
     "explanation": null,
     "last_answered": null,
     "correct_answers": [
@@ -12199,28 +12155,6 @@
     "position": 1760923122915259,
     "question": "ある企業では、機密データを含むファイルをAmazon S3バケットに定期的にアップロードするアプリケーションをAWS上でホストしている。現在、このアプリケーションはVPC内のプライベートサブネット上で稼働しており、Amazon S3バケットとの接続は、パブリックサブネットに配置されたNATゲートウェイを利用して行われている。最近更新された同社のセキュリティポリシーに従うと、機密データのアップロードはインターネットを経由せずに行う必要がある。\n運用上のオーバーヘッドを最小限に抑えつつ、この要件を満たす適切な方法はどれか。",
     "created_at": "2025-10-20T01:18:42.915259+00:00",
-    "explanation": null,
-    "last_answered": null,
-    "correct_answers": [
-      0
-    ],
-    "memory_strength": 0,
-    "consecutive_wrong": 0,
-    "consecutive_correct": 0
-  },
-  {
-    "id": "90476fb5-b53c-4676-8ef1-04f982a5a9c5",
-    "type": "single",
-    "options": [
-      "Amazon API Gateway、AWS Lambda、Amazon DynamoDB",
-      "Amazon API Gateway、Amazon Fargate、Amazon DynamoDB",
-      "Amazon CloudFront、Amazon Fargate、Amazon DynamoDB",
-      "Amazon CloudFront、Amazon Lambda、Amazon Redshift"
-    ],
-    "category": "パフォーマンス効率",
-    "position": 1760930954786718,
-    "question": "あるベンチャー企業は新しいWebアプリケーションシステムを設計している。WebアプリケーションのプログラムはJavaで開発されており、REST APIを使用してアクセスされることを想定している。データベースはKey-Value型のデータ形式で、少なくても2ヵ所のAZに自動的に保存されるようにしたい。ユーザーからのリクエストは不定期に発生し、突然大量のリクエストが発生する可能性もある。\n要件に合う最も適切なWeb3層構成はどれか。",
-    "created_at": "2025-10-20T03:29:14.786718+00:00",
     "explanation": null,
     "last_answered": null,
     "correct_answers": [
@@ -12649,28 +12583,6 @@
     "consecutive_correct": 0
   },
   {
-    "id": "75318f77-c1a1-43c1-8a1c-970b8ce37852",
-    "type": "single",
-    "options": [
-      "Amazon API GatewayとAWS Lambdaを組み合わせる。DynamoDBをプロビジョンドモードに設定する",
-      "Amazon API GatewayとAWS Lambdaを組み合わせる。DynamoDBをオンデマンドモードに設定する",
-      "Auto Scalingグループを作成し、EC2インスタンスを実行する。DynamoDBをプロビジョンドモードに設定する",
-      "Auto Scalingグループを作成し、EC2インスタンスを実行する。DynamoDBをオンデマンドモードに設定する"
-    ],
-    "category": "パフォーマンス効率",
-    "position": 1760930990229690,
-    "question": "ある会社は、WebSocketを使用したアプリケーションを開発している。アプリケーションへは毎秒500件のリクエストが発生すると予測される。なお、データベースはAmazon DynamoDBを使用する。\nAWSのマネージドサービスを使用して実装するには、どのソリューションが最も適切か。",
-    "created_at": "2025-10-20T03:29:50.22969+00:00",
-    "explanation": null,
-    "last_answered": null,
-    "correct_answers": [
-      0
-    ],
-    "memory_strength": 0,
-    "consecutive_wrong": 0,
-    "consecutive_correct": 0
-  },
-  {
     "id": "bfd92a59-58db-4875-8ba6-8b569177683f",
     "type": "single",
     "options": [
@@ -13017,6 +12929,28 @@
     "position": 1760923891605155,
     "question": "ある会社はデジタル写真のデータを販売している。現在、オリジナルデータはS3バケットに保管されており、新しいデータが随時追加されている。有料会員はS3バケットからオリジナルデータを直接ダウンロードできる。販売促進のため、体験会員には会社名の透かしが入ったサンプルデータをダウンロードさせたい。\n運用負荷とコストを最小限に抑えながら、これらの要件を満たすソリューションはどれか。",
     "created_at": "2025-10-20T01:31:31.605155+00:00",
+    "explanation": null,
+    "last_answered": null,
+    "correct_answers": [
+      0
+    ],
+    "memory_strength": 0,
+    "consecutive_wrong": 0,
+    "consecutive_correct": 0
+  },
+  {
+    "id": "fdc227ca-d6aa-4d7e-a3c0-14a99129a4c6",
+    "type": "single",
+    "options": [
+      "Cognitoのアダプティブ認証を利用する",
+      "API GatewayとLambda関数を組み合わせてIPアドレスを確認し、Cognitoの認証フローを制御する",
+      "WAFを使用してIPアドレスをモニタリングし、異常を検出した場合にCognitoのMFA設定を動的に変更する",
+      "GuardDutyを使用して異常なIPアドレスを検出し、Cognitoの設定を自動的に更新する"
+    ],
+    "category": "セキュリティ",
+    "position": 1760923903613702,
+    "question": "ある企業は、Amazon Cognitoを使用してユーザー認証を行っている。セキュリティポリシーを強化するため、普段と違うIPアドレスからログインしようとした場合、多要素認証（MFA）を要求するようにしたい。どのような手段が最適か。",
+    "created_at": "2025-10-20T01:31:43.613702+00:00",
     "explanation": null,
     "last_answered": null,
     "correct_answers": [
@@ -13491,28 +13425,6 @@
     "consecutive_correct": 0
   },
   {
-    "id": "67e4dd5e-cfd3-4c70-8ba1-996191ea3cff",
-    "type": "single",
-    "options": [
-      "NLBのセキュリティグループに、社内IPアドレスからのTCPポート8443を許可するインバウンドルールを設定する。Auto ScalingグループのEC2インスタンスが使用するセキュリティグループには、送信元をそのNLBのセキュリティグループに限定し、TCPポート8443のみを許可するインバウンドルールを設定する",
-      "NLBのセキュリティグループに、0.0.0.0/0からのTCPポート8443を許可するインバウンドルールを設定する。Auto Scalingグループが使用するセキュリティグループには、社内IPアドレスからのTCPポート8443番通信を許可するインバウンドルールを設定する",
-      "デフォルトのネットワークACLを編集し、NLBとAuto Scalingグループが配置されているサブネットに対して、社内IPアドレスからのTCPポート8443を許可するインバウンドルールを追加する。戻りトラフィック用にTCPポート32768-61000を許可するアウトバウンドルールを追加し、その他すべての通信を拒否するルールを設定する",
-      "NLBにAWS WAFを割り当てて、Web ACLで社内IPアドレスだけを許可する。Auto ScalingグループのEC2インスタンスが使用するセキュリティグループには、送信元をそのNLBのセキュリティグループに限定し、TCPポート8443のみを許可するインバウンドルールを設定する"
-    ],
-    "category": "セキュリティ",
-    "position": 1760924601107875,
-    "question": "ある大企業は、AWS上に社内専用のドキュメント閲覧ポータルを構築している。このポータルは、2つのAZにまたがるAuto ScalingグループのEC2インスタンス群と、共有のAmazon EFSファイルシステムで構成されている。フロントエンドにはセキュリティグループを関連付けたNLBを配置しており、ポータルの通信にはTCPポート8443を使用する。セキュリティチームは、社内ネットワークのIPアドレスからのアクセスのみを許可し、それ以外の接続は拒否したい。また、NLBを経由しないEC2インスタンスへの直接アクセスは一切許可しないという要件もある。これらの要件を最も効率的かつセキュアに満たすソリューションはどれか。",
-    "created_at": "2025-10-20T01:43:21.107875+00:00",
-    "explanation": null,
-    "last_answered": null,
-    "correct_answers": [
-      0
-    ],
-    "memory_strength": 0,
-    "consecutive_wrong": 0,
-    "consecutive_correct": 0
-  },
-  {
     "id": "c6614376-a1d1-4c30-91c9-c66de3e1728b",
     "type": "single",
     "options": [
@@ -13829,18 +13741,18 @@
     "consecutive_correct": 0
   },
   {
-    "id": "fb1a3da4-5324-4fa7-bdc0-7c388809468e",
+    "id": "67e4dd5e-cfd3-4c70-8ba1-996191ea3cff",
     "type": "single",
     "options": [
-      "AWS Direct ConnectでS3バケットへデータを移行する。S3からRDS PostgreSQLへインポートする",
-      "AWS Snowballデバイスをオーダーし、S3バケットへ保存する。S3からRDS PostgreSQLへインポートする",
-      "AWS Direct Connectの帯域を500Mbpsへ増やし、データベースのバックアップをS3へ移行する。バックアップからRDS PostgreSQLを復元する",
-      "AWS Site-to-Site VPNでRDSとのVPN接続をプロビジョニングする。RDS PostgreSQLへ直接データを移行する"
+      "NLBのセキュリティグループに、社内IPアドレスからのTCPポート8443を許可するインバウンドルールを設定する。Auto ScalingグループのEC2インスタンスが使用するセキュリティグループには、送信元をそのNLBのセキュリティグループに限定し、TCPポート8443のみを許可するインバウンドルールを設定する",
+      "NLBのセキュリティグループに、0.0.0.0/0からのTCPポート8443を許可するインバウンドルールを設定する。Auto Scalingグループが使用するセキュリティグループには、社内IPアドレスからのTCPポート8443番通信を許可するインバウンドルールを設定する",
+      "デフォルトのネットワークACLを編集し、NLBとAuto Scalingグループが配置されているサブネットに対して、社内IPアドレスからのTCPポート8443を許可するインバウンドルールを追加する。戻りトラフィック用にTCPポート32768-61000を許可するアウトバウンドルールを追加し、その他すべての通信を拒否するルールを設定する",
+      "NLBにAWS WAFを割り当てて、Web ACLで社内IPアドレスだけを許可する。Auto ScalingグループのEC2インスタンスが使用するセキュリティグループには、送信元をそのNLBのセキュリティグループに限定し、TCPポート8443のみを許可するインバウンドルールを設定する"
     ],
-    "category": "パフォーマンス効率",
-    "position": 1760931026665145,
-    "question": "ある企業は、オンプレミスに持つPostgreSQLデータベースをAmazon RDSへ移行する方法を検討している。データベースは8TBのデータを持つ。企業には、データ転送に利用できる300MbpsのAWS Direct Connect回線があり、データ移行は1週間以内に完了したい。\nもっとも適切な方法はどれか。",
-    "created_at": "2025-10-20T03:30:26.665145+00:00",
+    "category": "セキュリティ",
+    "position": 1760924601107875,
+    "question": "ある大企業は、AWS上に社内専用のドキュメント閲覧ポータルを構築している。このポータルは、2つのAZにまたがるAuto ScalingグループのEC2インスタンス群と、共有のAmazon EFSファイルシステムで構成されている。フロントエンドにはセキュリティグループを関連付けたNLBを配置しており、ポータルの通信にはTCPポート8443を使用する。セキュリティチームは、社内ネットワークのIPアドレスからのアクセスのみを許可し、それ以外の接続は拒否したい。また、NLBを経由しないEC2インスタンスへの直接アクセスは一切許可しないという要件もある。これらの要件を最も効率的かつセキュアに満たすソリューションはどれか。",
+    "created_at": "2025-10-20T01:43:21.107875+00:00",
     "explanation": null,
     "last_answered": null,
     "correct_answers": [
@@ -13959,6 +13871,28 @@
     "position": 1760924722988833,
     "question": "ある企業は、Organizationsを使って複数のAWSアカウントを管理している。アカウントは開発・検証・本番などの環境ごとにOUに分けられている。企業のセキュリティ部門は、OU階層やガードレールに関する変更を検知し、担当者に通知する仕組みを構築したいと考えている。運用負荷を最小限に抑えつつ、この要件を満たす適切な選択肢はどれか。",
     "created_at": "2025-10-20T01:45:22.988833+00:00",
+    "explanation": null,
+    "last_answered": null,
+    "correct_answers": [
+      0
+    ],
+    "memory_strength": 0,
+    "consecutive_wrong": 0,
+    "consecutive_correct": 0
+  },
+  {
+    "id": "d76965bf-4283-46ed-a2bc-3e3a968149bf",
+    "type": "single",
+    "options": [
+      "Inspectorを使用して、ECR内のコンテナイメージをスキャンし、脆弱性を検出する",
+      "Configコンフォーマンスパックを使用して、コンテナイメージのセキュリティ脆弱性をスキャンする",
+      "Security Hubを有効化し、ECRに保存されたコンテナイメージをスキャンし、脆弱性を検出する",
+      "Systems Manager Patch Managerを使用して、ECRに保存されたコンテナイメージをスキャンし、脆弱性を検出する"
+    ],
+    "category": "セキュリティ",
+    "position": 1760924746116083,
+    "question": "ある企業は、社内向けの学習管理アプリケーションをAWS上で開発・運用している。アプリケーションはECS on Fargateで動作しており、コンテナイメージはECRに格納されている。セキュリティチームは、ECRに保存されたコンテナイメージに脆弱性が含まれていないかを継続的に評価したいと考えている。これらの要件を満たす選択肢はどれか。",
+    "created_at": "2025-10-20T01:45:46.116083+00:00",
     "explanation": null,
     "last_answered": null,
     "correct_answers": [
@@ -14973,28 +14907,6 @@
     "consecutive_correct": 0
   },
   {
-    "id": "7f46f85d-ee09-4133-98ba-2603011e54b3",
-    "type": "single",
-    "options": [
-      "SQSキューを変換用アプリケーションと分析用アプリケーションにそれぞれ作成する。SQSキューのバックログに基づいたスケーリングポリシーを設定する。アプリケーションはSQSキューへポーリングしてリクエストを処理する",
-      "SQSキューを変換用アプリケーションと分析用アプリケーションにそれぞれ作成する。SQSキューからの通知に基づいたスケーリングポリシーを設定する。アプリケーションはSQSキューへポーリングしてリクエストを処理する",
-      "SNSトピックをデータ変換用アプリケーションと分析用アプリケーションにそれぞれ作成する。SNSトピックからの通知に基づいたスケーリングポリシーを設定する。アプリケーションはSNSトピックからリクエストを受け取って処理する",
-      "変換用アプリケーションは処理後に5分間待機してから分析用アプリケーションにデータを送信する。それぞれのEC2インスタンスのCPU使用率に基づいたスケーリングポリシーを設定する"
-    ],
-    "category": "信頼性",
-    "position": 1760927559750758,
-    "question": "ある会社が分析システムを開発している。分析システムは、データを変換するアプリケーションと、変換したデータを分析するアプリケーションの2つにプロセスが分かれており、それぞれがAuto Scalingグループ内の複数のEC2インスタンスで実行されている。データ変換処理は1件につき1分以内に完了するが、分析処理は完了までに数分かかる。システムの各処理でデータの損失が発生しないように、Auto Scalingに適切なスケーリングポリシーを設定する必要がある。\nソリューションアーキテクトの提案として、もっとも適切なものはどれか。",
-    "created_at": "2025-10-20T02:32:39.750758+00:00",
-    "explanation": null,
-    "last_answered": null,
-    "correct_answers": [
-      0
-    ],
-    "memory_strength": 0,
-    "consecutive_wrong": 0,
-    "consecutive_correct": 0
-  },
-  {
     "id": "57f9a721-8635-41ae-ac0e-0f33447caf3b",
     "type": "single",
     "options": [
@@ -15174,28 +15086,6 @@
     "consecutive_correct": 0
   },
   {
-    "id": "e8163a6c-8a98-4540-845c-4d1e8df50c0f",
-    "type": "single",
-    "options": [
-      "CloudWatchアラームとインスタンス復旧アクションを設定して、インスタンスのヘルスチェックで異常があった場合に自動的に復旧する",
-      "定期的なバックアップを作成し、障害発生時にインスタンスのスナップショットから復元する",
-      "Amazon EventBridgeからインスタンスの復旧を行うLambda関数を呼び出し、障害が発生したインスタンスを復旧する",
-      "ELBを使用してインスタンスの健全性を監視し、障害が発生したインスタンスを交換する"
-    ],
-    "category": "信頼性",
-    "position": 1760927571685859,
-    "question": "あるスタートアップ企業が、AWS上で重要なビジネスアプリケーションを開発している。予算の制約により、このアプリケーションは単一のEC2インスタンスで運用される予定だが、ハードウェア障害によるサービス停止は最小限に抑えたいと考えている。インスタンスの障害から迅速に回復する最も効率的な方法はどれか。",
-    "created_at": "2025-10-20T02:32:51.685859+00:00",
-    "explanation": null,
-    "last_answered": null,
-    "correct_answers": [
-      0
-    ],
-    "memory_strength": 0,
-    "consecutive_wrong": 0,
-    "consecutive_correct": 0
-  },
-  {
     "id": "3c86e547-03be-4e86-8d35-c02c36f00f7d",
     "type": "single",
     "options": [
@@ -15298,6 +15188,50 @@
     "position": 1760927536037303,
     "question": "ある会社では、オンラインストアのウェブシステムをAWS上で運用している。このシステムのWebサーバは単一のEC2インスタンスで稼働しており、商品情報や顧客情報を格納するデータベースはAmazon RDS PostgreSQLデータベースをマルチAZ構成で使用している。同社は、障害発生時やリクエストの急増時に備えてより可用性の高い構成に変更したいと考えている。この要件を満たす最も適切なアプローチはどれか。",
     "created_at": "2025-10-20T02:32:16.037303+00:00",
+    "explanation": null,
+    "last_answered": null,
+    "correct_answers": [
+      0
+    ],
+    "memory_strength": 0,
+    "consecutive_wrong": 0,
+    "consecutive_correct": 0
+  },
+  {
+    "id": "7f46f85d-ee09-4133-98ba-2603011e54b3",
+    "type": "single",
+    "options": [
+      "SQSキューを変換用アプリケーションと分析用アプリケーションにそれぞれ作成する。SQSキューのバックログに基づいたスケーリングポリシーを設定する。アプリケーションはSQSキューへポーリングしてリクエストを処理する",
+      "SQSキューを変換用アプリケーションと分析用アプリケーションにそれぞれ作成する。SQSキューからの通知に基づいたスケーリングポリシーを設定する。アプリケーションはSQSキューへポーリングしてリクエストを処理する",
+      "SNSトピックをデータ変換用アプリケーションと分析用アプリケーションにそれぞれ作成する。SNSトピックからの通知に基づいたスケーリングポリシーを設定する。アプリケーションはSNSトピックからリクエストを受け取って処理する",
+      "変換用アプリケーションは処理後に5分間待機してから分析用アプリケーションにデータを送信する。それぞれのEC2インスタンスのCPU使用率に基づいたスケーリングポリシーを設定する"
+    ],
+    "category": "信頼性",
+    "position": 1760927559750758,
+    "question": "ある会社が分析システムを開発している。分析システムは、データを変換するアプリケーションと、変換したデータを分析するアプリケーションの2つにプロセスが分かれており、それぞれがAuto Scalingグループ内の複数のEC2インスタンスで実行されている。データ変換処理は1件につき1分以内に完了するが、分析処理は完了までに数分かかる。システムの各処理でデータの損失が発生しないように、Auto Scalingに適切なスケーリングポリシーを設定する必要がある。\nソリューションアーキテクトの提案として、もっとも適切なものはどれか。",
+    "created_at": "2025-10-20T02:32:39.750758+00:00",
+    "explanation": null,
+    "last_answered": null,
+    "correct_answers": [
+      0
+    ],
+    "memory_strength": 0,
+    "consecutive_wrong": 0,
+    "consecutive_correct": 0
+  },
+  {
+    "id": "e8163a6c-8a98-4540-845c-4d1e8df50c0f",
+    "type": "single",
+    "options": [
+      "CloudWatchアラームとインスタンス復旧アクションを設定して、インスタンスのヘルスチェックで異常があった場合に自動的に復旧する",
+      "定期的なバックアップを作成し、障害発生時にインスタンスのスナップショットから復元する",
+      "Amazon EventBridgeからインスタンスの復旧を行うLambda関数を呼び出し、障害が発生したインスタンスを復旧する",
+      "ELBを使用してインスタンスの健全性を監視し、障害が発生したインスタンスを交換する"
+    ],
+    "category": "信頼性",
+    "position": 1760927571685859,
+    "question": "あるスタートアップ企業が、AWS上で重要なビジネスアプリケーションを開発している。予算の制約により、このアプリケーションは単一のEC2インスタンスで運用される予定だが、ハードウェア障害によるサービス停止は最小限に抑えたいと考えている。インスタンスの障害から迅速に回復する最も効率的な方法はどれか。",
+    "created_at": "2025-10-20T02:32:51.685859+00:00",
     "explanation": null,
     "last_answered": null,
     "correct_answers": [
@@ -15418,28 +15352,6 @@
     "consecutive_correct": 0
   },
   {
-    "id": "1f1ab79d-0e30-4698-adee-b270ed6660a1",
-    "type": "single",
-    "options": [
-      "Amazon S3のオブジェクトロックを有効にしたS3バケットを作成する。AWS DataSyncを利用して、S3バケットへデータを転送する",
-      "Amazon S3のバージョニングを有効にしたS3バケットを作成する。AWS Storage Gatewayを利用して、S3バケットへデータを転送する",
-      "Amazon S3のオブジェクトロックを有効にしたS3バケットを作成する。AWS Storage Gatewayを利用して、S3バケットへデータを転送する",
-      "Amazon S3のオブジェクトロックとACLを有効化したS3バケットを作成する。AWS Snowballを利用して、S3バケットへデータを転送する"
-    ],
-    "category": "パフォーマンス効率",
-    "position": 1760930970152631,
-    "question": "オンプレミスのストレージに保存された業務データをAWSクラウドへ移行したい。データは暗号化されセキュアに移行されなくてはならない。また、AWSへ移行したデータは更新や削除を禁止するように設定する。\nもっとも適切なソリューションは次のうちどれか。",
-    "created_at": "2025-10-20T03:29:30.152631+00:00",
-    "explanation": null,
-    "last_answered": null,
-    "correct_answers": [
-      0
-    ],
-    "memory_strength": 0,
-    "consecutive_wrong": 0,
-    "consecutive_correct": 0
-  },
-  {
     "id": "f76485c9-301e-4005-9cb2-8efa5341492f",
     "type": "single",
     "options": [
@@ -15528,28 +15440,6 @@
     "consecutive_correct": 0
   },
   {
-    "id": "0af34289-2652-40f5-b866-6446e69421ad",
-    "type": "single",
-    "options": [
-      "Elastic Disaster Recoveryを使用して、オンプレミスの仮想環境全体をAWSに継続的にレプリケートし、ディザスタリカバリのプロセスを自動化する",
-      "Backupを利用してオンプレミスの仮想マシンを定期スケジュールでバックアップし、障害発生時にはEC2インスタンスへリストアする",
-      "Snowball Edgeを用いて、オンプレミスのデータを移送しS3バケットに保管する。障害時にS3バケットのデータを用いてEC2インスタンスやRDSインスタンスを起動して再構築する",
-      "CloudFormationテンプレートを用意しておき、障害時にスタックを起動してインフラを自動構築する。オンプレミスのデータはDirect Connect経由で定期的にS3バケットにバックアップする"
-    ],
-    "category": "信頼性",
-    "position": 1760930293584387,
-    "question": "ある製造業の企業は、生産管理システムをオンプレミス環境で運用している。このシステムは、仮想化されたサーバー上で業務アプリケーションとデータベースが連携して稼働しており、工場の稼働状況や在庫管理などの重要なデータを扱っている。同社は事業継続計画の一環として、目標復旧時間（RTO）と目標復旧時点（RPO）の両方を数分以内に抑えることを目指し、AWS上にディザスタリカバリ（DR）環境を構築することを検討中である。また、実際の障害シナリオを想定したフェイルオーバーテストが容易に実施でき、障害発生時にはフェイルオーバーが自動で行われる仕組みが求められている。さらに、本番環境が復旧した後はオンプレミス側へのフェイルバックが容易に行えることも必須の要件となっている。こうした要件を満たすソリューションとして最も適切なものはどれか。",
-    "created_at": "2025-10-20T03:18:13.584387+00:00",
-    "explanation": null,
-    "last_answered": null,
-    "correct_answers": [
-      0
-    ],
-    "memory_strength": 0,
-    "consecutive_wrong": 0,
-    "consecutive_correct": 0
-  },
-  {
     "id": "34cfc25b-db51-4c05-b96b-241d8fa061b4",
     "type": "single",
     "options": [
@@ -15628,6 +15518,28 @@
     "position": 1760930206109447,
     "question": "あるメディア制作会社では、映像編集やアニメーション制作のプロジェクトデータを、Amazon FSx for NetApp ONTAP上に保管している。WindowsワークステーションからはSMB（CIFS）でアクセスし、LinuxレンダリングファームやアニメーションツールからはNFSでアクセスする形で、大容量のファイルを日々やり取りしている。経営チームは、大規模障害や災害時に制作データを失わないよう、別の AWSリージョンを利用した災害復旧 (DR) 環境を構築したいと考えている。短いダウンタイムと迅速な切り替えを望んでおり、できるだけ運用の手間を増やさずにデータを複製したいとの要望がある。また、SMB（CIFS）とNFSのプロトコルをセカンダリリージョンでも同様に使い続ける必要がある。この要件を満たすために最適なソリューションは次のうちどれか。",
     "created_at": "2025-10-20T03:16:46.109447+00:00",
+    "explanation": null,
+    "last_answered": null,
+    "correct_answers": [
+      0
+    ],
+    "memory_strength": 0,
+    "consecutive_wrong": 0,
+    "consecutive_correct": 0
+  },
+  {
+    "id": "0af34289-2652-40f5-b866-6446e69421ad",
+    "type": "single",
+    "options": [
+      "Elastic Disaster Recoveryを使用して、オンプレミスの仮想環境全体をAWSに継続的にレプリケートし、ディザスタリカバリのプロセスを自動化する",
+      "Backupを利用してオンプレミスの仮想マシンを定期スケジュールでバックアップし、障害発生時にはEC2インスタンスへリストアする",
+      "Snowball Edgeを用いて、オンプレミスのデータを移送しS3バケットに保管する。障害時にS3バケットのデータを用いてEC2インスタンスやRDSインスタンスを起動して再構築する",
+      "CloudFormationテンプレートを用意しておき、障害時にスタックを起動してインフラを自動構築する。オンプレミスのデータはDirect Connect経由で定期的にS3バケットにバックアップする"
+    ],
+    "category": "信頼性",
+    "position": 1760930293584387,
+    "question": "ある製造業の企業は、生産管理システムをオンプレミス環境で運用している。このシステムは、仮想化されたサーバー上で業務アプリケーションとデータベースが連携して稼働しており、工場の稼働状況や在庫管理などの重要なデータを扱っている。同社は事業継続計画の一環として、目標復旧時間（RTO）と目標復旧時点（RPO）の両方を数分以内に抑えることを目指し、AWS上にディザスタリカバリ（DR）環境を構築することを検討中である。また、実際の障害シナリオを想定したフェイルオーバーテストが容易に実施でき、障害発生時にはフェイルオーバーが自動で行われる仕組みが求められている。さらに、本番環境が復旧した後はオンプレミス側へのフェイルバックが容易に行えることも必須の要件となっている。こうした要件を満たすソリューションとして最も適切なものはどれか。",
+    "created_at": "2025-10-20T03:18:13.584387+00:00",
     "explanation": null,
     "last_answered": null,
     "correct_answers": [
@@ -15948,28 +15860,6 @@
     "consecutive_correct": 0
   },
   {
-    "id": "d331c40a-9194-45b9-bbde-6bbfcffad564",
-    "type": "single",
-    "options": [
-      "Auto Scalingグループを作成し、クラスタープレイスメントグループに所属した複数のインスタンスを単一AZで起動する",
-      "Auto Scalingグループを作成し、クラスタープレイスメントグループに所属した複数のインスタンスをマルチAZで起動する",
-      "Amazon Route 53のレイテンシールーティングポリシーとフェイルオーバールーティングポリシーを組み合わせる",
-      "ハードウェア専有インスタンスで複数のインスタンスを起動し、ALBで負荷分散させる"
-    ],
-    "category": "パフォーマンス効率",
-    "position": 1760930939704548,
-    "question": "ある会社が大規模なバッチ処理のアプリケーションを設計している。アプリケーションは複数のインスタンスによる並列処理が実行され、インスタンス間で大量のデータ転送が行われる。\nインスタンス間は可能な限り低遅延で通信可能で、回復性も兼ね備えたい場合、どうすればよいか。",
-    "created_at": "2025-10-20T03:28:59.704548+00:00",
-    "explanation": null,
-    "last_answered": null,
-    "correct_answers": [
-      0
-    ],
-    "memory_strength": 0,
-    "consecutive_wrong": 0,
-    "consecutive_correct": 0
-  },
-  {
     "id": "d11bd09a-e4ff-41ab-93ad-65de0885c5f3",
     "type": "single",
     "options": [
@@ -16104,6 +15994,116 @@
     "consecutive_correct": 0
   },
   {
+    "id": "d331c40a-9194-45b9-bbde-6bbfcffad564",
+    "type": "single",
+    "options": [
+      "Auto Scalingグループを作成し、クラスタープレイスメントグループに所属した複数のインスタンスを単一AZで起動する",
+      "Auto Scalingグループを作成し、クラスタープレイスメントグループに所属した複数のインスタンスをマルチAZで起動する",
+      "Amazon Route 53のレイテンシールーティングポリシーとフェイルオーバールーティングポリシーを組み合わせる",
+      "ハードウェア専有インスタンスで複数のインスタンスを起動し、ALBで負荷分散させる"
+    ],
+    "category": "パフォーマンス効率",
+    "position": 1760930939704548,
+    "question": "ある会社が大規模なバッチ処理のアプリケーションを設計している。アプリケーションは複数のインスタンスによる並列処理が実行され、インスタンス間で大量のデータ転送が行われる。\nインスタンス間は可能な限り低遅延で通信可能で、回復性も兼ね備えたい場合、どうすればよいか。",
+    "created_at": "2025-10-20T03:28:59.704548+00:00",
+    "explanation": null,
+    "last_answered": null,
+    "correct_answers": [
+      0
+    ],
+    "memory_strength": 0,
+    "consecutive_wrong": 0,
+    "consecutive_correct": 0
+  },
+  {
+    "id": "90476fb5-b53c-4676-8ef1-04f982a5a9c5",
+    "type": "single",
+    "options": [
+      "Amazon API Gateway、AWS Lambda、Amazon DynamoDB",
+      "Amazon API Gateway、Amazon Fargate、Amazon DynamoDB",
+      "Amazon CloudFront、Amazon Fargate、Amazon DynamoDB",
+      "Amazon CloudFront、Amazon Lambda、Amazon Redshift"
+    ],
+    "category": "パフォーマンス効率",
+    "position": 1760930954786718,
+    "question": "あるベンチャー企業は新しいWebアプリケーションシステムを設計している。WebアプリケーションのプログラムはJavaで開発されており、REST APIを使用してアクセスされることを想定している。データベースはKey-Value型のデータ形式で、少なくても2ヵ所のAZに自動的に保存されるようにしたい。ユーザーからのリクエストは不定期に発生し、突然大量のリクエストが発生する可能性もある。\n要件に合う最も適切なWeb3層構成はどれか。",
+    "created_at": "2025-10-20T03:29:14.786718+00:00",
+    "explanation": null,
+    "last_answered": null,
+    "correct_answers": [
+      0
+    ],
+    "memory_strength": 0,
+    "consecutive_wrong": 0,
+    "consecutive_correct": 0
+  },
+  {
+    "id": "1f1ab79d-0e30-4698-adee-b270ed6660a1",
+    "type": "single",
+    "options": [
+      "Amazon S3のオブジェクトロックを有効にしたS3バケットを作成する。AWS DataSyncを利用して、S3バケットへデータを転送する",
+      "Amazon S3のバージョニングを有効にしたS3バケットを作成する。AWS Storage Gatewayを利用して、S3バケットへデータを転送する",
+      "Amazon S3のオブジェクトロックを有効にしたS3バケットを作成する。AWS Storage Gatewayを利用して、S3バケットへデータを転送する",
+      "Amazon S3のオブジェクトロックとACLを有効化したS3バケットを作成する。AWS Snowballを利用して、S3バケットへデータを転送する"
+    ],
+    "category": "パフォーマンス効率",
+    "position": 1760930970152631,
+    "question": "オンプレミスのストレージに保存された業務データをAWSクラウドへ移行したい。データは暗号化されセキュアに移行されなくてはならない。また、AWSへ移行したデータは更新や削除を禁止するように設定する。\nもっとも適切なソリューションは次のうちどれか。",
+    "created_at": "2025-10-20T03:29:30.152631+00:00",
+    "explanation": null,
+    "last_answered": null,
+    "correct_answers": [
+      0
+    ],
+    "memory_strength": 0,
+    "consecutive_wrong": 0,
+    "consecutive_correct": 0
+  },
+  {
+    "id": "75318f77-c1a1-43c1-8a1c-970b8ce37852",
+    "type": "single",
+    "options": [
+      "Amazon API GatewayとAWS Lambdaを組み合わせる。DynamoDBをプロビジョンドモードに設定する",
+      "Amazon API GatewayとAWS Lambdaを組み合わせる。DynamoDBをオンデマンドモードに設定する",
+      "Auto Scalingグループを作成し、EC2インスタンスを実行する。DynamoDBをプロビジョンドモードに設定する",
+      "Auto Scalingグループを作成し、EC2インスタンスを実行する。DynamoDBをオンデマンドモードに設定する"
+    ],
+    "category": "パフォーマンス効率",
+    "position": 1760930990229690,
+    "question": "ある会社は、WebSocketを使用したアプリケーションを開発している。アプリケーションへは毎秒500件のリクエストが発生すると予測される。なお、データベースはAmazon DynamoDBを使用する。\nAWSのマネージドサービスを使用して実装するには、どのソリューションが最も適切か。",
+    "created_at": "2025-10-20T03:29:50.22969+00:00",
+    "explanation": null,
+    "last_answered": null,
+    "correct_answers": [
+      0
+    ],
+    "memory_strength": 0,
+    "consecutive_wrong": 0,
+    "consecutive_correct": 0
+  },
+  {
+    "id": "fb1a3da4-5324-4fa7-bdc0-7c388809468e",
+    "type": "single",
+    "options": [
+      "AWS Direct ConnectでS3バケットへデータを移行する。S3からRDS PostgreSQLへインポートする",
+      "AWS Snowballデバイスをオーダーし、S3バケットへ保存する。S3からRDS PostgreSQLへインポートする",
+      "AWS Direct Connectの帯域を500Mbpsへ増やし、データベースのバックアップをS3へ移行する。バックアップからRDS PostgreSQLを復元する",
+      "AWS Site-to-Site VPNでRDSとのVPN接続をプロビジョニングする。RDS PostgreSQLへ直接データを移行する"
+    ],
+    "category": "パフォーマンス効率",
+    "position": 1760931026665145,
+    "question": "ある企業は、オンプレミスに持つPostgreSQLデータベースをAmazon RDSへ移行する方法を検討している。データベースは8TBのデータを持つ。企業には、データ転送に利用できる300MbpsのAWS Direct Connect回線があり、データ移行は1週間以内に完了したい。\nもっとも適切な方法はどれか。",
+    "created_at": "2025-10-20T03:30:26.665145+00:00",
+    "explanation": null,
+    "last_answered": null,
+    "correct_answers": [
+      0
+    ],
+    "memory_strength": 0,
+    "consecutive_wrong": 0,
+    "consecutive_correct": 0
+  },
+  {
     "id": "2e7e2a74-5227-4ebf-9387-7d1a2bb66d64",
     "type": "single",
     "options": [
@@ -16204,28 +16204,6 @@
     "position": 1760931118239187,
     "question": "インテリア製品を扱う会社は、Webサイトで製品カタログを提供している。製品カタログは、画像や商品説明などの静的コンテンツと、在庫情報などの動的コンテンツで構成される。WebサイトはALB配下の複数のEC2インスタンスで動作している。会社は今後、Webサイトを複数言語に対応させて、世界中に製品を販売していく予定である。\n世界中のユーザーに対して、製品カタログを高速に配信するにはどうすればよいか。",
     "created_at": "2025-10-20T03:31:58.239187+00:00",
-    "explanation": null,
-    "last_answered": null,
-    "correct_answers": [
-      0
-    ],
-    "memory_strength": 0,
-    "consecutive_wrong": 0,
-    "consecutive_correct": 0
-  },
-  {
-    "id": "c1074e5b-3b27-4737-95c1-365fe2d657fb",
-    "type": "single",
-    "options": [
-      "AWS DataSyncを使用する",
-      "AWS Storage Gatewayを使用する",
-      "AWS Direct Connectを使用して、2つのリージョン間の接続を確立する",
-      "AWS Lambdaを使用して、毎日のデータ更新をトリガーとして同期処理を実行する"
-    ],
-    "category": "パフォーマンス効率",
-    "position": 1760933512996576,
-    "question": "大手製薬会社は2つの主要な研究施設を持っている。それぞれの施設は離れた異なる地域にあり、機密性の制限により近隣のAWSリージョンだけにアクセスしている。毎日それぞれの施設は大量の研究データを生成し、それを各リージョンのAmazon EFSに保存している。会社は、これらの保存したAWS上のデータを毎日同期させ、どちらの施設からも最新の研究データにアクセスできるようにしたいと考えている。要件を満たす最も適切なアプローチはどれか。",
-    "created_at": "2025-10-20T04:11:52.996576+00:00",
     "explanation": null,
     "last_answered": null,
     "correct_answers": [
@@ -16470,6 +16448,28 @@
     "position": 1760933500744419,
     "question": "音楽プロダクションを運営する会社は、所属アーティストの新曲に合わせて専用Webサイトを準備している。Webサイトはパリリージョン（eu-west-3）にあるALB配下の複数のEC2インスタンスで稼働している。アーティストは主にヨーロッパで人気があるので、ヨーロッパのユーザーに対応した言語のWebコンテンツを作成していた。しかし、先日にグローバル情報サイトでアーティストが過去に出した楽曲が世界中に拡散されて大きな話題となったため、急遽Amazon Translateを利用してWebコンテンツを世界中の主要言語に対応させた。Webコンテンツは世界中のユーザーに低レイテンシーで配信したいが、Webサイトの公開まで数日しかないので既存のアーキテクチャの変更は可能な限り避けたい。\nもっとも適切なソリューションは次のうちどれか。",
     "created_at": "2025-10-20T04:11:40.744419+00:00",
+    "explanation": null,
+    "last_answered": null,
+    "correct_answers": [
+      0
+    ],
+    "memory_strength": 0,
+    "consecutive_wrong": 0,
+    "consecutive_correct": 0
+  },
+  {
+    "id": "c1074e5b-3b27-4737-95c1-365fe2d657fb",
+    "type": "single",
+    "options": [
+      "AWS DataSyncを使用する",
+      "AWS Storage Gatewayを使用する",
+      "AWS Direct Connectを使用して、2つのリージョン間の接続を確立する",
+      "AWS Lambdaを使用して、毎日のデータ更新をトリガーとして同期処理を実行する"
+    ],
+    "category": "パフォーマンス効率",
+    "position": 1760933512996576,
+    "question": "大手製薬会社は2つの主要な研究施設を持っている。それぞれの施設は離れた異なる地域にあり、機密性の制限により近隣のAWSリージョンだけにアクセスしている。毎日それぞれの施設は大量の研究データを生成し、それを各リージョンのAmazon EFSに保存している。会社は、これらの保存したAWS上のデータを毎日同期させ、どちらの施設からも最新の研究データにアクセスできるようにしたいと考えている。要件を満たす最も適切なアプローチはどれか。",
+    "created_at": "2025-10-20T04:11:52.996576+00:00",
     "explanation": null,
     "last_answered": null,
     "correct_answers": [
@@ -16832,18 +16832,40 @@
     "consecutive_correct": 0
   },
   {
-    "id": "1581d22c-430d-46ec-80c3-6bf4b1c04ac6",
+    "id": "8ed532b9-7d53-4068-a271-253995ef6cb7",
     "type": "single",
     "options": [
-      "Lambda関数にVPC Lambdaを設定し、プライベートサブネット内のAWSリソースへのアクセスを確立する。RDS Proxy経由でデータベースにアクセスする",
-      "Lambda関数をLambda専用のVPCに配置し、VPCピアリングでLambdaとAurora MySQL間の接続を確立する。データベース接続をAuroraクラスタのリーダーエンドポイントに設定する",
-      "Lambda関数をLambda専用のVPCに配置し、RDS Proxy経由でデータベースにアクセスする。プロキシ設定を読み取り専用にして、書き込みは直接RDSインスタンスに接続する",
-      "Lambda関数にVPC Lambdaを設定し、プライベートサブネット内のAWSリソースへのアクセスを確立する。Direct Connect経由でデータベースにアクセスする"
+      "EFAを有効化したネットワークインターフェイスを作成し、EC2インスタンスにアタッチする",
+      "S3を使用して研究データを保存し、S3 Transfer Accelerationを有効にする",
+      "EC2クラスタープレイスメントグループを設定し、インスタンス間のデータ転送を最適化する",
+      "EBS io2 Block Expressボリュームを使用して、EC2インスタンスに高性能ブロックストレージを提供する効率"
     ],
     "category": "パフォーマンス効率",
-    "position": 1760934682224263,
-    "question": "ある教育サービス提供企業は、新たなオンライン学習プラットフォームを運営したいと考えている。この企業は、Lambda関数を使用してプライベートサブネットに属するAurora MySQLクラスターのインスタンスにアクセスし、ユーザーデータを管理する予定である。受講者からのアクセス集中が予測されており、サービスの安定性を確保するために、データベースパフォーマンスを維持し、Lambda関数からの頻繁な接続がデータベースに負荷をかけないようにしたい。これらの要件を満たす選択肢はどれか。",
-    "created_at": "2025-10-20T04:31:22.224263+00:00",
+    "position": 1760934588218053,
+    "question": "ある製薬会社が新薬の創薬プロセスを加速するために、AWSクラウド上で高性能コンピューティング（HPC）環境を設計している。この環境では、分子モデリングと薬効予測に必要な大規模シミュレーションを実行するため、HPCクラスター内でEC2インスタンスを利用している。また、これらのプロセスには高速なデータ転送と低遅延のネットワークが求められる。データストレージにはFSx for Lustreを使用する計画だが、高速なデータ転送と低遅延を実現するための最適なAWSソリューションはどれか。",
+    "created_at": "2025-10-20T04:29:48.218053+00:00",
+    "explanation": null,
+    "last_answered": null,
+    "correct_answers": [
+      0
+    ],
+    "memory_strength": 0,
+    "consecutive_wrong": 0,
+    "consecutive_correct": 0
+  },
+  {
+    "id": "59fa4261-b9ea-473b-8e85-19f4038112f6",
+    "type": "single",
+    "options": [
+      "Auto Scalingグループを変更して、複数のAZにわたってEC2インスタンスを配置する。DMSを使用して、EC2インスタンス上のMySQLデータベースをAurora MySQLに移行する",
+      "アプリケーションとMySQLデータベースがそれぞれ載っているEC2インスタンスに更なるCPUとメモリリソースを追加し、EC2インスタンス上のMySQLデータベースはそのまま使用する",
+      "Auto Scalingグループを変更して、複数のAZにわたってEC2インスタンスを配置する。EC2インスタンス上のMySQLデータベースの定期的なバックアップを実施し、CloudWatchを使用してシステムの異常を検出する",
+      "ALBをNLBに置き換える。DMSを使用して、EC2インスタンス上のMySQLデータベースをAurora MySQLに移行する"
+    ],
+    "category": "パフォーマンス効率",
+    "position": 1760934631120979,
+    "question": "ある会社が運用しているWebアプリケーションは、ALB管理下のAuto Scalingグループに属するEC2インスタンスが単一AZ内で動作している。また、このアプリケーションは同一AZ内の別のEC2インスタンスに直接インストールされたMySQLデータベースと連携している。最近のトラフィックの増加により、アプリケーションの可用性やデータベースの整合性の向上が急務となっている。運用の手間を最小限に抑えつつ、これらの要件を満たす最適な解決策はどれか。",
+    "created_at": "2025-10-20T04:30:31.120979+00:00",
     "explanation": null,
     "last_answered": null,
     "correct_answers": [
@@ -16876,18 +16898,84 @@
     "consecutive_correct": 0
   },
   {
-    "id": "8ed532b9-7d53-4068-a271-253995ef6cb7",
+    "id": "0feec7bc-8da1-4316-b74d-27f397cd6edb",
     "type": "single",
     "options": [
-      "EFAを有効化したネットワークインターフェイスを作成し、EC2インスタンスにアタッチする",
-      "S3を使用して研究データを保存し、S3 Transfer Accelerationを有効にする",
-      "EC2クラスタープレイスメントグループを設定し、インスタンス間のデータ転送を最適化する",
-      "EBS io2 Block Expressボリュームを使用して、EC2インスタンスに高性能ブロックストレージを提供する効率"
+      "Step Functionsを用いて、注文処理ワークフローを設計し、各ステップでLambda関数を呼び出して処理を実行する",
+      "Data Firehoseを使用して注文データをストリーミングし、Lambda関数を実行してリアルタイムで注文処理を実行する",
+      "SQSを使用して注文イベントをキューに送り、EC2インスタンスで実行されるアプリケーションがキューを監視して注文処理を行う",
+      "EventBridgeで設定したスケジュールでLambda関数を実行して各注文処理のワークフローを実行する"
     ],
     "category": "パフォーマンス効率",
-    "position": 1760934588218053,
-    "question": "ある製薬会社が新薬の創薬プロセスを加速するために、AWSクラウド上で高性能コンピューティング（HPC）環境を設計している。この環境では、分子モデリングと薬効予測に必要な大規模シミュレーションを実行するため、HPCクラスター内でEC2インスタンスを利用している。また、これらのプロセスには高速なデータ転送と低遅延のネットワークが求められる。データストレージにはFSx for Lustreを使用する計画だが、高速なデータ転送と低遅延を実現するための最適なAWSソリューションはどれか。",
-    "created_at": "2025-10-20T04:29:48.218053+00:00",
+    "position": 1760934664596138,
+    "question": "ある物流会社が配送管理システムをAWSに移行する計画を立てている。同社は注文処理のワークフローを最適化するために、イベント駆動型アーキテクチャを採用する予定である。また、サーバーレスのアプローチを取り入れることで、インフラの管理負担を軽減し、運用上のオーバーヘッドをできるだけ抑えたい。この要件を満たすためにどうすればよいか。",
+    "created_at": "2025-10-20T04:31:04.596138+00:00",
+    "explanation": null,
+    "last_answered": null,
+    "correct_answers": [
+      0
+    ],
+    "memory_strength": 0,
+    "consecutive_wrong": 0,
+    "consecutive_correct": 0
+  },
+  {
+    "id": "1581d22c-430d-46ec-80c3-6bf4b1c04ac6",
+    "type": "single",
+    "options": [
+      "Lambda関数にVPC Lambdaを設定し、プライベートサブネット内のAWSリソースへのアクセスを確立する。RDS Proxy経由でデータベースにアクセスする",
+      "Lambda関数をLambda専用のVPCに配置し、VPCピアリングでLambdaとAurora MySQL間の接続を確立する。データベース接続をAuroraクラスタのリーダーエンドポイントに設定する",
+      "Lambda関数をLambda専用のVPCに配置し、RDS Proxy経由でデータベースにアクセスする。プロキシ設定を読み取り専用にして、書き込みは直接RDSインスタンスに接続する",
+      "Lambda関数にVPC Lambdaを設定し、プライベートサブネット内のAWSリソースへのアクセスを確立する。Direct Connect経由でデータベースにアクセスする"
+    ],
+    "category": "パフォーマンス効率",
+    "position": 1760934682224263,
+    "question": "ある教育サービス提供企業は、新たなオンライン学習プラットフォームを運営したいと考えている。この企業は、Lambda関数を使用してプライベートサブネットに属するAurora MySQLクラスターのインスタンスにアクセスし、ユーザーデータを管理する予定である。受講者からのアクセス集中が予測されており、サービスの安定性を確保するために、データベースパフォーマンスを維持し、Lambda関数からの頻繁な接続がデータベースに負荷をかけないようにしたい。これらの要件を満たす選択肢はどれか。",
+    "created_at": "2025-10-20T04:31:22.224263+00:00",
+    "explanation": null,
+    "last_answered": null,
+    "correct_answers": [
+      0
+    ],
+    "memory_strength": 0,
+    "consecutive_wrong": 0,
+    "consecutive_correct": 0
+  },
+  {
+    "id": "306afd60-c70d-4967-9329-5915228699d9",
+    "type": "single",
+    "options": [
+      "EC2インスタンスにMicrosoft SQL Serverをインストールし、オンプレミスと同じ構成を維持する。ネイティブのデータベーススナップショットと、データベースのログ配布機能を使用する",
+      "データベースをRDS for SQL Serverに移行し、DMSを利用してデータを転送する。RDSの標準機能でデータベースのログ配布やネイティブのデータベーススナップショットを利用する",
+      "データベースをAuroraに移行する。Auroraのスナップショット機能の使用と、Auroraのレプリケーション機能を使用したデータベースのログ配布を行う",
+      "Microsoft SQL ServerをEC2インスタンスにインストールする。データベースのログ配布機能をLambdaで実装し、スナップショット機能をEBSスナップショットで代替する"
+    ],
+    "category": "パフォーマンス効率",
+    "position": 1760934705423258,
+    "question": "ある金融サービス会社は、重要なトランザクションデータを管理するオンプレミスのMicrosoft SQL Serverを、AWSクラウドに移行する計画を立てている。このデータベースには高度なデータ管理機能が含まれており、データベースのログ配布やネイティブのデータベーススナップショット（特定のポイントインタイムでのデータベース状態の保存）など特定のSQL Serverの機能がビジネスプロセスの中で重要な役割を果たしている。そのため、これらの機能はAWS移行後も使用したいと考えている。ソリューションアーキテクトは、これらの要件を満たすアーキテクチャをどのように設計すべきか。",
+    "created_at": "2025-10-20T04:31:45.423258+00:00",
+    "explanation": null,
+    "last_answered": null,
+    "correct_answers": [
+      0
+    ],
+    "memory_strength": 0,
+    "consecutive_wrong": 0,
+    "consecutive_correct": 0
+  },
+  {
+    "id": "b0bd596e-c36b-400c-858f-51ab6c90afff",
+    "type": "single",
+    "options": [
+      "プロビジョンドモードを使用し、書き込みキャパシティユニットと読み取りキャパシティユニットを指定する。読み取りキャパシティユニットに自動スケーリングを設定する",
+      "プロビジョンドモードを使用し、書き込みキャパシティユニットと読み取りキャパシティユニットを固定で指定する",
+      "オンデマンドモードを使用し、書き込みリクエスト数の増減に対応するために、柔軟にキャパシティユニットを調整する。読み取りキャパシティユニットに対しては固定で指定する",
+      "オンデマンドモードを使用し、読み取りキャパシティユニットに対してのみ自動スケーリングを設定する。書き込みキャパシティユニットは固定で指定する"
+    ],
+    "category": "パフォーマンス効率",
+    "position": 1760934723871165,
+    "question": "ある企業は、多数の産業用センサーからデータを収集しており、これらのセンサーは定期的にデータを送信する。同社はこのデータをDynamoDBに保存し、アプリケーションを使用してデータをリアルタイムで分析している。データの書き込みリクエスト数は一定で予測可能である。一方、読み取りリクエスト数は緩やかな増減があり、予測しにくい。コスト効率よくDynamoDBを運用するためには、どの選択肢が適切か。",
+    "created_at": "2025-10-20T04:32:03.871165+00:00",
     "explanation": null,
     "last_answered": null,
     "correct_answers": [
@@ -16942,28 +17030,6 @@
     "consecutive_correct": 0
   },
   {
-    "id": "b0bd596e-c36b-400c-858f-51ab6c90afff",
-    "type": "single",
-    "options": [
-      "プロビジョンドモードを使用し、書き込みキャパシティユニットと読み取りキャパシティユニットを指定する。読み取りキャパシティユニットに自動スケーリングを設定する",
-      "プロビジョンドモードを使用し、書き込みキャパシティユニットと読み取りキャパシティユニットを固定で指定する",
-      "オンデマンドモードを使用し、書き込みリクエスト数の増減に対応するために、柔軟にキャパシティユニットを調整する。読み取りキャパシティユニットに対しては固定で指定する",
-      "オンデマンドモードを使用し、読み取りキャパシティユニットに対してのみ自動スケーリングを設定する。書き込みキャパシティユニットは固定で指定する"
-    ],
-    "category": "パフォーマンス効率",
-    "position": 1760934723871165,
-    "question": "ある企業は、多数の産業用センサーからデータを収集しており、これらのセンサーは定期的にデータを送信する。同社はこのデータをDynamoDBに保存し、アプリケーションを使用してデータをリアルタイムで分析している。データの書き込みリクエスト数は一定で予測可能である。一方、読み取りリクエスト数は緩やかな増減があり、予測しにくい。コスト効率よくDynamoDBを運用するためには、どの選択肢が適切か。",
-    "created_at": "2025-10-20T04:32:03.871165+00:00",
-    "explanation": null,
-    "last_answered": null,
-    "correct_answers": [
-      0
-    ],
-    "memory_strength": 0,
-    "consecutive_wrong": 0,
-    "consecutive_correct": 0
-  },
-  {
     "id": "595e609b-dc67-4b3e-b97a-785469c4734e",
     "type": "single",
     "options": [
@@ -16986,18 +17052,18 @@
     "consecutive_correct": 0
   },
   {
-    "id": "a3a61640-264a-480a-b3f8-f54e4be44eb0",
+    "id": "1e562c56-9ff6-4f8c-88c3-e1c337f8edff",
     "type": "single",
     "options": [
-      "S3同一リージョンレプリケーションを使用して、各アカウントのS3バケットから東京リージョン内の別のS3バケットにログをレプリケートする。このS3バケットに対してAthenaでSQLを実行し、分析を行う",
-      "S3クロスリージョンレプリケーションを使用して、各アカウントのS3バケットから別リージョンのS3バケットにログをレプリケートする。このS3バケットに対してRedshift SpectrumでSQLを実行し、分析を行う",
-      "各アカウントのS3バケットに保存されているログを、Data Pipelineを使用して毎日別のS3バケットにコピーする。このS3バケットに対してAmazon RDSでSQLを実行し、分析を行う",
-      "各アカウントのS3バケットに保存されているログがアップロードされるたびに、EventBridgeを使用してLambda関数を実行し、東京リージョン内の別のS3バケットにログをコピーする。このS3バケットに対してAthenaでSQLを実行し、分析を行う"
+      "データベースをマルチAZ DBクラスター配置のRDS for PostgreSQLに移行し、セッション管理とキャッシュにはElastiCache for Redisを使用する",
+      "データベースをマルチAZ DBクラスター配置のRDS for PostgreSQLに移行し、セッション管理とキャッシュにはElastiCache for Memcachedを使用する",
+      "データベースをマルチAZ配置のRDS for PostgreSQLに移行し、セッション管理とキャッシュにはElastiCache for Memcachedを使用する",
+      "データベースをAurora for PostgreSQLに移行し、セッション管理にはDynamoDB、キャッシュにはRDS Proxyを使用する"
     ],
     "category": "パフォーマンス効率",
-    "position": 1760934834152788,
-    "question": "ある企業は東京リージョンにデプロイされているアプリケーションを運用しており、複数のパートナー企業がそれぞれのAWSアカウントを使用している。各パートナー企業のアプリケーションログは、それぞれのアカウント内のS3バケットに保存されている。企業は、運用上のオーバーヘッドを最小限に抑えつつ、全てのログを一元化して分析できるソリューションを求めている。さらに、ログデータを標準SQLを使用してクエリし、分析したい。全てのログは東京リージョン内で管理され、他のリージョンに持ち出すことはできない。運用上のオーバーヘッドを最小限に抑えてこれらの要件を満たすために、もっとも適した方法は次のうちどれか。",
-    "created_at": "2025-10-20T04:33:54.152788+00:00",
+    "position": 1760934782538028,
+    "question": "あるEコマース会社は、オンプレミスで運用している3層のWebアプリケーションをAWSに移行しようとしている。このアプリケーションは、オンラインストアの運営を支援し、ユーザーが商品を検索、購入、レビューできる機能を提供している。現在のアプリケーション構成は、ユーザーからのリクエストを受け取りレスポンスを返すWebサーバー、ビジネスロジックを処理するアプリケーションサーバー、およびユーザーデータや商品情報を保存するデータベース（PostgreSQL）である。会社は、アプリケーションの高可用性とスケーラビリティを確保し、将来のトラフィックの急増に対応するため、AWSに移行しようとしている。特に、高可用性を担保するために、Webサーバーとアプリケーションサーバーを3つのアベイラビリティゾーンにまたがってAuto Scalingで稼働させることを計画している。さらに、ユーザーのセッション情報を効率的に管理し、キャッシュを利用してパフォーマンスを向上させたいと考えている。これらの要件を満たすソリューションはどれか？",
+    "created_at": "2025-10-20T04:33:02.538028+00:00",
     "explanation": null,
     "last_answered": null,
     "correct_answers": [
@@ -17052,6 +17118,28 @@
     "consecutive_correct": 0
   },
   {
+    "id": "a3a61640-264a-480a-b3f8-f54e4be44eb0",
+    "type": "single",
+    "options": [
+      "S3同一リージョンレプリケーションを使用して、各アカウントのS3バケットから東京リージョン内の別のS3バケットにログをレプリケートする。このS3バケットに対してAthenaでSQLを実行し、分析を行う",
+      "S3クロスリージョンレプリケーションを使用して、各アカウントのS3バケットから別リージョンのS3バケットにログをレプリケートする。このS3バケットに対してRedshift SpectrumでSQLを実行し、分析を行う",
+      "各アカウントのS3バケットに保存されているログを、Data Pipelineを使用して毎日別のS3バケットにコピーする。このS3バケットに対してAmazon RDSでSQLを実行し、分析を行う",
+      "各アカウントのS3バケットに保存されているログがアップロードされるたびに、EventBridgeを使用してLambda関数を実行し、東京リージョン内の別のS3バケットにログをコピーする。このS3バケットに対してAthenaでSQLを実行し、分析を行う"
+    ],
+    "category": "パフォーマンス効率",
+    "position": 1760934834152788,
+    "question": "ある企業は東京リージョンにデプロイされているアプリケーションを運用しており、複数のパートナー企業がそれぞれのAWSアカウントを使用している。各パートナー企業のアプリケーションログは、それぞれのアカウント内のS3バケットに保存されている。企業は、運用上のオーバーヘッドを最小限に抑えつつ、全てのログを一元化して分析できるソリューションを求めている。さらに、ログデータを標準SQLを使用してクエリし、分析したい。全てのログは東京リージョン内で管理され、他のリージョンに持ち出すことはできない。運用上のオーバーヘッドを最小限に抑えてこれらの要件を満たすために、もっとも適した方法は次のうちどれか。",
+    "created_at": "2025-10-20T04:33:54.152788+00:00",
+    "explanation": null,
+    "last_answered": null,
+    "correct_answers": [
+      0
+    ],
+    "memory_strength": 0,
+    "consecutive_wrong": 0,
+    "consecutive_correct": 0
+  },
+  {
     "id": "f6c662f5-21eb-4004-b368-0535fbe222a9",
     "type": "single",
     "options": [
@@ -17064,94 +17152,6 @@
     "position": 1760934865451523,
     "question": "あるECサイトを運営する企業は、注文管理システムにRDS for PostgreSQLデータベースを使用している。このデータベースはマルチAZ構成であり、複数のリードレプリカも配置している。最近、サイトの人気が高まり、アクセス数が急増している。その結果、リードレプリカが過負荷となり、アプリケーションがプライマリインスタンスに過度に接続するようになった。これにより、プライマリインスタンスに障害が発生し、サイトのダウンタイムが生じた。企業は、このような障害が発生した際に、スタンバイインスタンスが迅速にプライマリインスタンスに昇格し、ダウンタイムを最小限に抑えるため、フェイルオーバー時間を短縮する方法を検討している。どの選択肢が適切か。",
     "created_at": "2025-10-20T04:34:25.451523+00:00",
-    "explanation": null,
-    "last_answered": null,
-    "correct_answers": [
-      0
-    ],
-    "memory_strength": 0,
-    "consecutive_wrong": 0,
-    "consecutive_correct": 0
-  },
-  {
-    "id": "0feec7bc-8da1-4316-b74d-27f397cd6edb",
-    "type": "single",
-    "options": [
-      "Step Functionsを用いて、注文処理ワークフローを設計し、各ステップでLambda関数を呼び出して処理を実行する",
-      "Data Firehoseを使用して注文データをストリーミングし、Lambda関数を実行してリアルタイムで注文処理を実行する",
-      "SQSを使用して注文イベントをキューに送り、EC2インスタンスで実行されるアプリケーションがキューを監視して注文処理を行う",
-      "EventBridgeで設定したスケジュールでLambda関数を実行して各注文処理のワークフローを実行する"
-    ],
-    "category": "パフォーマンス効率",
-    "position": 1760934664596138,
-    "question": "ある物流会社が配送管理システムをAWSに移行する計画を立てている。同社は注文処理のワークフローを最適化するために、イベント駆動型アーキテクチャを採用する予定である。また、サーバーレスのアプローチを取り入れることで、インフラの管理負担を軽減し、運用上のオーバーヘッドをできるだけ抑えたい。この要件を満たすためにどうすればよいか。",
-    "created_at": "2025-10-20T04:31:04.596138+00:00",
-    "explanation": null,
-    "last_answered": null,
-    "correct_answers": [
-      0
-    ],
-    "memory_strength": 0,
-    "consecutive_wrong": 0,
-    "consecutive_correct": 0
-  },
-  {
-    "id": "1e562c56-9ff6-4f8c-88c3-e1c337f8edff",
-    "type": "single",
-    "options": [
-      "データベースをマルチAZ DBクラスター配置のRDS for PostgreSQLに移行し、セッション管理とキャッシュにはElastiCache for Redisを使用する",
-      "データベースをマルチAZ DBクラスター配置のRDS for PostgreSQLに移行し、セッション管理とキャッシュにはElastiCache for Memcachedを使用する",
-      "データベースをマルチAZ配置のRDS for PostgreSQLに移行し、セッション管理とキャッシュにはElastiCache for Memcachedを使用する",
-      "データベースをAurora for PostgreSQLに移行し、セッション管理にはDynamoDB、キャッシュにはRDS Proxyを使用する"
-    ],
-    "category": "パフォーマンス効率",
-    "position": 1760934782538028,
-    "question": "あるEコマース会社は、オンプレミスで運用している3層のWebアプリケーションをAWSに移行しようとしている。このアプリケーションは、オンラインストアの運営を支援し、ユーザーが商品を検索、購入、レビューできる機能を提供している。現在のアプリケーション構成は、ユーザーからのリクエストを受け取りレスポンスを返すWebサーバー、ビジネスロジックを処理するアプリケーションサーバー、およびユーザーデータや商品情報を保存するデータベース（PostgreSQL）である。会社は、アプリケーションの高可用性とスケーラビリティを確保し、将来のトラフィックの急増に対応するため、AWSに移行しようとしている。特に、高可用性を担保するために、Webサーバーとアプリケーションサーバーを3つのアベイラビリティゾーンにまたがってAuto Scalingで稼働させることを計画している。さらに、ユーザーのセッション情報を効率的に管理し、キャッシュを利用してパフォーマンスを向上させたいと考えている。これらの要件を満たすソリューションはどれか？",
-    "created_at": "2025-10-20T04:33:02.538028+00:00",
-    "explanation": null,
-    "last_answered": null,
-    "correct_answers": [
-      0
-    ],
-    "memory_strength": 0,
-    "consecutive_wrong": 0,
-    "consecutive_correct": 0
-  },
-  {
-    "id": "306afd60-c70d-4967-9329-5915228699d9",
-    "type": "single",
-    "options": [
-      "EC2インスタンスにMicrosoft SQL Serverをインストールし、オンプレミスと同じ構成を維持する。ネイティブのデータベーススナップショットと、データベースのログ配布機能を使用する",
-      "データベースをRDS for SQL Serverに移行し、DMSを利用してデータを転送する。RDSの標準機能でデータベースのログ配布やネイティブのデータベーススナップショットを利用する",
-      "データベースをAuroraに移行する。Auroraのスナップショット機能の使用と、Auroraのレプリケーション機能を使用したデータベースのログ配布を行う",
-      "Microsoft SQL ServerをEC2インスタンスにインストールする。データベースのログ配布機能をLambdaで実装し、スナップショット機能をEBSスナップショットで代替する"
-    ],
-    "category": "パフォーマンス効率",
-    "position": 1760934705423258,
-    "question": "ある金融サービス会社は、重要なトランザクションデータを管理するオンプレミスのMicrosoft SQL Serverを、AWSクラウドに移行する計画を立てている。このデータベースには高度なデータ管理機能が含まれており、データベースのログ配布やネイティブのデータベーススナップショット（特定のポイントインタイムでのデータベース状態の保存）など特定のSQL Serverの機能がビジネスプロセスの中で重要な役割を果たしている。そのため、これらの機能はAWS移行後も使用したいと考えている。ソリューションアーキテクトは、これらの要件を満たすアーキテクチャをどのように設計すべきか。",
-    "created_at": "2025-10-20T04:31:45.423258+00:00",
-    "explanation": null,
-    "last_answered": null,
-    "correct_answers": [
-      0
-    ],
-    "memory_strength": 0,
-    "consecutive_wrong": 0,
-    "consecutive_correct": 0
-  },
-  {
-    "id": "59fa4261-b9ea-473b-8e85-19f4038112f6",
-    "type": "single",
-    "options": [
-      "Auto Scalingグループを変更して、複数のAZにわたってEC2インスタンスを配置する。DMSを使用して、EC2インスタンス上のMySQLデータベースをAurora MySQLに移行する",
-      "アプリケーションとMySQLデータベースがそれぞれ載っているEC2インスタンスに更なるCPUとメモリリソースを追加し、EC2インスタンス上のMySQLデータベースはそのまま使用する",
-      "Auto Scalingグループを変更して、複数のAZにわたってEC2インスタンスを配置する。EC2インスタンス上のMySQLデータベースの定期的なバックアップを実施し、CloudWatchを使用してシステムの異常を検出する",
-      "ALBをNLBに置き換える。DMSを使用して、EC2インスタンス上のMySQLデータベースをAurora MySQLに移行する"
-    ],
-    "category": "パフォーマンス効率",
-    "position": 1760934631120979,
-    "question": "ある会社が運用しているWebアプリケーションは、ALB管理下のAuto Scalingグループに属するEC2インスタンスが単一AZ内で動作している。また、このアプリケーションは同一AZ内の別のEC2インスタンスに直接インストールされたMySQLデータベースと連携している。最近のトラフィックの増加により、アプリケーションの可用性やデータベースの整合性の向上が急務となっている。運用の手間を最小限に抑えつつ、これらの要件を満たす最適な解決策はどれか。",
-    "created_at": "2025-10-20T04:30:31.120979+00:00",
     "explanation": null,
     "last_answered": null,
     "correct_answers": [
@@ -17469,28 +17469,6 @@
     "position": 1760936519959848,
     "question": "ある動画配信企業が、ディープラーニングを用いたリアルタイムな映像解析アプリケーションを開発している。このアプリケーションは複数のコンテナ化されたマイクロサービスで構成されており、その一部のコンポーネントでは高負荷の解析を実行するためにGPUリソースを利用する必要がある。これらの要件を満たすために最も適切な構成はどれか。",
     "created_at": "2025-10-20T05:01:59.959848+00:00",
-    "explanation": null,
-    "last_answered": null,
-    "correct_answers": [
-      0
-    ],
-    "memory_strength": 0,
-    "consecutive_wrong": 0,
-    "consecutive_correct": 0
-  },
-  {
-    "id": "1a4015a2-dad9-441d-9e5e-7061af6f9945",
-    "type": "single",
-    "options": [
-      "VPCゲートウェイエンドポイントをプロビジョニングし、このエンドポイントをDynamoDBとの通信のルートとして使用する",
-      "複数のNATゲートウェイをプロビジョニングし、DynamoDBとの通信を効率化する",
-      "パブリックサブネットに新しいNATインスタンスを設定し、DynamoDBへの全てのトラフィックをこのNATインスタンスを通じてルーティングする",
-      "アプリケーションをパブリックサブネットに移設し、インターネットゲートウェイを経由してDynamoDBと通信する"
-    ],
-    "category": "コスト最適化",
-    "position": 1760937490253812,
-    "question": "ある企業は、現在VPC内のプライベートサブネットに配置されているEC2インスタンス上で動作するアプリケーションを開発しており、同じリージョン内のAmazon DynamoDBと連携させようとしている。これまでは同じVPC内のパブリックサブネットにあるNATゲートウェイを介しインターネットを経由してDynamoDBと通信していた。しかし、このアプローチはコストがかかり効率的でないと判断されたため、DynamoDBとの通信のコストを最小限に抑える手段を検討している。最も低コストで要件を満たすソリューションはどれか。",
-    "created_at": "2025-10-20T05:18:10.253812+00:00",
     "explanation": null,
     "last_answered": null,
     "correct_answers": [
@@ -17837,29 +17815,6 @@
     "consecutive_correct": 0
   },
   {
-    "id": "322b548b-79e3-4a7f-9760-e713cc2f6bc4",
-    "type": "single",
-    "options": [
-      "オンデマンドインスタンスのみ",
-      "リザーブドインスタンスのみ",
-      "リザーブドインスタンスとオンデマンドインスタンスの併用",
-      "オンデマンドインスタンスとスポットインスタンスの併用",
-      "リザーブドインスタンスとスポットインスタンスの併用"
-    ],
-    "category": "コスト最適化",
-    "position": 1760937519966495,
-    "question": "あるスタートアップ企業は、毎月の利用量が大幅に変動する大規模なデータ解析ワークロードを実行している。ワークロードは中断可能なタスクからなり、毎月初めの数日間はピークを迎え、その後は利用頻度が低くなる傾向がある。企業は、将来的な成長に備えてワークロードの動的な要求を受け入れつつも、長期的な契約は避けできるだけコストを削減したいと考えている。これらの要件に基づいた最適なEC2インスタンスの購入オプションはどれか。",
-    "created_at": "2025-10-20T05:18:39.966495+00:00",
-    "explanation": null,
-    "last_answered": null,
-    "correct_answers": [
-      3
-    ],
-    "memory_strength": 0,
-    "consecutive_wrong": 0,
-    "consecutive_correct": 0
-  },
-  {
     "id": "8fff3aa8-97b1-4f02-82f3-dd3553a9f81a",
     "type": "single",
     "options": [
@@ -17964,6 +17919,51 @@
     "last_answered": null,
     "correct_answers": [
       0
+    ],
+    "memory_strength": 0,
+    "consecutive_wrong": 0,
+    "consecutive_correct": 0
+  },
+  {
+    "id": "1a4015a2-dad9-441d-9e5e-7061af6f9945",
+    "type": "single",
+    "options": [
+      "VPCゲートウェイエンドポイントをプロビジョニングし、このエンドポイントをDynamoDBとの通信のルートとして使用する",
+      "複数のNATゲートウェイをプロビジョニングし、DynamoDBとの通信を効率化する",
+      "パブリックサブネットに新しいNATインスタンスを設定し、DynamoDBへの全てのトラフィックをこのNATインスタンスを通じてルーティングする",
+      "アプリケーションをパブリックサブネットに移設し、インターネットゲートウェイを経由してDynamoDBと通信する"
+    ],
+    "category": "コスト最適化",
+    "position": 1760937490253812,
+    "question": "ある企業は、現在VPC内のプライベートサブネットに配置されているEC2インスタンス上で動作するアプリケーションを開発しており、同じリージョン内のAmazon DynamoDBと連携させようとしている。これまでは同じVPC内のパブリックサブネットにあるNATゲートウェイを介しインターネットを経由してDynamoDBと通信していた。しかし、このアプローチはコストがかかり効率的でないと判断されたため、DynamoDBとの通信のコストを最小限に抑える手段を検討している。最も低コストで要件を満たすソリューションはどれか。",
+    "created_at": "2025-10-20T05:18:10.253812+00:00",
+    "explanation": null,
+    "last_answered": null,
+    "correct_answers": [
+      0
+    ],
+    "memory_strength": 0,
+    "consecutive_wrong": 0,
+    "consecutive_correct": 0
+  },
+  {
+    "id": "322b548b-79e3-4a7f-9760-e713cc2f6bc4",
+    "type": "single",
+    "options": [
+      "オンデマンドインスタンスのみ",
+      "リザーブドインスタンスのみ",
+      "リザーブドインスタンスとオンデマンドインスタンスの併用",
+      "オンデマンドインスタンスとスポットインスタンスの併用",
+      "リザーブドインスタンスとスポットインスタンスの併用"
+    ],
+    "category": "コスト最適化",
+    "position": 1760937519966495,
+    "question": "あるスタートアップ企業は、毎月の利用量が大幅に変動する大規模なデータ解析ワークロードを実行している。ワークロードは中断可能なタスクからなり、毎月初めの数日間はピークを迎え、その後は利用頻度が低くなる傾向がある。企業は、将来的な成長に備えてワークロードの動的な要求を受け入れつつも、長期的な契約は避けできるだけコストを削減したいと考えている。これらの要件に基づいた最適なEC2インスタンスの購入オプションはどれか。",
+    "created_at": "2025-10-20T05:18:39.966495+00:00",
+    "explanation": null,
+    "last_answered": null,
+    "correct_answers": [
+      3
     ],
     "memory_strength": 0,
     "consecutive_wrong": 0,
