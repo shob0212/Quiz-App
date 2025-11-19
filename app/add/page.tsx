@@ -1,8 +1,9 @@
 "use client"
 
-import { useState, useEffect, useMemo, memo } from "react"
+import { useState, useEffect, useMemo, memo, useRef } from "react"
 import Link from "next/link"
-import { getQuestions, getHistory, writeQuestions, writeHistory, Question, History } from "@/lib/data"
+import { useSearchParams } from "next/navigation"
+import { getQuestions, getHistory, writeQuestions, writeHistory, writeQuizSessions, Question, History, QuizSession } from "@/lib/data"
 import { 
   Home, Plus, List, Target, BarChart3, ArrowLeft, GripVertical, ChevronDown, Search, Trash2, PenSquare
 } from "lucide-react"
@@ -74,12 +75,6 @@ const QuestionRowContent = memo(({ row }: { row: ManagedQuestion }) => {
       <TableCell className="max-w-xs truncate">{row.question}</TableCell>
       <TableCell></TableCell>
       <TableCell className="w-20 truncate">{row.category}</TableCell>
-      <TableCell className="w-20">
-        <div>
-          <Progress value={row.memory_strength}/>
-          <span>{Math.round(row.memory_strength)}%</span>
-        </div>
-      </TableCell>
       <TableCell className="w-20">{row.correctRate}%</TableCell>
       <TableCell className="w-20">{row.last_answered ? new Date(row.last_answered).toLocaleDateString() : "未回答"}</TableCell>
     </>
@@ -88,7 +83,7 @@ const QuestionRowContent = memo(({ row }: { row: ManagedQuestion }) => {
 QuestionRowContent.displayName = 'QuestionRowContent';
 
 // --- ドラッグ可能な行 ---
-const DraggableTableRow = ({ row, isEditMode, onEditClick }: { row: ManagedQuestion, isEditMode: boolean, onEditClick: (question: ManagedQuestion) => void }) => {
+const DraggableTableRow = ({ row, isEditMode, onEditClick, isHighlighted, rowRef }: { row: ManagedQuestion, isEditMode: boolean, onEditClick: (question: ManagedQuestion) => void, isHighlighted: boolean, rowRef: (el: HTMLTableRowElement | null) => void }) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: row.id })
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -98,7 +93,15 @@ const DraggableTableRow = ({ row, isEditMode, onEditClick }: { row: ManagedQuest
   }
 
   return (
-    <TableRow ref={setNodeRef} style={style} {...attributes}>
+    <TableRow
+      ref={(node) => {
+        setNodeRef(node);
+        rowRef(node); // Also set our own ref
+      }}
+      style={style}
+      {...attributes}
+      className={`${isHighlighted ? "bg-blue-500/20 ring-4 ring-blue-500/50 transition-all duration-500 ease-in-out" : ""}`}
+    >
       <TableCell className="w-20">
         <div className="flex items-center">
           {isEditMode && (
@@ -184,8 +187,22 @@ export default function ManagePage() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingQuestion, setEditingQuestion] = useState<ManagedQuestion | null>(null);
   const [currentFormData, setCurrentFormData] = useState<EditFormData>({});
+  const [highlightedQuestionId, setHighlightedQuestionId] = useState<string | null>(null);
+  const rowRefs = useRef<Record<string, HTMLTableRowElement | null>>({}); // For scrolling
+  const searchParams = useSearchParams(); // Get search params
   const sensors = useSensors(useSensor(PointerSensor))
   const activeQuestion = useMemo(() => questions.find((q) => q.id === activeId), [activeId, questions]);
+
+  const categories = useMemo(() => [...new Set(questions.map((q) => q.category))], [questions])
+
+  const filteredQuestions = useMemo(() => {
+    return questions.filter((q) => {
+      const matchCategory = !filterCategory || q.category === filterCategory
+      const matchSearch = q.question.toLowerCase().includes(searchQuery.toLowerCase())
+      return matchCategory && matchSearch
+    })
+  }, [questions, filterCategory, searchQuery])
+
 
   const handleEditClick = (question: ManagedQuestion) => {
     setEditingQuestion(question);
@@ -234,7 +251,6 @@ export default function ManagePage() {
       explanation: currentFormData.explanation || editingQuestion.explanation,
       category: currentFormData.category || editingQuestion.category,
       position: editingQuestion.position, // Keep original
-      memory_strength: editingQuestion.memory_strength, // Keep original
       last_answered: editingQuestion.last_answered, // Keep original
       created_at: editingQuestion.created_at, // Keep original
       consecutive_correct: editingQuestion.consecutive_correct, // Keep original
@@ -278,7 +294,6 @@ export default function ManagePage() {
       attempts: 0,
       correctRate: 0,
       last_answered: null,
-      memory_strength: 0,
     }));
     
     // 3. Update local state for immediate UI feedback
@@ -289,6 +304,7 @@ export default function ManagePage() {
     
     // 5. Write updated questions to the data source
     await writeQuestions(questionsToSave);
+    await writeQuizSessions([]); // Clear quiz sessions as well
 
     // 6. Close the dialog
     setIsResetDialogOpen(false);
@@ -312,15 +328,30 @@ export default function ManagePage() {
     fetchData()
   }, [])
 
-  const categories = useMemo(() => [...new Set(questions.map((q) => q.category))], [questions])
+  useEffect(() => {
+    const highlightId = searchParams.get('highlight');
+    if (highlightId) {
+      setHighlightedQuestionId(highlightId);
+      // Wait for questions to load and render
+      if (questions.length > 0) {
+        // Find the index of the highlighted question
+        const index = filteredQuestions.findIndex(q => q.id === highlightId);
+        if (index !== -1) {
+          // Scroll to the element after it has rendered
+          const timer = setTimeout(() => {
+            const rowElement = rowRefs.current[highlightId];
+            if (rowElement) {
+              rowElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              // Optionally remove highlight after some time
+              setTimeout(() => setHighlightedQuestionId(null), 3000);
+            }
+          }, 100); // Small delay to ensure rendering
+          return () => clearTimeout(timer);
+        }
+      }
+    }
+  }, [searchParams, questions, filteredQuestions]); // Depend on searchParams and questions
 
-  const filteredQuestions = useMemo(() => {
-    return questions.filter((q) => {
-      const matchCategory = !filterCategory || q.category === filterCategory
-      const matchSearch = q.question.toLowerCase().includes(searchQuery.toLowerCase())
-      return matchCategory && matchSearch
-    })
-  }, [questions, filterCategory, searchQuery])
 
   const handleDragEnd = async (event: any) => {
     const { active, over } = event
@@ -418,7 +449,7 @@ export default function ManagePage() {
           <Card className="border-border">
             <Table>
               <TableHeader>
-                <TableRow><TableHead className="w-20"></TableHead><TableHead>問題</TableHead><TableHead className="w-20"></TableHead><TableHead className="w-30">カテゴリ</TableHead><TableHead className="w-20">記憶度</TableHead><TableHead className="w-20">正答率</TableHead><TableHead className="w-30">最終回答日</TableHead></TableRow>
+                <TableRow><TableHead className="w-20"></TableHead><TableHead>問題</TableHead><TableHead className="w-20"></TableHead><TableHead className="w-30">カテゴリ</TableHead><TableHead className="w-20">正答率</TableHead><TableHead className="w-30">最終回答日</TableHead></TableRow>
               </TableHeader>
               <TableBody>
                 <SortableContext
@@ -427,7 +458,14 @@ export default function ManagePage() {
                   disabled={!isEditMode}
                 >
                   {filteredQuestions.map((q) => (
-                    <DraggableTableRow key={q.id} row={q} isEditMode={isEditMode} onEditClick={handleEditClick} />
+                    <DraggableTableRow
+                      key={q.id}
+                      row={q}
+                      isEditMode={isEditMode}
+                      onEditClick={handleEditClick}
+                      isHighlighted={highlightedQuestionId === q.id}
+                      rowRef={(el) => (rowRefs.current[q.id] = el)}
+                    />
                   ))}
                 </SortableContext>
               </TableBody>
@@ -448,12 +486,6 @@ export default function ManagePage() {
                 <TableCell className="max-w-xs truncate">{activeQuestion.question}</TableCell>
                 <TableCell></TableCell>
                 <TableCell className="w-20 truncate">{activeQuestion.category}</TableCell>
-                <TableCell className="w-20">
-                  <div>
-                    <Progress value={activeQuestion.memory_strength}/>
-                    <span>{Math.round(activeQuestion.memory_strength)}%</span>
-                  </div>
-                </TableCell>
                 <TableCell className="w-20">{activeQuestion.correctRate}%</TableCell>
                 <TableCell className="w-20">{activeQuestion.last_answered ? new Date(activeQuestion.last_answered).toLocaleDateString() : "未回答"}</TableCell>
               </TableRow>

@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { getQuestions, getHistory, Question, History } from "@/lib/data"
+import { getQuestions, getHistory, getQuizSessions, Question, History, QuizSession } from "@/lib/data"
 import { Home, Plus, Target, BarChart3, ArrowLeft, Check, X, TrendingUp, Award, Calendar, Zap, List } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -23,21 +23,40 @@ import {
 } from "recharts"
 
 // 画面表示用に加工したデータ型
-interface AnalyticsData {
+interface QuestionAnalytics {
   id: string;
   question: string;
-  isCorrect: boolean; // last attempt
-  memoryLevel: number;
+  isCorrect: boolean | null; // null if never attempted
   attempts: number;
   lastAttempt: string | null;
   category: string;
 }
 
+
 export default function HistoryPage() {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [history, setHistory] = useState<History[]>([]);
+  const [quizSessions, setQuizSessions] = useState<QuizSession[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [filter, setFilter] = useState<"all" | "weak" | "recent">("all")
+
+  const questionAnalytics = useMemo(() => {
+    if (questions.length === 0) return [];
+
+    return questions.map(q => {
+      const questionHistory = history.filter(h => h.question_id === q.id).sort((a, b) => new Date(b.answered_at).getTime() - new Date(a.answered_at).getTime());
+      const lastAttempt = questionHistory[0]; // Most recent attempt
+
+      return {
+        id: q.id,
+        question: q.question,
+        isCorrect: lastAttempt ? lastAttempt.result : null, // null if never attempted
+        attempts: questionHistory.length,
+        lastAttempt: q.last_answered ? new Date(q.last_answered).toLocaleDateString() : null,
+        category: q.category,
+      };
+    });
+  }, [questions, history]);
+
   const router = useRouter();
 
   useEffect(() => {
@@ -45,12 +64,39 @@ export default function HistoryPage() {
       setIsLoading(true);
       const questionsData = await getQuestions();
       const historyData = await getHistory();
+      const quizSessionsData = await getQuizSessions(); // Fetch quiz sessions
       setQuestions(questionsData);
       setHistory(historyData);
+      setQuizSessions(quizSessionsData); // Set quiz sessions state
       setIsLoading(false);
     };
     fetchData();
   }, []);
+
+  // --- クイズセッションに基づく統計データ ---
+  const totalQuestionsInSystem = questions.length;
+  const totalQuizSessions = quizSessions.length;
+  const avgCorrectRate = totalQuizSessions > 0 ? Math.round(quizSessions.reduce((sum, s) => sum + s.correct_rate, 0) / totalQuizSessions) : 0;
+  const totalQuestionsAnsweredInSessions = quizSessions.reduce((sum, s) => sum + s.total_questions, 0);
+  const uniqueAnsweredQuestionsCount = new Set(history.map(h => h.question_id)).size; // Count of unique questions with at least one history entry
+
+  // Stats for the cards
+  const cardCorrectRate = avgCorrectRate;
+  const cardLearnedQuestionsCount = totalQuizSessions; // Number of quiz sessions completed
+  const cardTotalQuestionsInSystem = totalQuestionsInSystem;
+  const cardTotalAttempts = totalQuestionsAnsweredInSessions; // Total questions answered across all sessions
+
+
+  const answeredCorrectly = questionAnalytics.filter(item => item.isCorrect === true).length;
+  const answeredIncorrectly = questionAnalytics.filter(item => item.isCorrect === false).length;
+  const neverAnswered = questionAnalytics.filter(item => item.isCorrect === null).length;
+
+  const correctnessPieData = [
+    { name: "最終正解", value: answeredCorrectly, color: "hsl(var(--success))" },
+    { name: "最終不正解", value: answeredIncorrectly, color: "hsl(var(--destructive))" },
+    { name: "未回答", value: neverAnswered, color: "hsl(var(--muted-foreground))" },
+  ];
+
 
   const handleCategoryClick = (data: any) => {
     if (data && data.activePayload && data.activePayload[0]) {
@@ -61,82 +107,47 @@ export default function HistoryPage() {
     }
   };
 
-  // DBからのデータを画面表示用に加工する
-  const analyticsData: AnalyticsData[] = useMemo(() => {
-    if (questions.length === 0) return [];
+  // Get all unique categories from the questions in the system
+  const allCategories = useMemo(() => {
+    const categoriesSet = new Set<string>();
+    questions.forEach(q => categoriesSet.add(q.category));
+    return Array.from(categoriesSet).sort();
+  }, [questions]);
 
-    return questions.map(q => {
-      const questionHistory = history.filter(h => h.question_id === q.id).sort((a, b) => new Date(b.answered_at).getTime() - new Date(a.answered_at).getTime());
-      const lastAttempt = questionHistory[0];
-
-      return {
-        id: q.id,
-        question: q.question,
-        isCorrect: lastAttempt ? lastAttempt.result : false,
-        memoryLevel: Math.round(q.memory_strength),
-        attempts: questionHistory.length,
-        lastAttempt: q.last_answered ? new Date(q.last_answered).toLocaleDateString() : null,
-        category: q.category,
-      };
-    });
-  }, [questions, history]);
-
-  // --- 以下、統計データの計算ロジック (analyticsDataを使用するように変更) ---
-  const totalQuestions = analyticsData.length
-  const answeredQuestionIds = new Set(history.map(h => h.question_id));
-  const answered_questions_count = answeredQuestionIds.size;
-  const correctCount = analyticsData.filter((h) => h.isCorrect).length
-  const incorrectCount = totalQuestions - correctCount
-  const correctRate = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0
-  const avgMemoryLevel = totalQuestions > 0 ? Math.round(analyticsData.reduce((sum, h) => sum + h.memoryLevel, 0) / totalQuestions) : 0
-  const totalAttempts = analyticsData.reduce((sum, h) => sum + h.attempts, 0)
-
-  const categoryStats = analyticsData.reduce(
-    (acc, item) => {
-      if (!acc[item.category]) {
-        acc[item.category] = { total: 0, correct: 0, memoryLevel: 0 }
-      }
-      acc[item.category].total++
-      if (item.isCorrect) acc[item.category].correct++
-      acc[item.category].memoryLevel += item.memoryLevel
-      return acc
+  const categoryStatsFromQuizSessions = quizSessions.reduce(
+    (acc, session) => {
+      session.categories.forEach(cat => {
+        if (!acc[cat]) {
+          acc[cat] = { totalSessions: 0, totalCorrectRate: 0 };
+        }
+        acc[cat].totalSessions++;
+        acc[cat].totalCorrectRate += session.correct_rate;
+      });
+      return acc;
     },
-    {} as Record<string, { total: number; correct: number; memoryLevel: number }>,
-  )
+    {} as Record<string, { totalSessions: number; totalCorrectRate: number }>,
+  );
 
-  const categoryData = Object.entries(categoryStats).map(([category, stats]) => ({
-    category,
-    total: stats.total,
-    correctRate: Math.round((stats.correct / stats.total) * 100),
-    avgMemoryLevel: Math.round(stats.memoryLevel / stats.total),
-  }))
+  const categoryChartData = allCategories.map(cat => {
+    const stats = categoryStatsFromQuizSessions[cat];
+    if (stats) {
+      return {
+        name: cat,
+        正答率: Math.round(stats.totalCorrectRate / stats.totalSessions),
+      };
+    } else {
+      return {
+        name: cat,
+        正答率: 0, // Default for categories with no quiz sessions
+      };
+    }
+  }).sort((a, b) => b.正答率 - a.正答率);
 
-  const memoryDistribution = {
-    high: analyticsData.filter((h) => h.memoryLevel >= 70).length,
-    medium: analyticsData.filter((h) => h.memoryLevel >= 40 && h.memoryLevel < 70).length,
-    low: analyticsData.filter((h) => h.memoryLevel < 40).length,
-  }
 
-  const memoryPieData = [
-    { name: "高 (70%以上)", value: memoryDistribution.high, color: "hsl(var(--success))" },
-    { name: "中 (40-69%)", value: memoryDistribution.medium, color: "hsl(var(--primary))" },
-    { name: "低 (40%未満)", value: memoryDistribution.low, color: "hsl(var(--destructive))" },
-  ]
 
-  const categoryChartData = categoryData
-    .sort((a, b) => b.avgMemoryLevel - a.avgMemoryLevel)
-    .map((cat) => ({
-      name: cat.category,
-      正答率: cat.correctRate,
-      記憶度: cat.avgMemoryLevel,
-    }))
 
-  const filteredHistory = analyticsData.filter((item) => {
-    if (filter === "weak") return item.memoryLevel < 60
-    // TODO: Implement recent filter based on lastAttempt date
-    if (filter === "recent") return true 
-    return true
-  }).sort((a,b) => new Date(b.lastAttempt || 0).getTime() - new Date(a.lastAttempt || 0).getTime());
+
+
 
   if (isLoading) {
     return (
@@ -146,7 +157,7 @@ export default function HistoryPage() {
     )
   }
   
-  if (analyticsData.length === 0) {
+  if (quizSessions.length === 0) { // Check quizSessions instead
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center text-center p-4">
          <div className="flex items-center gap-4 mb-6 absolute top-6 left-4">
@@ -189,30 +200,20 @@ export default function HistoryPage() {
                 <Award className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <div className="text-2xl font-bold text-foreground">{correctRate}%</div>
-                <div className="text-xs text-muted-foreground">正答率</div>
+                <div className="text-2xl font-bold text-foreground">{cardCorrectRate}%</div>
+                <div className="text-xs text-muted-foreground">平均正答率</div>
               </div>
             </div>
           </Card>
-          <Card className="p-4 border-border bg-gradient-to-br from-success/5 to-success/10">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-success/20 flex items-center justify-center">
-                <TrendingUp className="w-5 h-5 text-success" />
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-foreground">{avgMemoryLevel}%</div>
-                <div className="text-xs text-muted-foreground">平均記憶度</div>
-              </div>
-            </div>
-          </Card>
+
           <Card className="p-4 border-border">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-accent flex items-center justify-center">
                 <Target className="w-5 h-5 text-foreground" />
               </div>
               <div>
-                <div className="text-2xl font-bold text-foreground">{answered_questions_count}  /  {totalQuestions}</div>
-                <div className="text-xs text-muted-foreground">学習済み問題</div>
+                <div className="text-2xl font-bold text-foreground">{cardLearnedQuestionsCount}</div>
+                <div className="text-xs text-muted-foreground">実施済みクイズ数</div>
               </div>
             </div>
           </Card>
@@ -222,8 +223,20 @@ export default function HistoryPage() {
                 <Zap className="w-5 h-5 text-foreground" />
               </div>
               <div>
-                <div className="text-2xl font-bold text-foreground">{totalAttempts}</div>
-                <div className="text-xs text-muted-foreground">総挑戦回数</div>
+                <div className="text-2xl font-bold text-foreground">{cardTotalAttempts}</div>
+                <div className="text-xs text-muted-foreground">総解答数</div>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-4 border-border">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-accent flex items-center justify-center">
+                <List className="w-5 h-5 text-foreground" /> {/* Using List icon for Learned Questions */}
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-foreground">{uniqueAnsweredQuestionsCount} / {cardTotalQuestionsInSystem}</div>
+                <div className="text-xs text-muted-foreground">学習済み問題数</div>
               </div>
             </div>
           </Card>
@@ -231,22 +244,22 @@ export default function HistoryPage() {
 
         <Card className="p-5 mb-6 border-border">
           <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
-            <BarChart3 className="w-4 h-4" />
-            記憶度分布
+            <BarChart3 className="w-4 h-4" /> {/* Use BarChart3 for a general chart icon */}
+            解答状況分布
           </h3>
           <ResponsiveContainer width="100%" height={240}>
             <PieChart>
               <Pie
-                data={memoryPieData}
+                data={correctnessPieData}
                 cx="50%"
                 cy="50%"
                 labelLine={true}
                 label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                outerRadius={120}
+                outerRadius={100}
                 fill="#8884d8"
                 dataKey="value"
               >
-                {memoryPieData.map((entry, index) => (
+                {correctnessPieData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}
               </Pie>
@@ -257,20 +270,21 @@ export default function HistoryPage() {
                   borderRadius: "8px",
                 }}
               />
+              <Legend wrapperStyle={{ fontSize: "12px" }} />
             </PieChart>
           </ResponsiveContainer>
           <div className="grid grid-cols-3 gap-2 mt-4">
             <div className="text-center">
-              <div className="text-xs text-muted-foreground mb-1">高</div>
-              <div className="text-lg font-bold text-success">{memoryDistribution.high}問</div>
+              <div className="text-xs text-muted-foreground mb-1">最終正解</div>
+              <div className="text-lg font-bold text-success">{answeredCorrectly}問</div>
             </div>
             <div className="text-center">
-              <div className="text-xs text-muted-foreground mb-1">中</div>
-              <div className="text-lg font-bold text-primary">{memoryDistribution.medium}問</div>
+              <div className="text-xs text-muted-foreground mb-1">最終不正解</div>
+              <div className="text-lg font-bold text-destructive">{answeredIncorrectly}問</div>
             </div>
             <div className="text-center">
-              <div className="text-xs text-muted-foreground mb-1">低</div>
-              <div className="text-lg font-bold text-destructive">{memoryDistribution.low}問</div>
+              <div className="text-xs text-muted-foreground mb-1">未回答</div>
+              <div className="text-lg font-bold text-muted-foreground">{neverAnswered}問</div>
             </div>
           </div>
         </Card>
@@ -295,109 +309,66 @@ export default function HistoryPage() {
               />
               <Legend wrapperStyle={{ fontSize: "12px" }} />
               <Bar dataKey="正答率" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="記憶度" fill="hsl(var(--success))" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
           </div>
         </Card>
 
-        {/* Filters */}
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-semibold text-foreground">直近10回の履歴</h3>
-          <div className="flex gap-2">
-            <Button
-              variant={filter === "all" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setFilter("all")}
-              className={filter === "all" ? "bg-primary text-primary-foreground" : "border-border"}
-            >
-              すべて
-            </Button>
-            <Button
-              variant={filter === "weak" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setFilter("weak")}
-              className={filter === "weak" ? "bg-primary text-primary-foreground" : "border-border"}
-            >
-              苦手
-            </Button>
-            <Button
-              variant={filter === "recent" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setFilter("recent")}
-              className={filter === "recent" ? "bg-primary text-primary-foreground" : "border-border"}
-            >
-              最近
-            </Button>
-          </div>
-        </div>
 
-        {/* Start Quiz Button */}
-        <div className="mb-6">
-          <Link href={`/quiz?filter=${filter}`} passHref>
-            <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
-              <Zap className="w-4 h-4 mr-2" />
-              {filter === 'weak' ? '苦手な問題でクイズ！' : (filter === 'recent' ? '最近の問題でクイズ！' : '全問題でクイズ！')}
-            </Button>
-          </Link>
-        </div>
 
-        {/* History List */}
+
+
+
+
+
+
+        {/* Quiz Session List */}
         <div className="space-y-3">
-          {filteredHistory.slice(0, 10).map((item) => (
-            <Card key={item.id} className="p-4 border-border hover:bg-card/80 transition-colors">
-              <div className="flex items-start gap-3">
-                <div
-                  className={`flex items-center justify-center w-10 h-10 rounded-xl flex-shrink-0 ${
-                    item.isCorrect ? "bg-success/10" : "bg-destructive/10"
-                  }`}
-                >
-                  {item.isCorrect ? (
-                    <Check className="w-5 h-5 text-success" />
-                  ) : (
-                    <X className="w-5 h-5 text-destructive" />
-                  )}
-                </div>
-
-                <div className="flex-1 min-w-0 flex flex-col justify-between">
-                  {/* 上段：カテゴリと挑戦回数 */}
-                  <div className="flex justify-between items-center gap-2">
-                    <span className="text-xs px-2 py-1 rounded-md bg-primary/10 text-primary font-medium">
-                      {item.category}
-                    </span>
-                    <span className="text-xs text-muted-foreground whitespace-nowrap">{item.attempts}回挑戦</span>
+          {quizSessions.slice().sort((a,b) => new Date(b.finished_at).getTime() - new Date(a.finished_at).getTime()).slice(0, 10).map((session) => (
+            <Link key={session.id} href={`/quiz/session/${session.id}`} passHref>
+              <Card className="p-4 border-border hover:bg-card/80 transition-colors cursor-pointer">
+                <div className="flex items-start gap-3">
+                  <div
+                    className={`flex items-center justify-center w-10 h-10 rounded-xl flex-shrink-0 ${
+                      session.correct_rate >= 70 ? "bg-success/10" : "bg-destructive/10"
+                    }`}
+                  >
+                    {session.correct_rate >= 70 ? (
+                      <Check className="w-5 h-5 text-success" />
+                    ) : (
+                      <X className="w-5 h-5 text-destructive" />
+                    )}
                   </div>
 
-                  {/* 中段：問題文 */}
-                  <div className="my-2">
-                    <p className="text-sm text-foreground line-clamp-2 leading-relaxed">{item.question}</p>
-                  </div>
+                  <div className="flex-1 min-w-0 flex flex-col justify-between">
+                    {/* 上段：カテゴリと挑戦回数 */}
+                    <div className="flex justify-between items-center gap-2">
+                      <span className="text-xs px-2 py-1 rounded-md bg-primary/10 text-primary font-medium">
+                        {session.categories.join(', ')}
+                      </span>
+                      <span className="text-xs text-muted-foreground whitespace-nowrap">
+                          {session.finished_at ? new Date(session.finished_at).toLocaleString('ja-JP') : '-'}
+                      </span>
+                    </div>
 
-                  {/* 下段：最終解答日と記憶度 */}
-                  <div className="flex justify-between items-end gap-2 mt-1">
-                    <span className="text-xs text-muted-foreground">{item.lastAttempt}</span>
-                    <div className="w-24 text-right">
-                      <div className="mb-1">
-                        <span className="text-xs text-muted-foreground">記憶度 </span>
-                        <span className="text-xs font-medium text-foreground">{item.memoryLevel}%</span>
-                      </div>
-                      <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
-                        <div
-                          className={`h-full transition-all ${
-                            item.memoryLevel >= 70
-                              ? "bg-success"
-                              : item.memoryLevel >= 40
-                                ? "bg-primary"
-                                : "bg-destructive"
-                          }`}
-                          style={{ width: `${item.memoryLevel}%` }}
-                        />
-                      </div>
+                    {/* 中段：問題文（クイズ結果の概要） */}
+                    <div className="my-2">
+                      <p className="text-sm text-foreground line-clamp-2 leading-relaxed">
+                          {session.correct_count} / {session.total_questions} 問正解 ({session.correct_rate}%)
+                      </p>
+                    </div>
+
+                    {/* 下段：詳細情報 */}
+                    <div className="flex justify-between items-end gap-2 mt-1">
+                      <span className="text-xs text-muted-foreground">
+                          所要時間: {Math.floor(session.elapsed_time_seconds / 60)}分{session.elapsed_time_seconds % 60}秒
+                      </span>
+                      {/* Optionally add a button to view quiz details if a results review page exists */}
                     </div>
                   </div>
                 </div>
-              </div>
-            </Card>
+              </Card>
+            </Link>
           ))}
         </div>
       </div>

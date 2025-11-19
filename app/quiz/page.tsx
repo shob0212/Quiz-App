@@ -147,7 +147,7 @@ export default function QuizSettingsPage() {
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="問題数を選択" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-white">
                   <SelectItem value="10">10問</SelectItem>
                   <SelectItem value="20">20問</SelectItem>
                   <SelectItem value="50">50問</SelectItem>

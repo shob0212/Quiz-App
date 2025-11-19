@@ -10,7 +10,6 @@ export interface Question {
   explanation: string | null;
   last_answered: string | null;
   correct_answers: number[];
-  memory_strength: number;
   consecutive_wrong: number;
   consecutive_correct: number;
 }
@@ -20,6 +19,20 @@ export interface History {
   result: boolean;
   answered_at: string;
   question_id: string;
+  quiz_session_id: string;
+  user_answers: number[];
+}
+
+export interface QuizSession {
+  id: string;
+  started_at: string;
+  finished_at: string;
+  total_questions: number;
+  correct_count: number;
+  incorrect_count: number;
+  correct_rate: number;
+  elapsed_time_seconds: number;
+  categories: string[];
 }
 
 export async function getQuestions(): Promise<Question[]> {
@@ -55,5 +68,23 @@ export async function writeHistory(history: History[]): Promise<void> {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(history),
+  });
+}
+
+export async function getQuizSessions(): Promise<QuizSession[]> {
+  const res = await fetch('/api/quiz-sessions');
+  if (!res.ok) {
+    throw new Error('Failed to fetch quiz sessions');
+  }
+  return res.json();
+}
+
+export async function writeQuizSessions(quizSessions: QuizSession[]): Promise<void> {
+  await fetch('/api/quiz-sessions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(quizSessions),
   });
 }

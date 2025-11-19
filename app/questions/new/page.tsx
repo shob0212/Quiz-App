@@ -112,7 +112,6 @@ export default function AddNewQuestionPage() {
         correct_answers: correctAnswers,
         explanation: explanation || null,
         type: correctAnswers.length > 1 ? "multiple" : "single",
-        memory_strength: 0,
         position: questions.length, // Add to the end
         created_at: new Date().toISOString(),
         last_answered: null,

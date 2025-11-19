@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
-import { getQuestions, writeHistory, writeQuestions, getHistory, Question, History } from "@/lib/data"
+import { getQuestions, writeHistory, writeQuestions, getHistory, Question, History, QuizSession, getQuizSessions, writeQuizSessions } from "@/lib/data"
 import { ArrowLeft, ChevronLeft, ChevronRight, Check, X, Clock, Eye, XCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -40,6 +40,7 @@ export default function QuizPlayPage() {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isFinishingQuiz, setIsFinishingQuiz] = useState(false);
   const [startTime, setStartTime] = useState<Date | null>(null);
   const [editedExplanation, setEditedExplanation] = useState("");
   const [isEditingExplanation, setIsEditingExplanation] = useState(false);
@@ -163,70 +164,110 @@ export default function QuizPlayPage() {
   };
 
   const handleFinishQuiz = async () => {
-    const allQuestions = await getQuestions();
-    const allHistory = await getHistory();
+    setIsFinishingQuiz(true); // Set loading state
 
-    const results = questions.map(q => {
-      const answered = userAnswers[q.id];
-      const sortedUserAnswers = answered ? [...answered].sort() : [];
-      const sortedCorrectAnswers = [...q.correct_answers].sort();
-      const isCorrect = answered ? (
-        sortedUserAnswers.length === sortedCorrectAnswers.length &&
-        sortedUserAnswers.every((val, idx) => val === sortedCorrectAnswers[idx])
-      ) : false;
+    try {
+      const allQuestions = await getQuestions();
+      const allHistory = await getHistory();
 
-      return { 
-        questionId: q.id, 
-        isCorrect,
-        questionText: q.question
+      const results = questions.map(q => {
+        const answered = userAnswers[q.id];
+        const sortedUserAnswers = answered ? [...answered].sort() : [];
+        const sortedCorrectAnswers = [...q.correct_answers].sort();
+        const isCorrect = answered ? (
+          sortedUserAnswers.length === sortedCorrectAnswers.length &&
+          sortedUserAnswers.every((val, idx) => val === sortedCorrectAnswers[idx])
+        ) : false;
+
+        return { 
+          questionId: q.id, 
+          isCorrect,
+          questionText: q.question
+        };
+      });
+
+      // Calculate QuizSession data before creating history entries
+      const total_questions = questions.length;
+      const correct_count = results.filter(r => r.isCorrect).length;
+      const incorrect_count = total_questions - correct_count;
+      const correct_rate = total_questions > 0 ? (correct_count / total_questions) * 100 : 0;
+      const finished_at = new Date().toISOString();
+      const quizCategories = searchParams.get("categories")?.split(",") || [];
+
+      const newQuizSession: QuizSession = {
+        id: crypto.randomUUID(),
+        started_at: startTime?.toISOString() || finished_at,
+        finished_at: finished_at,
+        total_questions: total_questions,
+        correct_count: correct_count,
+        incorrect_count: incorrect_count,
+        correct_rate: parseFloat(correct_rate.toFixed(2)), // Format to 2 decimal places
+        elapsed_time_seconds: elapsedTime,
+        categories: quizCategories,
       };
-    });
 
-    const newHistoryEntries: History[] = [];
-    results.forEach(result => {
-      if (userAnswers[result.questionId]) { // Only add history for answered questions
-        newHistoryEntries.push({
-          id: crypto.randomUUID(),
-          question_id: result.questionId,
-          result: result.isCorrect,
-          answered_at: new Date().toISOString(),
-        });
-      }
-    });
+      const newHistoryEntries: History[] = [];
+      results.forEach(result => {
+        if (userAnswers[result.questionId]) { // Only add history for answered questions
+          newHistoryEntries.push({
+            id: crypto.randomUUID(),
+            question_id: result.questionId,
+            result: result.isCorrect,
+            answered_at: new Date().toISOString(),
+            quiz_session_id: newQuizSession.id, // Add quiz_session_id here
+          });
+        }
+      });
 
-    const updatedQuestions = allQuestions.map(q => {
-      const result = results.find(r => r.questionId === q.id);
-      if (!result || !userAnswers[q.id]) return q; // Return original if not in this quiz or not answered
+      const updatedQuestions = allQuestions.map(q => {
+        const result = results.find(r => r.questionId === q.id);
+        if (!result || !userAnswers[q.id]) return q; // Return original if not in this quiz or not answered
 
-      const updatedQ = { ...q };
-      updatedQ.last_answered = new Date().toISOString();
-      if (result.isCorrect) {
-        updatedQ.consecutive_correct++;
-        updatedQ.consecutive_wrong = 0;
-        updatedQ.memory_strength = Math.min(100, updatedQ.memory_strength + 20);
-      } else {
-        updatedQ.consecutive_correct = 0;
-        updatedQ.consecutive_wrong++;
-        updatedQ.memory_strength = Math.max(0, updatedQ.memory_strength - 20);
-      }
-      return updatedQ;
-    });
+        const updatedQ = { ...q };
+        updatedQ.last_answered = new Date().toISOString();
+        if (result.isCorrect) {
+          updatedQ.consecutive_correct++;
+          updatedQ.consecutive_wrong = 0;
+        } else {
+          updatedQ.consecutive_correct = 0;
+          updatedQ.consecutive_wrong++;
+        }
+        return updatedQ;
+      });
 
-    await writeHistory([...allHistory, ...newHistoryEntries]);
-    await writeQuestions(updatedQuestions);
+      await writeHistory([...allHistory, ...newHistoryEntries]);
+      await writeQuestions(updatedQuestions);
 
-    const resultsString = JSON.stringify(results);
-    const answersString = JSON.stringify(userAnswers);
-    console.log('Results string length:', resultsString.length);
-    console.log('Answers string length:', answersString.length);
+      const allQuizSessions = await getQuizSessions();
+      await writeQuizSessions([...allQuizSessions, newQuizSession]);
 
-    sessionStorage.setItem('quizResults', resultsString);
-    sessionStorage.setItem('quizUserAnswers', answersString);
-    router.push(`/quiz/results`);
+
+      const resultsString = JSON.stringify(results);
+      const answersString = JSON.stringify(userAnswers);
+      console.log('Results string length:', resultsString.length);
+      console.log('Answers string length:', answersString.length);
+
+      sessionStorage.setItem('quizResults', resultsString);
+      sessionStorage.setItem('quizUserAnswers', answersString);
+      router.push(`/quiz/results`);
+    } catch (error) {
+      console.error("Failed to finish quiz:", error);
+      toast({
+        title: "クイズの終了に失敗しました",
+        description: "エラーが発生しました。コンソールを確認してください。",
+        variant: "destructive",
+      });
+      setIsFinishingQuiz(false); // Reset loading state on error
+    }
   };
 
-  if (isLoading || !currentQuestion) {
-    return <div className="min-h-screen flex items-center justify-center"><Spinner size="lg" /></div>;
+  if (isLoading || !currentQuestion || isFinishingQuiz) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Spinner size="lg" />
+        {isFinishingQuiz && <p className="ml-4 text-lg text-muted-foreground">結果を処理中...</p>}
+      </div>
+    );
   }
 
   const formatTime = (seconds: number) => {
