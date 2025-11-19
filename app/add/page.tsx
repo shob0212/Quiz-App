@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, memo } from "react"
 import Link from "next/link"
 import { getQuestions, getHistory, writeQuestions, Question, History } from "@/lib/data"
 import { 
@@ -20,45 +20,64 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
 import { Spinner } from "@/components/ui/spinner"
-import { 
-  DndContext, closestCenter, PointerSensor, useSensor, useSensors 
-} from '@dnd-kit/core'
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragOverlay,
+} from "@dnd-kit/core";
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
+import { Switch } from "@/components/ui/switch"
+import { Label } from "@/components/ui/label"
 
 interface ManagedQuestion extends Question {
   attempts: number
   correctRate: number
 }
 
+// --- Row Content (Memoized) ---
+const QuestionRowContent = memo(({ row }: { row: ManagedQuestion }) => {
+  return (
+    <>
+      <TableCell className="max-w-xs truncate">{row.question}</TableCell>
+      <TableCell></TableCell>
+      <TableCell className="w-20 truncate">{row.category}</TableCell>
+      <TableCell className="w-20">
+        <div>
+          <Progress value={row.memory_strength}/>
+          <span>{Math.round(row.memory_strength)}%</span>
+        </div>
+      </TableCell>
+      <TableCell className="w-20">{row.correctRate}%</TableCell>
+      <TableCell className="w-20">{row.last_answered ? new Date(row.last_answered).toLocaleDateString() : "未回答"}</TableCell>
+    </>
+  )
+});
+QuestionRowContent.displayName = 'QuestionRowContent';
+
 // --- ドラッグ可能な行 ---
-const DraggableTableRow = ({ row }: { row: ManagedQuestion }) => {
+const DraggableTableRow = ({ row, isEditMode }: { row: ManagedQuestion, isEditMode: boolean }) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: row.id })
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.5 : 1,
+    opacity: isDragging ? 0 : 1,
     zIndex: isDragging ? 1 : 0,
   }
 
   return (
     <TableRow ref={setNodeRef} style={style} {...attributes}>
       <TableCell className="w-10">
-        <Button variant="ghost" size="icon" {...listeners} className="cursor-grab">
-          <GripVertical className="w-5 h-5 text-muted-foreground" />
-        </Button>
+        {isEditMode && (
+          <Button variant="ghost" size="icon" {...listeners} className="cursor-grab">
+            <GripVertical className="w-5 h-5 text-muted-foreground" />
+          </Button>
+        )}
       </TableCell>
-      <TableCell className="max-w-xs truncate">{row.question}</TableCell>
-      <TableCell>{row.category}</TableCell>
-      <TableCell>
-        <div className="flex items-center gap-2">
-          <Progress value={row.memory_strength} className="h-2" />
-          <span className="text-xs text-muted-foreground">{Math.round(row.memory_strength)}%</span>
-        </div>
-      </TableCell>
-      <TableCell>{row.correctRate}%</TableCell>
-      <TableCell>{row.last_answered ? new Date(row.last_answered).toLocaleDateString() : "未回答"}</TableCell>
-
+      <QuestionRowContent row={row} />
     </TableRow>
   )
 }
@@ -124,7 +143,9 @@ export default function ManagePage() {
   const [activeId, setActiveId] = useState<string | null>(null)
   const [filterCategory, setFilterCategory] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState("") // 🔍 追加
+  const [isEditMode, setIsEditMode] = useState(false)
   const sensors = useSensors(useSensor(PointerSensor))
+  const activeQuestion = useMemo(() => questions.find((q) => q.id === activeId), [activeId, questions]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -156,22 +177,20 @@ export default function ManagePage() {
 
   const handleDragEnd = async (event: any) => {
     const { active, over } = event
+    if (!over) return
     if (active.id !== over.id) {
       const oldIndex = questions.findIndex((q) => q.id === active.id)
       const newIndex = questions.findIndex((q) => q.id === over.id)
-      const newOrder = arrayMove(questions, oldIndex, newIndex)
-      setQuestions(newOrder)
       
-      const allQuestions = await getQuestions();
-      const updatedQuestions = newOrder.map((q, i) => {
-        const originalQuestion = allQuestions.find(aq => aq.id === q.id);
-        if (originalQuestion) {
-          originalQuestion.position = i;
-        }
-        return originalQuestion;
-      });
+      if (oldIndex === -1 || newIndex === -1) return;
 
-      await writeQuestions(allQuestions);
+      let newOrder = arrayMove(questions, oldIndex, newIndex);
+      newOrder = newOrder.map((q, index) => ({ ...q, position: index }));
+
+      setQuestions(newOrder);
+
+      const questionsToSave: Question[] = newOrder.map(({ attempts, correctRate, ...q }) => q);
+      await writeQuestions(questionsToSave);
     }
     setActiveId(null)
   }
@@ -189,6 +208,8 @@ export default function ManagePage() {
         collisionDetection={closestCenter}
         onDragStart={(e) => setActiveId(e.active.id as string)}
         onDragEnd={handleDragEnd}
+        onDragCancel={() => setActiveId(null)}
+        disabled={!isEditMode}
       >
         <div className="min-h-screen bg-background pb-20">
         <div className="container mx-auto px-4 py-6">
@@ -208,7 +229,11 @@ export default function ManagePage() {
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center space-x-2">
+                <Switch id="edit-mode" checked={isEditMode} onCheckedChange={setIsEditMode} />
+                <Label htmlFor="edit-mode">編集</Label>
+              </div>
               <CategoryDropdown
                 categories={categories}
                 selected={filterCategory}
@@ -239,23 +264,16 @@ export default function ManagePage() {
           <Card className="border-border">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead className="w-10"></TableHead>
-                  <TableHead>問題</TableHead>
-                  <TableHead>カテゴリ</TableHead>
-                  <TableHead>記憶度</TableHead>
-                  <TableHead>正答率</TableHead>
-                  <TableHead>最終回答日</TableHead>
-
-                </TableRow>
+                <TableRow><TableHead className="w-10"></TableHead><TableHead>問題</TableHead><TableHead className="w-20"></TableHead><TableHead className="w-30">カテゴリ</TableHead><TableHead className="w-20">記憶度</TableHead><TableHead className="w-20">正答率</TableHead><TableHead className="w-30">最終回答日</TableHead></TableRow>
               </TableHeader>
               <TableBody>
                 <SortableContext
                   items={filteredQuestions.map((q) => q.id)}
                   strategy={verticalListSortingStrategy}
+                  disabled={!isEditMode}
                 >
                   {filteredQuestions.map((q) => (
-                    <DraggableTableRow key={q.id} row={q} />
+                    <DraggableTableRow key={q.id} row={q} isEditMode={isEditMode} />
                   ))}
                 </SortableContext>
               </TableBody>
@@ -263,6 +281,32 @@ export default function ManagePage() {
           </Card>
         </div>
       </div>
+      <DragOverlay>
+        {activeQuestion ? (
+          <Table className="bg-background shadow-lg">
+            <TableBody>
+              <TableRow>
+                <TableCell className="w-10">
+                  <Button variant="ghost" size="icon" className="cursor-grabbing">
+                    <GripVertical className="w-5 h-5 text-muted-foreground" />
+                  </Button>
+                </TableCell>
+                <TableCell className="max-w-xs truncate">{activeQuestion.question}</TableCell>
+                <TableCell></TableCell>
+                <TableCell className="w-20 truncate">{activeQuestion.category}</TableCell>
+                <TableCell className="w-20">
+                  <div>
+                    <Progress value={activeQuestion.memory_strength}/>
+                    <span>{Math.round(activeQuestion.memory_strength)}%</span>
+                  </div>
+                </TableCell>
+                <TableCell className="w-20">{activeQuestion.correctRate}%</TableCell>
+                <TableCell className="w-20">{activeQuestion.last_answered ? new Date(activeQuestion.last_answered).toLocaleDateString() : "未回答"}</TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        ) : null}
+      </DragOverlay>
     </DndContext>
   </div>
   )
