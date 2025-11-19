@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo, memo, useRef } from "react"
+import { useState, useEffect, useMemo, memo, useRef, Suspense } from "react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { getQuestions, getHistory, writeQuestions, writeHistory, writeQuizSessions, Question, History, QuizSession } from "@/lib/data"
