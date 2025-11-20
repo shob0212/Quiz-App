@@ -134,7 +134,7 @@ function CategoryDropdown({ categories, selected, onSelect }: { categories: stri
 }
 
 // --- メイン Client Component ---
-export default function AddPageClient() {
+export default function AddPageClient({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
   const [questions, setQuestions] = useState<ManagedQuestion[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [activeId, setActiveId] = useState<string | null>(null)
@@ -147,7 +147,6 @@ export default function AddPageClient() {
   const [currentFormData, setCurrentFormData] = useState<EditFormData>({})
   const [highlightedQuestionId, setHighlightedQuestionId] = useState<string | null>(null)
   const rowRefs = useRef<Record<string, HTMLTableRowElement | null>>({})
-  const searchParams = useSearchParams()
   const sensors = useSensors(useSensor(PointerSensor))
   const activeQuestion = useMemo(() => questions.find(q => q.id === activeId), [activeId, questions])
   const categories = useMemo(() => [...new Set(questions.map(q => q.category))], [questions])

@@ -31,9 +31,8 @@ const shuffleArray = (array: any[]) => {
   return newArray;
 }
 
-export default function QuizPlayPage() {
+export default function QuizPlayPage({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   const [questions, setQuestions] = useState<(Question & { shuffledOptions: { option: string; originalIndex: number }[] })[]>([]);
   const [userAnswers, setUserAnswers] = useState<Record<string, number[]>>({});
@@ -103,9 +102,9 @@ export default function QuizPlayPage() {
       }
       setHistory(historyByQuestionId);
 
-      const categories = searchParams.get("categories")?.split(",") || [];
-      const limit = Number(searchParams.get("limit"));
-      const showTimerParam = searchParams.get("showTimer");
+      const categories = (searchParams.categories as string)?.split(",") || [];
+      const limit = Number(searchParams.limit);
+      const showTimerParam = searchParams.showTimer;
 
       setShowTimer(showTimerParam === 'true');
 
@@ -192,7 +191,7 @@ export default function QuizPlayPage() {
       const incorrect_count = total_questions - correct_count;
       const correct_rate = total_questions > 0 ? (correct_count / total_questions) * 100 : 0;
       const finished_at = new Date().toISOString();
-      const quizCategories = searchParams.get("categories")?.split(",") || [];
+      const quizCategories = (searchParams.categories as string)?.split(",") || [];
 
       const newQuizSession: QuizSession = {
         id: crypto.randomUUID(),
