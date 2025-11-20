@@ -167,7 +167,6 @@ export default function QuizPlayPage({ searchParams }: { searchParams: { [key: s
 
     try {
       const allQuestions = await getQuestions();
-      const allHistory = await getHistory();
 
       const results = questions.map(q => {
         const answered = userAnswers[q.id];
@@ -214,6 +213,7 @@ export default function QuizPlayPage({ searchParams }: { searchParams: { [key: s
             result: result.isCorrect,
             answered_at: new Date().toISOString(),
             quiz_session_id: newQuizSession.id, // Add quiz_session_id here
+            user_answers: userAnswers[result.questionId] || [],
           });
         }
       });
@@ -234,12 +234,14 @@ export default function QuizPlayPage({ searchParams }: { searchParams: { [key: s
         return updatedQ;
       });
 
-      await writeHistory([...allHistory, ...newHistoryEntries]);
+      // Write only the new entries/session to the database
+      if (newHistoryEntries.length > 0) {
+        await writeHistory(newHistoryEntries);
+      }
+      await writeQuizSessions(newQuizSession);
+      
+      // Update questions data
       await writeQuestions(updatedQuestions);
-
-      const allQuizSessions = await getQuizSessions();
-      await writeQuizSessions([...allQuizSessions, newQuizSession]);
-
 
       const resultsString = JSON.stringify(results);
       const answersString = JSON.stringify(userAnswers);

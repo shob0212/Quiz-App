@@ -4,7 +4,7 @@
 import { useState, useEffect, useMemo, useRef, memo, Suspense } from "react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
-import { getQuestions, getHistory, writeQuestions, writeHistory, writeQuizSessions, Question, History, QuizSession } from "@/lib/data"
+import { getQuestions, getHistory, writeQuestions, deleteHistory, deleteQuizSessions, Question, History, QuizSession } from "@/lib/data"
 import { 
   Home, Plus, List, Target, BarChart3, ArrowLeft, GripVertical, ChevronDown, Search, Trash2, PenSquare
 } from "lucide-react"
@@ -261,10 +261,10 @@ const handleResetHistoryClick = () => {
   };
 
   const handleResetHistoryConfirm = async () => {
-    // 1. Clear history file
-    await writeHistory([]);
+    // 1. Delete all history records via the API
+    await deleteHistory();
     
-    // 2. Create the array with reset values
+    // 2. Create the array with reset values for local state
     const resetQuestions = questions.map(q => ({
       ...q,
       attempts: 0,
@@ -280,9 +280,11 @@ const handleResetHistoryClick = () => {
     
     // 5. Write updated questions to the data source
     await writeQuestions(questionsToSave);
-    await writeQuizSessions([]); // Clear quiz sessions as well
+    
+    // 6. Delete all quiz sessions via the API
+    await deleteQuizSessions();
 
-    // 6. Close the dialog
+    // 7. Close the dialog
     setIsResetDialogOpen(false);
   };
 

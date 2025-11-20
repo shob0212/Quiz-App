@@ -61,13 +61,22 @@ export async function writeQuestions(questions: Question[]): Promise<void> {
   });
 }
 
-export async function writeHistory(history: History[]): Promise<void> {
+// 新しい履歴エントリ（単数または複数）を追加する
+export async function writeHistory(newEntries: History | History[]): Promise<void> {
   await fetch('/api/history', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(history),
+    // サーバー側で配列として処理するため、単一オブジェクトも配列でラップする
+    body: JSON.stringify(Array.isArray(newEntries) ? newEntries : [newEntries]),
+  });
+}
+
+// すべての履歴を削除する
+export async function deleteHistory(): Promise<void> {
+  await fetch('/api/history', {
+    method: 'DELETE',
   });
 }
 
@@ -79,12 +88,20 @@ export async function getQuizSessions(): Promise<QuizSession[]> {
   return res.json();
 }
 
-export async function writeQuizSessions(quizSessions: QuizSession[]): Promise<void> {
+// 新しいクイズセッション（単数または複数）を追加する
+export async function writeQuizSessions(newSessions: QuizSession | QuizSession[]): Promise<void> {
   await fetch('/api/quiz-sessions', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(quizSessions),
+    body: JSON.stringify(newSessions),
+  });
+}
+
+// すべてのクイズセッションを削除する
+export async function deleteQuizSessions(): Promise<void> {
+  await fetch('/api/quiz-sessions', {
+    method: 'DELETE',
   });
 }

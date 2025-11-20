@@ -1,25 +1,39 @@
 import { NextResponse } from 'next/server';
-import fs from 'fs/promises';
-import path from 'path';
-
-const questionsPath = path.join(process.cwd(), 'questions.json');
+import { supabase } from '@/lib/supabaseClient';
 
 export async function GET() {
-  try {
-    const data = await fs.readFile(questionsPath, 'utf-8');
-    const questions = JSON.parse(data);
-    return NextResponse.json(questions);
-  } catch (error) {
-    return NextResponse.json({ error: 'Failed to read questions' }, { status: 500 });
+  const { data, error } = await supabase
+    .from('questions')
+    .select('*')
+    .order('position', { ascending: true });
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
+
+  return NextResponse.json(data);
 }
 
 export async function POST(request: Request) {
   try {
     const questions = await request.json();
-    await fs.writeFile(questionsPath, JSON.stringify(questions, null, 2));
+    
+    // `upsert` を使用して、存在しない場合は挿入、存在する場合は更新します。
+    // Supabaseの `upsert` はデフォルトで `id` を衝突キーとして使用します。
+    const { error } = await supabase
+      .from('questions')
+      .upsert(questions);
+
+    if (error) {
+      console.error('Supabase error:', error);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
     return NextResponse.json({ success: true });
-  } catch (error) {
-    return NextResponse.json({ error: 'Failed to write questions' }, { status: 500 });
+  } catch (e) {
+    if (e instanceof Error) {
+      return NextResponse.json({ error: e.message }, { status: 500 });
+    }
+    return NextResponse.json({ error: 'An unknown error occurred' }, { status: 500 });
   }
 }
