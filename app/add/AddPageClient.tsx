@@ -287,7 +287,7 @@ const handleResetHistoryClick = () => {
   };
 
   useEffect(() => {
-    const highlightId = searchParams.get('highlight');
+    const highlightId = searchParams.highlight as string | undefined;
     if (highlightId) {
       setHighlightedQuestionId(highlightId);
       // Wait for questions to load and render
@@ -332,13 +332,13 @@ const handleResetHistoryClick = () => {
   }
 
   if (isLoading)
-    return <div className="min-h-screen flex items-center justify-center"><Spinner size="lg" /></div>
+    return <div className="min-h-screen flex items-center justify-center"><Spinner className="w-12 h-12" /></div>
 
   return (
     <div>
     <Suspense fallback={
         <div className="min-h-screen bg-background flex items-center justify-center">
-            <Spinner size="lg" />
+            <Spinner className="w-12 h-12" />
             <p className="ml-4 text-muted-foreground">読み込み中...</p>
         </div>
         }>
@@ -349,7 +349,6 @@ const handleResetHistoryClick = () => {
             onDragStart={(e) => setActiveId(e.active.id as string)}
             onDragEnd={handleDragEnd}
             onDragCancel={() => setActiveId(null)}
-            disabled={!isEditMode}
         >
             <div className="min-h-screen bg-background pb-20">
             <div className="container mx-auto px-4 py-6">
