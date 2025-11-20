@@ -31,8 +31,9 @@ const shuffleArray = (array: any[]) => {
   return newArray;
 }
 
-export default function QuizPlayPage({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
+export default function QuizPlayPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [questions, setQuestions] = useState<(Question & { shuffledOptions: { option: string; originalIndex: number }[] })[]>([]);
   const [userAnswers, setUserAnswers] = useState<Record<string, number[]>>({});
@@ -85,6 +86,10 @@ export default function QuizPlayPage({ searchParams }: { searchParams: { [key: s
     }
   };
 
+  const categoriesParam = searchParams.get('categories');
+  const limitParam = searchParams.get('limit');
+  const showTimerParam = searchParams.get('showTimer');
+
   useEffect(() => {
     const loadQuestions = async () => {
       setIsLoading(true);
@@ -102,9 +107,8 @@ export default function QuizPlayPage({ searchParams }: { searchParams: { [key: s
       }
       setHistory(historyByQuestionId);
 
-      const categories = (searchParams.categories as string)?.split(",") || [];
-      const limit = Number(searchParams.limit);
-      const showTimerParam = searchParams.showTimer;
+      const categories = categoriesParam?.split(",") || [];
+      const limit = Number(limitParam);
 
       setShowTimer(showTimerParam === 'true');
 
@@ -130,7 +134,7 @@ export default function QuizPlayPage({ searchParams }: { searchParams: { [key: s
     };
 
     loadQuestions();
-  }, [searchParams]);
+  }, [categoriesParam, limitParam, showTimerParam]);
 
   useEffect(() => {
     if (!showTimer || !startTime) return;
@@ -190,7 +194,7 @@ export default function QuizPlayPage({ searchParams }: { searchParams: { [key: s
       const incorrect_count = total_questions - correct_count;
       const correct_rate = total_questions > 0 ? (correct_count / total_questions) * 100 : 0;
       const finished_at = new Date().toISOString();
-      const quizCategories = (searchParams.categories as string)?.split(",") || [];
+      const quizCategories = categoriesParam?.split(",") || [];
 
       const newQuizSession: QuizSession = {
         id: crypto.randomUUID(),
