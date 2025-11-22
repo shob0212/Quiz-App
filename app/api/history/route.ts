@@ -19,6 +19,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const newEntries = await request.json();
+    console.log('[API/HISTORY] Received entries:', JSON.stringify(newEntries, null, 2));
 
     // newEntriesが配列でなければエラー
     if (!Array.isArray(newEntries)) {
@@ -30,12 +31,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true, message: 'No new entries to add.' });
     }
 
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('history')
-      .insert(newEntries);
+      .insert(newEntries)
+      .select(); // .select() を追加して挿入されたデータを返すようにする
+
+    console.log('[API/HISTORY] Supabase response:', { data, error });
 
     if (error) {
-      console.error('Supabase error:', error);
+      console.error('[API/HISTORY] Supabase error:', error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
     
@@ -44,11 +48,13 @@ export async function POST(request: Request) {
     revalidatePath('/add');
 
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, data });
   } catch (e) {
     if (e instanceof Error) {
+      console.error('[API/HISTORY] Catch block error:', e);
       return NextResponse.json({ error: e.message }, { status: 500 });
     }
+    console.error('[API/HISTORY] Unknown catch block error:', e);
     return NextResponse.json({ error: 'An unknown error occurred' }, { status: 500 });
   }
 }

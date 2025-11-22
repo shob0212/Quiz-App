@@ -52,18 +52,22 @@ export async function getHistory(): Promise<History[]> {
 }
 
 export async function writeQuestions(questions: Question[]): Promise<void> {
-  await fetch('/api/questions', {
+  const res = await fetch('/api/questions', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(questions),
   });
+  if (!res.ok) {
+    const errorBody = await res.json().catch(() => ({ error: 'Failed to parse error response' }));
+    throw new Error(errorBody.error || 'Failed to write questions');
+  }
 }
 
 // 新しい履歴エントリ（単数または複数）を追加する
 export async function writeHistory(newEntries: History | History[]): Promise<void> {
-  await fetch('/api/history', {
+  const res = await fetch('/api/history', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -71,6 +75,10 @@ export async function writeHistory(newEntries: History | History[]): Promise<voi
     // サーバー側で配列として処理するため、単一オブジェクトも配列でラップする
     body: JSON.stringify(Array.isArray(newEntries) ? newEntries : [newEntries]),
   });
+  if (!res.ok) {
+    const errorBody = await res.json().catch(() => ({ error: 'Failed to parse error response' }));
+    throw new Error(errorBody.error || 'Failed to write history');
+  }
 }
 
 // すべての履歴を削除する
@@ -90,13 +98,17 @@ export async function getQuizSessions(): Promise<QuizSession[]> {
 
 // 新しいクイズセッション（単数または複数）を追加する
 export async function writeQuizSessions(newSessions: QuizSession | QuizSession[]): Promise<void> {
-  await fetch('/api/quiz-sessions', {
+  const res = await fetch('/api/quiz-sessions', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(newSessions),
   });
+  if (!res.ok) {
+    const errorBody = await res.json().catch(() => ({ error: 'Failed to parse error response' }));
+    throw new Error(errorBody.error || 'Failed to write quiz sessions');
+  }
 }
 
 // すべてのクイズセッションを削除する

@@ -38,6 +38,8 @@ import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } 
 import { CSS } from '@dnd-kit/utilities'
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
+import { useToast } from "@/components/ui/use-toast"
+import { Toaster } from "@/components/ui/toaster"
 
 // --- 型定義 ---
 interface ManagedQuestion extends Question {
@@ -147,6 +149,7 @@ export default function AddPageClient({ searchParams }: { searchParams: { [key: 
   const [currentFormData, setCurrentFormData] = useState<EditFormData>({})
   const [highlightedQuestionId, setHighlightedQuestionId] = useState<string | null>(null)
   const rowRefs = useRef<Record<string, HTMLTableRowElement | null>>({})
+  const { toast } = useToast()
   const sensors = useSensors(useSensor(PointerSensor))
   const activeQuestion = useMemo(() => questions.find(q => q.id === activeId), [activeId, questions])
   const categories = useMemo(() => [...new Set(questions.map(q => q.category))], [questions])
@@ -261,31 +264,45 @@ const handleResetHistoryClick = () => {
   };
 
   const handleResetHistoryConfirm = async () => {
-    // 1. Delete all history records via the API
-    await deleteHistory();
-    
-    // 2. Create the array with reset values for local state
-    const resetQuestions = questions.map(q => ({
-      ...q,
-      attempts: 0,
-      correctRate: 0,
-      last_answered: null,
-    }));
-    
-    // 3. Update local state for immediate UI feedback
-    setQuestions(resetQuestions);
-    
-    // 4. Prepare question data for saving (strip UI-only fields)
-    const questionsToSave: Question[] = resetQuestions.map(({ attempts, correctRate, ...q }) => q);
-    
-    // 5. Write updated questions to the data source
-    await writeQuestions(questionsToSave);
-    
-    // 6. Delete all quiz sessions via the API
-    await deleteQuizSessions();
+    try {
+      // 1. Delete all history records via the API
+      await deleteHistory();
+      
+      // 2. Create the array with reset values for local state
+      const resetQuestions = questions.map(q => ({
+        ...q,
+        attempts: 0,
+        correctRate: 0,
+        last_answered: null,
+      }));
+      
+      // 3. Update local state for immediate UI feedback
+      setQuestions(resetQuestions);
+      
+      // 4. Prepare question data for saving (strip UI-only fields)
+      const questionsToSave: Question[] = resetQuestions.map(({ attempts, correctRate, ...q }) => q);
+      
+      // 5. Write updated questions to the data source
+      await writeQuestions(questionsToSave);
+      
+      // 6. Delete all quiz sessions via the API
+      await deleteQuizSessions();
 
-    // 7. Close the dialog
-    setIsResetDialogOpen(false);
+      // 7. Close the dialog and show success toast
+      setIsResetDialogOpen(false);
+      setIsEditMode(false); // Turn off edit mode
+      toast({
+        title: "成功",
+        description: "すべての学習履歴が正常にリセットされました。",
+      });
+    } catch (error) {
+      console.error("Failed to reset history:", error);
+      toast({
+        title: "エラー",
+        description: "学習履歴のリセット中にエラーが発生しました。",
+        variant: "destructive",
+      });
+    }
   };
 
   useEffect(() => {
@@ -552,6 +569,7 @@ const handleResetHistoryClick = () => {
         </DialogContent>
         </Dialog>
         </div>
+        <Toaster />
     </Suspense>
     </div>
   )

@@ -166,7 +166,7 @@ export default function QuizPlayPage() {
     }
   };
 
-  const handleFinishQuiz = async () => {
+  const handleFinishQuiz = useCallback(async () => {
     setIsFinishingQuiz(true); // Set loading state
 
     try {
@@ -210,21 +210,19 @@ export default function QuizPlayPage() {
 
       const newHistoryEntries: History[] = [];
       results.forEach(result => {
-        if (userAnswers[result.questionId]) { // Only add history for answered questions
-          newHistoryEntries.push({
-            id: crypto.randomUUID(),
-            question_id: result.questionId,
-            result: result.isCorrect,
-            answered_at: new Date().toISOString(),
-            quiz_session_id: newQuizSession.id, // Add quiz_session_id here
-            user_answers: userAnswers[result.questionId] || [],
-          });
-        }
+        newHistoryEntries.push({
+          id: crypto.randomUUID(),
+          question_id: result.questionId,
+          result: result.isCorrect,
+          answered_at: new Date().toISOString(),
+          quiz_session_id: newQuizSession.id,
+          user_answers: userAnswers[result.questionId] || [], // Empty array for unanswered
+        });
       });
 
       const updatedQuestions = allQuestions.map(q => {
         const result = results.find(r => r.questionId === q.id);
-        if (!result || !userAnswers[q.id]) return q; // Return original if not in this quiz or not answered
+        if (!result) return q; // Return original if not in this quiz
 
         const updatedQ = { ...q };
         updatedQ.last_answered = new Date().toISOString();
@@ -238,11 +236,11 @@ export default function QuizPlayPage() {
         return updatedQ;
       });
 
-      // Write only the new entries/session to the database
+      // Write the session first to avoid foreign key constraints
+      await writeQuizSessions(newQuizSession);
       if (newHistoryEntries.length > 0) {
         await writeHistory(newHistoryEntries);
       }
-      await writeQuizSessions(newQuizSession);
       
       // Update questions data
       await writeQuestions(updatedQuestions);
@@ -264,7 +262,7 @@ export default function QuizPlayPage() {
       });
       setIsFinishingQuiz(false); // Reset loading state on error
     }
-  };
+  }, [questions, userAnswers, startTime, elapsedTime, categoriesParam, router, toast]);
 
   if (isLoading || !currentQuestion || isFinishingQuiz) {
     return (
