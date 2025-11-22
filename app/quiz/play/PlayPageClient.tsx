@@ -91,49 +91,65 @@ export default function QuizPlayPage() {
   const showTimerParam = searchParams.get('showTimer');
 
   useEffect(() => {
-    const loadQuestions = async () => {
+    const loadQuiz = async () => {
       setIsLoading(true);
 
-      const allHistory = await getHistory();
-      const historyByQuestionId: Record<string, History[]> = {};
-      for (const h of allHistory) {
-        if (!historyByQuestionId[h.question_id]) {
-          historyByQuestionId[h.question_id] = [];
+      const savedStateJSON = sessionStorage.getItem('suspendedQuiz');
+      console.log('[PlayPage] Checking for suspended quiz...', { savedStateJSON });
+
+      if (savedStateJSON) {
+        const savedState = JSON.parse(savedStateJSON);
+        setQuestions(savedState.questions || []);
+        setUserAnswers(savedState.userAnswers || {});
+        setCurrentQuestionIndex(savedState.currentQuestionIndex || 0);
+        setStartTime(savedState.startTime ? new Date(savedState.startTime) : null);
+        setElapsedTime(savedState.elapsedTime || 0);
+        // Set the timer visibility from the saved state
+        setShowTimer(savedState.showTimerParam === 'true');
+        
+        // No need to fetch history separately for resumed quiz, as it's part of the page state
+      } else {
+        // --- Logic for starting a new quiz ---
+        const allHistory = await getHistory();
+        const historyByQuestionId: Record<string, History[]> = {};
+        for (const h of allHistory) {
+          if (!historyByQuestionId[h.question_id]) {
+            historyByQuestionId[h.question_id] = [];
+          }
+          historyByQuestionId[h.question_id].push(h);
         }
-        historyByQuestionId[h.question_id].push(h);
+        for (const qId in historyByQuestionId) {
+          historyByQuestionId[qId].sort((a, b) => new Date(b.answered_at).getTime() - new Date(a.answered_at).getTime());
+        }
+        setHistory(historyByQuestionId);
+
+        const categories = categoriesParam?.split(",") || [];
+        const limit = Number(limitParam);
+        setShowTimer(showTimerParam === 'true');
+
+        const allQuestions = await getQuestions();
+        const filtered = allQuestions.filter(q => categories.includes(q.category));
+        const shuffled = shuffleArray(filtered);
+        const selectedQuestions = shuffled.slice(0, limit);
+
+        const questionsWithShuffledOptions = selectedQuestions.map(q => {
+          const optionsWithOriginalIndex = q.options.map((option, index) => ({
+            option,
+            originalIndex: index,
+          }));
+          return {
+            ...q,
+            shuffledOptions: shuffleArray(optionsWithOriginalIndex),
+          };
+        });
+
+        setQuestions(questionsWithShuffledOptions);
+        setStartTime(new Date());
       }
-      for (const qId in historyByQuestionId) {
-        historyByQuestionId[qId].sort((a, b) => new Date(b.answered_at).getTime() - new Date(a.answered_at).getTime());
-      }
-      setHistory(historyByQuestionId);
-
-      const categories = categoriesParam?.split(",") || [];
-      const limit = Number(limitParam);
-
-      setShowTimer(showTimerParam === 'true');
-
-      const allQuestions = await getQuestions();
-      const filtered = allQuestions.filter(q => categories.includes(q.category));
-      const shuffled = shuffleArray(filtered);
-      const selectedQuestions = shuffled.slice(0, limit);
-
-      const questionsWithShuffledOptions = selectedQuestions.map(q => {
-        const optionsWithOriginalIndex = q.options.map((option, index) => ({
-          option,
-          originalIndex: index,
-        }));
-        return {
-          ...q,
-          shuffledOptions: shuffleArray(optionsWithOriginalIndex),
-        };
-      });
-
-      setQuestions(questionsWithShuffledOptions);
-      setStartTime(new Date());
       setIsLoading(false);
     };
 
-    loadQuestions();
+    loadQuiz();
   }, [categoriesParam, limitParam, showTimerParam]);
 
   useEffect(() => {
@@ -143,6 +159,35 @@ export default function QuizPlayPage() {
     }, 1000);
     return () => clearInterval(timer);
   }, [startTime, showTimer]);
+
+  useEffect(() => {
+    const saveState = () => {
+      const suspendedState = {
+        questions,
+        userAnswers,
+        currentQuestionIndex,
+        startTime,
+        elapsedTime,
+        categoriesParam,
+        limitParam,
+        showTimerParam,
+      };
+      sessionStorage.setItem('suspendedQuiz', JSON.stringify(suspendedState));
+    };
+
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      saveState();
+      // Most browsers require returnValue to be set to show a confirmation prompt.
+      // However, its primary purpose here is to trigger the save.
+      e.returnValue = '';
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [questions, userAnswers, currentQuestionIndex, startTime, elapsedTime, categoriesParam, limitParam, showTimerParam]);
 
   const handleAnswerToggle = (optionIndex: number) => {
     if (!currentQuestion) return;
@@ -295,12 +340,26 @@ export default function QuizPlayPage() {
                 <AlertDialogHeader>
                   <AlertDialogTitle>クイズを中断しますか？</AlertDialogTitle>
                   <AlertDialogDescription>
-                    現在の進捗は保存されません。本当にホームページに戻りますか？
+                    現在の進捗は一時的に保存され、あとで再開できます。本当に出題設定画面に戻りますか？
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>キャンセル</AlertDialogCancel>
-                  <AlertDialogAction onClick={() => router.push("/quiz")} className="bg-red-500 hover:bg-red-600 text-white">中断して戻る</AlertDialogAction>
+                  <AlertDialogAction onClick={() => {
+                    const suspendedState = {
+                      questions,
+                      userAnswers,
+                      currentQuestionIndex,
+                      startTime,
+                      elapsedTime,
+                      categoriesParam,
+                      limitParam,
+                      showTimerParam,
+                    };
+                    console.log('[PlayPage] Suspending quiz. Saving state:', suspendedState);
+                    sessionStorage.setItem('suspendedQuiz', JSON.stringify(suspendedState));
+                    router.push("/quiz");
+                  }} className="bg-red-500 hover:bg-red-600 text-white">中断して戻る</AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>

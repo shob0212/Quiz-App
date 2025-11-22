@@ -22,9 +22,16 @@ export default function QuizSettingsPage() {
   const [numQuestions, setNumQuestions] = useState("10");
   const [showTimer, setShowTimer] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
+  const [suspendedQuiz, setSuspendedQuiz] = useState<any | null>(null);
   const router = useRouter();
 
   useEffect(() => {
+    const savedQuiz = sessionStorage.getItem('suspendedQuiz');
+    console.log('[QuizPage] Checking for suspended quiz...', { savedQuiz });
+    if (savedQuiz) {
+      setSuspendedQuiz(JSON.parse(savedQuiz));
+    }
+
     const savedSettings = sessionStorage.getItem('quizSettings');
     if (savedSettings) {
       const { selectedCategories, numQuestions, showTimer } = JSON.parse(savedSettings);
@@ -94,6 +101,40 @@ export default function QuizSettingsPage() {
         <Spinner size="lg" />
       </div>
     )
+  }
+
+  if (suspendedQuiz) {
+    const handleResume = () => {
+      // The play page will load from sessionStorage, no params needed
+      router.push('/quiz/play');
+    };
+
+    const handleStartNew = () => {
+      sessionStorage.removeItem('suspendedQuiz');
+      setSuspendedQuiz(null);
+    };
+
+    return (
+      <div className="min-h-screen bg-background pb-20">
+        <div className="container mx-auto px-4 py-6 max-w-2xl flex flex-col items-center justify-center h-[80vh]">
+          <div className="text-center">
+            <h1 className="text-3xl font-bold text-foreground mb-4">中断したクイズがあります</h1>
+            <p className="text-muted-foreground mb-8">前回の続きから再開しますか？</p>
+          </div>
+          <Card className="p-8 border-border w-full max-w-md">
+            <div className="space-y-4">
+              <Button onClick={handleResume} variant="outline" className="bg-green-200 w-full text-lg py-6 font-bold">
+                <Rocket className="w-5 h-5 mr-2" />
+                途中から再開する
+              </Button>
+              <Button onClick={handleStartNew} variant="outline" className="w-full text-lg py-6">
+                新しく始める
+              </Button>
+            </div>
+          </Card>
+        </div>
+      </div>
+    );
   }
 
   return (
