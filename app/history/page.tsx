@@ -114,34 +114,25 @@ export default function HistoryPage() {
     return Array.from(categoriesSet).sort();
   }, [questions]);
 
-  const categoryStatsFromQuizSessions = quizSessions.reduce(
-    (acc, session) => {
-      session.categories.forEach(cat => {
-        if (!acc[cat]) {
-          acc[cat] = { totalSessions: 0, totalCorrectRate: 0 };
-        }
-        acc[cat].totalSessions++;
-        acc[cat].totalCorrectRate += session.correct_rate;
-      });
-      return acc;
-    },
-    {} as Record<string, { totalSessions: number; totalCorrectRate: number }>,
-  );
+  const categoryChartData = useMemo(() => {
+    return allCategories.map(cat => {
+      const questionIdsInCategory = questions
+        .filter(q => q.category === cat)
+        .map(q => q.id);
+      
+      const historyForCategory = history.filter(h => questionIdsInCategory.includes(h.question_id));
+      
+      if (historyForCategory.length === 0) {
+        return { name: cat, '正答率': 0 };
+      }
+      
+      const correctAttempts = historyForCategory.filter(h => h.result).length;
+      const totalAttempts = historyForCategory.length;
+      const correctRate = Math.round((correctAttempts / totalAttempts) * 100);
 
-  const categoryChartData = allCategories.map(cat => {
-    const stats = categoryStatsFromQuizSessions[cat];
-    if (stats) {
-      return {
-        name: cat,
-        正答率: Math.round(stats.totalCorrectRate / stats.totalSessions),
-      };
-    } else {
-      return {
-        name: cat,
-        正答率: 0, // Default for categories with no quiz sessions
-      };
-    }
-  }).sort((a, b) => b.正答率 - a.正答率);
+      return { name: cat, '正答率': correctRate };
+    }).sort((a, b) => b['正答率'] - a['正答率']);
+  }, [allCategories, questions, history]);
 
 
 
@@ -299,8 +290,9 @@ export default function HistoryPage() {
             <BarChart data={categoryChartData} margin={{ top: 5, right: 10, left: -20, bottom: 5 }} onClick={handleCategoryClick} className="cursor-pointer">
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis dataKey="name" tickFormatter={(value) => value.length>8 ? value.slice(0, 10)+"..." : value} tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12, angle: -45, textAnchor: "end" }} height={80}/>
-              <YAxis tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} />
+              <YAxis tickFormatter={(value) => `${value}%`} tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} />
               <Tooltip
+                formatter={(value) => `${value}%`}
                 contentStyle={{
                   backgroundColor: "white",
                   border: "1px solid hsl(var(--border))",

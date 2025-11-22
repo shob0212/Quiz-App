@@ -39,7 +39,6 @@ import { CSS } from '@dnd-kit/utilities'
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/components/ui/use-toast"
-import { Toaster } from "@/components/ui/toaster"
 
 // --- 型定義 ---
 interface ManagedQuestion extends Question {
@@ -59,8 +58,10 @@ type EditFormData = {
 const QuestionRowContent = memo(({ row }: { row: ManagedQuestion }) => {
   return (
     <>
-      <TableCell className="max-w-xs truncate">{row.question}</TableCell>
-      <TableCell></TableCell>
+      <TableCell className="w-2/3 overflow-hidden relative">
+        <div className="line-clamp-3">{row.question}</div>
+      </TableCell>
+      <TableCell className="w-0"></TableCell>
       <TableCell className="w-20 truncate">{row.category}</TableCell>
       <TableCell className="w-20">{row.correctRate}%</TableCell>
       <TableCell className="w-20">{row.last_answered ? new Date(row.last_answered).toLocaleDateString() : "未回答"}</TableCell>
@@ -89,9 +90,9 @@ const DraggableTableRow = ({ row, isEditMode, onEditClick, isHighlighted, rowRef
       {...attributes}
       className={`${isHighlighted ? "bg-blue-500/20 ring-4 ring-blue-500/50 transition-all duration-500 ease-in-out" : ""}`}
     >
-      <TableCell className="w-20">
-        <div className="flex items-center">
-          {isEditMode && (
+      {isEditMode && (
+        <TableCell className="w-20">
+          <div className="flex items-center">
             <>
               <Button variant="ghost" size="icon" {...listeners} className="cursor-grab">
                 <GripVertical className="w-5 h-5 text-muted-foreground" />
@@ -100,9 +101,9 @@ const DraggableTableRow = ({ row, isEditMode, onEditClick, isHighlighted, rowRef
                 <PenSquare className="w-5 h-5 text-muted-foreground" />
               </Button>
             </>
-          )}
-        </div>
-      </TableCell>
+          </div>
+        </TableCell>
+      )}
       <QuestionRowContent row={row} />
     </TableRow>
   )
@@ -372,7 +373,7 @@ const handleResetHistoryClick = () => {
             <div className="min-h-screen bg-background pb-20">
             <div className="container mx-auto px-4 py-6">
             {/* Header */}
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6">
                 <div className="flex items-center gap-4">
                 <Link href="/">
                     <Button variant="ghost" size="icon" className="rounded-xl">
@@ -387,7 +388,7 @@ const handleResetHistoryClick = () => {
                 </div>
                 </div>
 
-                <div className="flex items-center gap-4">
+                <div className="flex flex-col md:flex-row items-end md:items-center gap-2 md:gap-4">
                 <div className="flex items-center space-x-2">
                     <Switch id="edit-mode" checked={isEditMode} onCheckedChange={setIsEditMode} />
                     <Label htmlFor="edit-mode">編集</Label>
@@ -426,31 +427,30 @@ const handleResetHistoryClick = () => {
             </div>
 
             {/* Table */}
-            <Card className="border-border">
-                <Table>
-                <TableHeader>
-                    <TableRow><TableHead className="w-20"></TableHead><TableHead>問題</TableHead><TableHead className="w-20"></TableHead><TableHead className="w-30">カテゴリ</TableHead><TableHead className="w-20">正答率</TableHead><TableHead className="w-30">最終回答日</TableHead></TableRow>
-                </TableHeader>
-                <TableBody>
+            <div className="overflow-x-auto">
+              <Card className="border-border">
+                                                <Table><TableHeader><TableRow>
+                                      {isEditMode && <TableHead className="w-20"></TableHead>}<TableHead className="w-50">問題</TableHead><TableHead></TableHead><TableHead className="w-30">カテゴリ</TableHead><TableHead className="w-20">正答率</TableHead><TableHead className="w-30">最終回答日</TableHead></TableRow></TableHeader><TableBody>
                     <SortableContext
-                    items={filteredQuestions.map((q) => q.id)}
-                    strategy={verticalListSortingStrategy}
-                    disabled={!isEditMode}
+                      items={filteredQuestions.map((q) => q.id)}
+                      strategy={verticalListSortingStrategy}
+                      disabled={!isEditMode}
                     >
-                    {filteredQuestions.map((q) => (
+                      {filteredQuestions.map((q) => (
                         <DraggableTableRow
-                        key={q.id}
-                        row={q}
-                        isEditMode={isEditMode}
-                        onEditClick={handleEditClick}
-                        isHighlighted={highlightedQuestionId === q.id}
-                        rowRef={(el) => (rowRefs.current[q.id] = el)}
+                          key={q.id}
+                          row={q}
+                          isEditMode={isEditMode}
+                          onEditClick={handleEditClick}
+                          isHighlighted={highlightedQuestionId === q.id}
+                          rowRef={(el) => (rowRefs.current[q.id] = el)}
                         />
-                    ))}
+                      ))}
                     </SortableContext>
-                </TableBody>
+                  </TableBody>
                 </Table>
-            </Card>
+              </Card>
+            </div>
             </div>
         </div>
         <DragOverlay>
@@ -458,13 +458,15 @@ const handleResetHistoryClick = () => {
             <Table className="bg-background shadow-lg">
                 <TableBody>
                 <TableRow>
-                    <TableCell className="w-10">
+                    <TableCell className="w-20">
                     <Button variant="ghost" size="icon" className="cursor-grabbing">
                         <GripVertical className="w-5 h-5 text-muted-foreground" />
                     </Button>
                     </TableCell>
-                    <TableCell className="max-w-xs truncate">{activeQuestion.question}</TableCell>
-                    <TableCell></TableCell>
+                    <TableCell className="w-2/3 overflow-hidden relative">
+                      <div className="line-clamp-3">{activeQuestion.question}</div>
+                    </TableCell>
+                    <TableCell className="w-20"></TableCell>
                     <TableCell className="w-20 truncate">{activeQuestion.category}</TableCell>
                     <TableCell className="w-20">{activeQuestion.correctRate}%</TableCell>
                     <TableCell className="w-20">{activeQuestion.last_answered ? new Date(activeQuestion.last_answered).toLocaleDateString() : "未回答"}</TableCell>
@@ -569,7 +571,6 @@ const handleResetHistoryClick = () => {
         </DialogContent>
         </Dialog>
         </div>
-        <Toaster />
     </Suspense>
     </div>
   )
