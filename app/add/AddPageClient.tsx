@@ -58,12 +58,12 @@ type EditFormData = {
 const QuestionRowContent = memo(({ row }: { row: ManagedQuestion }) => {
   return (
     <>
-      <TableCell className="w-2/3 overflow-hidden relative">
-        <div className="line-clamp-3">{row.question}</div>
-      </TableCell>
-      <TableCell className="w-0"></TableCell>
-      <TableCell className="w-20 truncate">{row.category}</TableCell>
       <TableCell className="w-20">{row.correctRate}%</TableCell>
+      <TableCell className="w-2/3 overflow-hidden relative md:w-auto">
+        <div className="line-clamp-3 md:line-clamp-none">{row.question}</div>
+      </TableCell>
+      <TableCell className="w-4"></TableCell>
+      <TableCell className="w-20 truncate">{row.category}</TableCell>
       <TableCell className="w-20">{row.last_answered ? new Date(row.last_answered).toLocaleDateString() : "未回答"}</TableCell>
     </>
   )
@@ -430,7 +430,12 @@ const handleResetHistoryClick = () => {
             <div className="overflow-x-auto">
               <Card className="border-border">
                                                 <Table><TableHeader><TableRow>
-                                      {isEditMode && <TableHead className="w-20"></TableHead>}<TableHead className="w-50">問題</TableHead><TableHead></TableHead><TableHead className="w-30">カテゴリ</TableHead><TableHead className="w-20">正答率</TableHead><TableHead className="w-30">最終回答日</TableHead></TableRow></TableHeader><TableBody>
+                                      {isEditMode && <TableHead className="w-20"></TableHead>}
+                                      <TableHead className="w-20">正答率</TableHead>
+                                      <TableHead>問題</TableHead>
+                                      <TableHead className="w-4"></TableHead>
+                                      <TableHead className="w-30">カテゴリ</TableHead>
+                                      <TableHead className="w-30">最終回答日</TableHead></TableRow></TableHeader><TableBody>
                     <SortableContext
                       items={filteredQuestions.map((q) => q.id)}
                       strategy={verticalListSortingStrategy}
@@ -464,11 +469,11 @@ const handleResetHistoryClick = () => {
                     </Button>
                     </TableCell>
                     <TableCell className="w-2/3 overflow-hidden relative">
+                    <TableCell className="w-20">{activeQuestion.correctRate}%</TableCell>
                       <div className="line-clamp-3">{activeQuestion.question}</div>
                     </TableCell>
                     <TableCell className="w-20"></TableCell>
                     <TableCell className="w-20 truncate">{activeQuestion.category}</TableCell>
-                    <TableCell className="w-20">{activeQuestion.correctRate}%</TableCell>
                     <TableCell className="w-20">{activeQuestion.last_answered ? new Date(activeQuestion.last_answered).toLocaleDateString() : "未回答"}</TableCell>
                 </TableRow>
                 </TableBody>
