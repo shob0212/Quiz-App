@@ -1,4 +1,3 @@
-
 export interface Question {
   id: string;
   type: 'single' | 'multiple';
@@ -39,6 +38,21 @@ export async function getQuestions(): Promise<Question[]> {
   const res = await fetch('/api/questions');
   if (!res.ok) {
     throw new Error('Failed to fetch questions');
+  }
+  return res.json();
+}
+
+export async function updateQuestion(question: Partial<Question>): Promise<Question> {
+  const res = await fetch(`/api/questions`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(question),
+  });
+  if (!res.ok) {
+    const errorBody = await res.json().catch(() => ({ error: 'Failed to parse error response' }));
+    throw new Error(errorBody.error || 'Failed to update question');
   }
   return res.json();
 }

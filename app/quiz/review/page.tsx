@@ -9,7 +9,7 @@ export default function Page({ searchParams }: { searchParams: { [key: string]: 
         読み込み中...
       </div>
     }>
-      <ReviewPageClient searchParams={searchParams} />
+      <ReviewPageClient questionId={searchParams.questionId} />
     </Suspense>
   );
 }

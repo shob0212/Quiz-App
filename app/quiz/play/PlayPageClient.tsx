@@ -2,9 +2,8 @@
 
 import { useState, useEffect, useMemo, useCallback } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import Link from "next/link"
-import { getQuestions, writeHistory, writeQuestions, getHistory, Question, History, QuizSession, getQuizSessions, writeQuizSessions } from "@/lib/data"
-import { ArrowLeft, ChevronLeft, ChevronRight, Check, X, Clock, Eye, XCircle } from "lucide-react"
+import { getQuestions, updateQuestion, writeHistory, Question, History, QuizSession, writeQuizSessions, getHistory } from "@/lib/data"
+import { ArrowLeft, ChevronLeft, ChevronRight, Check, X, Clock, Eye, XCircle, List, Pencil } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
@@ -15,9 +14,8 @@ import { useToast } from "@/components/ui/use-toast"
 import { Toaster } from "@/components/ui/toaster"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { Spinner } from "@/components/ui/spinner"
-
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { List } from "lucide-react"
+import { Input } from "@/components/ui/input"
 
 // Fisher-Yates (aka Knuth) Shuffle Algorithm
 const shuffleArray = (array: any[]) => {
@@ -44,11 +42,38 @@ export default function QuizPlayPage() {
   const [startTime, setStartTime] = useState<Date | null>(null);
   const [editedExplanation, setEditedExplanation] = useState("");
   const [isEditingExplanation, setIsEditingExplanation] = useState(false);
-  const [elapsedTime, setElapsedTime] = useState(0);
-  const [showTimer, setShowTimer] = useState(false);
+  
+  const [isEditingQuestion, setIsEditingQuestion] = useState(false);
+  const [editingQuestionData, setEditingQuestionData] = useState<Question | null>(null);
+
   const { toast } = useToast();
   const [isProgressModalOpen, setIsProgressModalOpen] = useState(false);
   const [history, setHistory] = useState<Record<string, History[]>>({});
+
+  const categoriesParam = searchParams.get('categories');
+  const limitParam = searchParams.get('limit');
+  const showTimerParamFromUrl = searchParams.get('showTimer');
+
+  const initialShowTimer = useMemo(() => {
+    return showTimerParamFromUrl === 'true';
+  }, [showTimerParamFromUrl]);
+
+  const [elapsedTime, setElapsedTime] = useState(0);
+  const [showTimer, setShowTimer] = useState(initialShowTimer);
+
+  const saveSuspendedQuiz = useCallback(() => {
+    const suspendedState = {
+      questions,
+      userAnswers,
+      currentQuestionIndex,
+      elapsedTime,
+      categoriesParam,
+      limitParam,
+      showTimerParam: showTimer,
+    };
+    sessionStorage.setItem('suspendedQuiz', JSON.stringify(suspendedState));
+    console.log('[PlayPage] Suspending quiz. State saved:', suspendedState);
+  }, [questions, userAnswers, currentQuestionIndex, elapsedTime, categoriesParam, limitParam, showTimer]);
 
   const handleJumpToQuestion = (index: number) => {
     setShowAnswer(false);
@@ -69,47 +94,184 @@ export default function QuizPlayPage() {
       setShowAnswer(false);
     }
   }, [currentQuestion]);
-
+  
   const handleSaveExplanation = async () => {
     if (!currentQuestion) return;
 
-    const allQuestions = await getQuestions();
-    const questionToUpdate = allQuestions.find(q => q.id === currentQuestion.id);
-
-    if (questionToUpdate) {
-      questionToUpdate.explanation = editedExplanation;
-      await writeQuestions(allQuestions);
+    try {
+      const updatedQuestion = await updateQuestion({ id: currentQuestion.id, explanation: editedExplanation });
+      setQuestions(prevQuestions => prevQuestions.map(q =>
+        q.id === currentQuestion.id ? { ...q, explanation: updatedQuestion.explanation } : q
+      ));
       toast({
         title: "解説を保存しました",
       });
       setIsEditingExplanation(false);
+    } catch(e) {
+      console.error(e)
+      toast({
+        title: '解説の保存に失敗しました',
+        variant: 'destructive'
+      })
     }
   };
 
-  const categoriesParam = searchParams.get('categories');
-  const limitParam = searchParams.get('limit');
-  const showTimerParam = searchParams.get('showTimer');
+  const handleEditQuestionClick = useCallback(() => {
+    if (!currentQuestion) return;
+    setEditingQuestionData(JSON.parse(JSON.stringify(currentQuestion)));
+    setIsEditingQuestion(true);
+  }, [currentQuestion]);
+
+  const handleEditingFormChange = useCallback((field: keyof Question, value: any) => {
+    setEditingQuestionData(prev => prev ? { ...prev, [field]: value } : null);
+  }, []);
+
+  const handleOptionChange = useCallback((index: number, value: string) => {
+    setEditingQuestionData(prev => {
+      if (!prev) return null;
+      const newOptions = [...prev.options];
+      newOptions[index] = value;
+      return { ...prev, options: newOptions };
+    });
+  }, []);
+
+  const handleCorrectAnswerChange = useCallback((index: number) => {
+    setEditingQuestionData(prev => {
+      if (!prev) return null;
+      let newCorrectAnswers = [...prev.correct_answers];
+      if (prev.type === 'single') {
+        newCorrectAnswers = [index];
+      } else {
+        if (newCorrectAnswers.includes(index)) {
+          newCorrectAnswers = newCorrectAnswers.filter(i => i !== index);
+        } else {
+          newCorrectAnswers.push(index);
+        }
+      }
+      return { ...prev, correct_answers: newCorrectAnswers };
+    });
+  }, []);
+  
+  const handleAddOption = useCallback(() => {
+    setEditingQuestionData(prev => {
+      if (!prev) return null;
+      return { ...prev, options: [...prev.options, ""] };
+    });
+  }, []);
+
+  const handleDeleteOption = useCallback((indexToDelete: number) => {
+    setEditingQuestionData(prev => {
+        if (!prev) return null;
+
+        const newOptions = prev.options.filter((_, i) => i !== indexToDelete);
+
+        const newCorrectAnswers = prev.correct_answers
+            .map(oldIndex => {
+                if (oldIndex === indexToDelete) return -1;
+                if (oldIndex > indexToDelete) return oldIndex - 1;
+                return oldIndex;
+            })
+            .filter(newIndex => newIndex !== -1);
+        
+        return {
+            ...prev,
+            options: newOptions,
+            correct_answers: newCorrectAnswers,
+        };
+    });
+  }, []);
+
+  const handleUpdateQuestion = useCallback(async () => {
+    if (!editingQuestionData) return;
+
+    const reIndexMap: number[] = [];
+    let newIndexCounter = 0;
+    editingQuestionData.options.forEach(opt => {
+        if (opt.trim() !== "") {
+            reIndexMap.push(newIndexCounter++);
+        } else {
+            reIndexMap.push(-1);
+        }
+    });
+
+    const newOptions = editingQuestionData.options.filter(opt => opt.trim() !== "");
+    
+    if (newOptions.length === 0) {
+        toast({
+            title: "保存できません",
+            description: "少なくとも1つの選択肢が必要です。",
+            variant: "destructive",
+        });
+        return;
+    }
+
+    const newCorrectAnswers = editingQuestionData.correct_answers
+        .map(oldIndex => reIndexMap[oldIndex])
+        .filter(newIndex => newIndex !== -1)
+        .sort((a,b) => a - b);
+
+    const cleanedQuestionData = {
+        ...editingQuestionData,
+        options: newOptions,
+        correct_answers: newCorrectAnswers,
+    };
+
+    try {
+      const { shuffledOptions, ...questionToUpdate } = cleanedQuestionData;
+      const updatedQuestion = await updateQuestion(questionToUpdate);
+
+      setQuestions(prevQuestions => {
+          const newQuestions = [...prevQuestions];
+          const localIndex = newQuestions.findIndex(q => q.id === updatedQuestion.id);
+          if (localIndex !== -1) {
+              const originalShuffledData = newQuestions[localIndex].shuffledOptions;
+              const newOptionMap = new Map(updatedQuestion.options.map((opt, i) => [i, opt]));
+              
+              const updatedShuffledOptions = originalShuffledData
+                .map(shuffledOpt => ({
+                    ...shuffledOpt,
+                    option: newOptionMap.get(shuffledOpt.originalIndex) ?? shuffledOpt.option,
+                }))
+                .filter(shuffledOpt => newOptions.includes(shuffledOpt.option));
+              
+              newQuestions[localIndex] = {
+                  ...newQuestions[localIndex],
+                  ...updatedQuestion,
+                  shuffledOptions: updatedShuffledOptions,
+              };
+          }
+          return newQuestions;
+      });
+
+      setIsEditingQuestion(false);
+      setEditingQuestionData(null);
+      toast({
+          title: "問題が更新されました",
+          description: "変更が正常に保存されました。",
+      });
+    } catch (error) {
+        console.error("Failed to update question:", error);
+        toast({
+            title: "更新に失敗しました",
+            description: error instanceof Error ? error.message : "コンソールでエラーを確認してください。",
+            variant: "destructive",
+        });
+    }
+  }, [editingQuestionData, toast]);
 
   useEffect(() => {
     const loadQuiz = async () => {
       setIsLoading(true);
-
       const savedStateJSON = sessionStorage.getItem('suspendedQuiz');
-      console.log('[PlayPage] Checking for suspended quiz...', { savedStateJSON });
-
       if (savedStateJSON) {
         const savedState = JSON.parse(savedStateJSON);
         setQuestions(savedState.questions || []);
         setUserAnswers(savedState.userAnswers || {});
         setCurrentQuestionIndex(savedState.currentQuestionIndex || 0);
-        setStartTime(savedState.startTime ? new Date(savedState.startTime) : null);
         setElapsedTime(savedState.elapsedTime || 0);
-        // Set the timer visibility from the saved state
-        setShowTimer(savedState.showTimerParam === 'true');
-        
-        // No need to fetch history separately for resumed quiz, as it's part of the page state
+        setShowTimer(savedState.showTimerParam);
+        setStartTime(new Date());
       } else {
-        // --- Logic for starting a new quiz ---
         const allHistory = await getHistory();
         const historyByQuestionId: Record<string, History[]> = {};
         for (const h of allHistory) {
@@ -125,7 +287,7 @@ export default function QuizPlayPage() {
 
         const categories = categoriesParam?.split(",") || [];
         const limit = Number(limitParam);
-        setShowTimer(showTimerParam === 'true');
+        setShowTimer(initialShowTimer);
 
         const allQuestions = await getQuestions();
         const filtered = allQuestions.filter(q => categories.includes(q.category));
@@ -142,65 +304,45 @@ export default function QuizPlayPage() {
             shuffledOptions: shuffleArray(optionsWithOriginalIndex),
           };
         });
-
         setQuestions(questionsWithShuffledOptions);
         setStartTime(new Date());
       }
       setIsLoading(false);
     };
-
     loadQuiz();
-  }, [categoriesParam, limitParam, showTimerParam]);
+  }, [categoriesParam, limitParam, searchParams]);
 
   useEffect(() => {
     if (!showTimer || !startTime) return;
+    const initialElapsed = elapsedTime;
     const timer = setInterval(() => {
-      setElapsedTime(Math.floor((new Date().getTime() - startTime.getTime()) / 1000));
+      const currentElapsed = Math.floor((new Date().getTime() - startTime.getTime()) / 1000);
+      setElapsedTime(initialElapsed + currentElapsed);
     }, 1000);
     return () => clearInterval(timer);
   }, [startTime, showTimer]);
 
   useEffect(() => {
-    const saveState = () => {
-      const suspendedState = {
-        questions,
-        userAnswers,
-        currentQuestionIndex,
-        startTime,
-        elapsedTime,
-        categoriesParam,
-        limitParam,
-        showTimerParam,
-      };
-      sessionStorage.setItem('suspendedQuiz', JSON.stringify(suspendedState));
-    };
-
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      saveState();
-      // Most browsers require returnValue to be set to show a confirmation prompt.
-      // However, its primary purpose here is to trigger the save.
+      saveSuspendedQuiz();
       e.returnValue = '';
     };
-
     window.addEventListener('beforeunload', handleBeforeUnload);
-
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
-  }, [questions, userAnswers, currentQuestionIndex, startTime, elapsedTime, categoriesParam, limitParam, showTimerParam]);
+  }, [saveSuspendedQuiz]);
 
   const handleAnswerToggle = (optionIndex: number) => {
     if (!currentQuestion) return;
     const questionId = currentQuestion.id;
     const currentAnswers = userAnswers[questionId] || [];
-
     if (currentQuestion.type === 'single') {
       setUserAnswers({ ...userAnswers, [questionId]: [optionIndex] });
     } else {
       const newAnswers = currentAnswers.includes(optionIndex)
         ? currentAnswers.filter(i => i !== optionIndex)
         : [...currentAnswers, optionIndex];
-
       const newUserAnswers = { ...userAnswers };
       if (newAnswers.length === 0) {
         delete newUserAnswers[questionId];
@@ -212,11 +354,8 @@ export default function QuizPlayPage() {
   };
 
   const handleFinishQuiz = useCallback(async () => {
-    setIsFinishingQuiz(true); // Set loading state
-
+    setIsFinishingQuiz(true);
     try {
-      const allQuestions = await getQuestions();
-
       const results = questions.map(q => {
         const answered = userAnswers[q.id];
         const sortedUserAnswers = answered ? [...answered].sort() : [];
@@ -225,21 +364,12 @@ export default function QuizPlayPage() {
           sortedUserAnswers.length === sortedCorrectAnswers.length &&
           sortedUserAnswers.every((val, idx) => val === sortedCorrectAnswers[idx])
         ) : false;
-
-        return { 
-          questionId: q.id, 
-          isCorrect,
-          questionText: q.question
-        };
+        return { questionId: q.id, isCorrect, questionText: q.question };
       });
 
-      // Calculate QuizSession data before creating history entries
       const total_questions = questions.length;
       const correct_count = results.filter(r => r.isCorrect).length;
-      const incorrect_count = total_questions - correct_count;
-      const correct_rate = total_questions > 0 ? (correct_count / total_questions) * 100 : 0;
       const finished_at = new Date().toISOString();
-      const quizCategories = categoriesParam?.split(",") || [];
 
       const newQuizSession: QuizSession = {
         id: crypto.randomUUID(),
@@ -247,28 +377,25 @@ export default function QuizPlayPage() {
         finished_at: finished_at,
         total_questions: total_questions,
         correct_count: correct_count,
-        incorrect_count: incorrect_count,
-        correct_rate: parseFloat(correct_rate.toFixed(2)), // Format to 2 decimal places
+        incorrect_count: total_questions - correct_count,
+        correct_rate: total_questions > 0 ? parseFloat(((correct_count / total_questions) * 100).toFixed(2)) : 0,
         elapsed_time_seconds: elapsedTime,
-        categories: quizCategories,
+        categories: categoriesParam?.split(",") || [],
       };
 
-      const newHistoryEntries: History[] = [];
-      results.forEach(result => {
-        newHistoryEntries.push({
-          id: crypto.randomUUID(),
-          question_id: result.questionId,
-          result: result.isCorrect,
-          answered_at: new Date().toISOString(),
-          quiz_session_id: newQuizSession.id,
-          user_answers: userAnswers[result.questionId] || [], // Empty array for unanswered
-        });
-      });
+      const newHistoryEntries: History[] = results.map(result => ({
+        id: crypto.randomUUID(),
+        question_id: result.questionId,
+        result: result.isCorrect,
+        answered_at: new Date().toISOString(),
+        quiz_session_id: newQuizSession.id,
+        user_answers: userAnswers[result.questionId] || [],
+      }));
 
+      const allQuestions = await getQuestions();
       const updatedQuestions = allQuestions.map(q => {
         const result = results.find(r => r.questionId === q.id);
-        if (!result) return q; // Return original if not in this quiz
-
+        if (!result) return q;
         const updatedQ = { ...q };
         updatedQ.last_answered = new Date().toISOString();
         if (result.isCorrect) {
@@ -281,31 +408,25 @@ export default function QuizPlayPage() {
         return updatedQ;
       });
 
-      // Write the session first to avoid foreign key constraints
       await writeQuizSessions(newQuizSession);
       if (newHistoryEntries.length > 0) {
         await writeHistory(newHistoryEntries);
       }
       
-      // Update questions data
-      await writeQuestions(updatedQuestions);
+      await fetch('/api/questions', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(updatedQuestions)
+      });
 
-      const resultsString = JSON.stringify(results);
-      const answersString = JSON.stringify(userAnswers);
-      console.log('Results string length:', resultsString.length);
-      console.log('Answers string length:', answersString.length);
-
-      sessionStorage.setItem('quizResults', resultsString);
-      sessionStorage.setItem('quizUserAnswers', answersString);
+      sessionStorage.setItem('quizResults', JSON.stringify(results));
+      sessionStorage.setItem('quizUserAnswers', JSON.stringify(userAnswers));
+      sessionStorage.removeItem('suspendedQuiz');
       router.push(`/quiz/results`);
     } catch (error) {
       console.error("Failed to finish quiz:", error);
-      toast({
-        title: "クイズの終了に失敗しました",
-        description: "エラーが発生しました。コンソールを確認してください。",
-        variant: "destructive",
-      });
-      setIsFinishingQuiz(false); // Reset loading state on error
+      toast({ title: "クイズの終了に失敗しました", variant: "destructive" });
+      setIsFinishingQuiz(false);
     }
   }, [questions, userAnswers, startTime, elapsedTime, categoriesParam, router, toast]);
 
@@ -327,37 +448,21 @@ export default function QuizPlayPage() {
   return (
     <div className="min-h-screen bg-background pb-20">
       <div className="container mx-auto px-4 py-6 max-w-2xl">
-        {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button variant="ghost" size="icon" className="rounded-xl">
-                  <ArrowLeft className="w-5 h-5" />
-                </Button>
+                <Button variant="ghost" size="icon" className="rounded-xl"><ArrowLeft className="w-5 h-5" /></Button>
               </AlertDialogTrigger>
-              <AlertDialogContent style={{ backgroundColor: 'white', opacity: 1 }}>
+              <AlertDialogContent style={{ backgroundColor: 'white' }}>
                 <AlertDialogHeader>
                   <AlertDialogTitle>クイズを中断しますか？</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    現在の進捗は一時的に保存され、あとで再開できます。本当に出題設定画面に戻りますか？
-                  </AlertDialogDescription>
+                  <AlertDialogDescription>現在の進捗は保存され、後で再開できます。</AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>キャンセル</AlertDialogCancel>
                   <AlertDialogAction onClick={() => {
-                    const suspendedState = {
-                      questions,
-                      userAnswers,
-                      currentQuestionIndex,
-                      startTime,
-                      elapsedTime,
-                      categoriesParam,
-                      limitParam,
-                      showTimerParam,
-                    };
-                    console.log('[PlayPage] Suspending quiz. Saving state:', suspendedState);
-                    sessionStorage.setItem('suspendedQuiz', JSON.stringify(suspendedState));
+                    saveSuspendedQuiz();
                     router.push("/quiz");
                   }} className="bg-red-500 hover:bg-red-600 text-white">中断して戻る</AlertDialogAction>
                 </AlertDialogFooter>
@@ -371,22 +476,13 @@ export default function QuizPlayPage() {
           <div className="flex items-center gap-4">
             <Dialog open={isProgressModalOpen} onOpenChange={setIsProgressModalOpen}>
               <DialogTrigger asChild>
-                <Button variant="outline" size="icon" className="rounded-xl">
-                  <List className="w-5 h-5" />
-                </Button>
+                <Button variant="outline" size="icon" className="rounded-xl"><List className="w-5 h-5" /></Button>
               </DialogTrigger>
               <DialogContent className="max-w-md w-full bg-white">
-                <DialogHeader>
-                  <DialogTitle>解答状況</DialogTitle>
-                </DialogHeader>
+                <DialogHeader><DialogTitle>解答状況</DialogTitle></DialogHeader>
                 <div className="grid grid-cols-5 gap-3 p-4">
                   {questions.map((q, index) => (
-                    <Button
-                      key={q.id}
-                      variant="outline"
-                      className={`justify-center ${index === currentQuestionIndex ? 'border-3 border-blue-500' : ''} ${userAnswers[q.id] ? 'bg-gray-500 text-gray-900' : ''}`}
-                      onClick={() => handleJumpToQuestion(index)}
-                    >
+                    <Button key={q.id} variant="outline" className={`justify-center ${index === currentQuestionIndex ? 'border-2 border-blue-500' : ''} ${userAnswers[q.id] ? 'bg-blue-200' : ''}`} onClick={() => handleJumpToQuestion(index)}>
                       {index + 1}
                     </Button>
                   ))}
@@ -402,182 +498,86 @@ export default function QuizPlayPage() {
           </div>
         </div>
 
-        {/* Question Card */}
         <Card className="p-6 mb-6 border-border">
-          
           <div className="mb-6 text-sm text-muted-foreground border-t border-b py-3">
             <div className="flex items-center justify-between">
               <span>最終回答: {currentQuestionHistory.length > 0 ? new Date(currentQuestionHistory[0].answered_at).toLocaleString('ja-JP') : "-"}</span>
               <div className="flex items-center gap-2">
                 <span>直近5回:</span>
-                <div className="flex gap-1 font-mono tracking-widest">
-                  {(currentQuestionHistory.length > 0
-                    ? currentQuestionHistory.slice(0, 5).map(h => h.result ? "〇" : "×")
-                    : []
-                  ).join("").padEnd(5, "-").split("").map((char, index) => (
-                    <span
-                      key={index}
-                      className={
-                        char === "〇" ? "text-red-500" :
-                        char === "×" ? "text-blue-500" :
-                        ""
-                      }
-                    >
-                      {char}
-                    </span>
+                <div className="flex gap-1 font-mono">
+                  {currentQuestionHistory.slice(0, 5).map(h => h.result ? "O" : "X").join("").padEnd(5, "-").split("").map((char, index) => (
+                    <span key={index} className={char === "O" ? "text-green-500" : char === "X" ? "text-red-500" : ""}>{char}</span>
                   ))}
                 </div>
               </div>
             </div>
           </div>
           
-          <h2 className="text-lg font-semibold text-foreground mb-6 leading-relaxed whitespace-pre-wrap">{currentQuestion.question}</h2>
+          <div className="flex justify-between items-start mb-6">
+            <h2 className="text-lg font-semibold text-foreground leading-relaxed whitespace-pre-wrap flex-1 mr-4">{currentQuestion.question}</h2>
+            <Button variant="outline" size="sm" onClick={handleEditQuestionClick}><Pencil className="w-4 h-4 mr-2" />編集</Button>
+          </div>
+          
           <div className="space-y-3">
             {currentQuestion.type === 'single' ? (
               <>
-                <RadioGroup
-                  value={userAnswers[currentQuestion.id]?.[0]?.toString() ?? ""}
-                  onValueChange={(value) => handleAnswerToggle(parseInt(value))}
-                >
-                  {currentQuestion.shuffledOptions.map(({ option, originalIndex }) => {
-                    const isCorrect = currentQuestion.correct_answers.includes(originalIndex);
-                    const isSelected = (userAnswers[currentQuestion.id] || []).includes(originalIndex);
-                    return (
-                      <Label
-                        key={originalIndex}
-                        htmlFor={`option-${originalIndex}`}
-                        className={`w-full p-4 rounded-xl border text-left transition-all flex items-center gap-3 cursor-pointer leading-relaxed ${
-                          showAnswer && isCorrect ? "border-green-500 bg-green-500/20" 
-                          : showAnswer && isSelected && !isCorrect ? "border-red-500 bg-red-500/20" 
-                          : isSelected ? "border-primary bg-primary/20 border-2" 
-                          : "border-border bg-secondary hover:bg-secondary/80"
-                        }`}
-                      >
-                        <RadioGroupItem value={originalIndex.toString()} id={`option-${originalIndex}`} />
-                        {option}
-                      </Label>
-                    )
-                  })}
+                <RadioGroup value={userAnswers[currentQuestion.id]?.[0]?.toString() ?? ""} onValueChange={(value) => handleAnswerToggle(parseInt(value))}>
+                  {currentQuestion.shuffledOptions.map(({ option, originalIndex }) => (
+                    <Label key={originalIndex} htmlFor={`option-${originalIndex}`} className={`w-full p-4 rounded-xl border text-left transition-all flex items-center gap-3 cursor-pointer ${showAnswer && currentQuestion.correct_answers.includes(originalIndex) ? "border-green-500 bg-green-500/20" : showAnswer && (userAnswers[currentQuestion.id] || []).includes(originalIndex) ? "border-red-500 bg-red-500/20" : (userAnswers[currentQuestion.id] || []).includes(originalIndex) ? "border-primary bg-primary/20 border-2" : "border-border bg-secondary hover:bg-secondary/80"}`}>
+                      <RadioGroupItem value={originalIndex.toString()} id={`option-${originalIndex}`} />
+                      {option}
+                    </Label>
+                  ))}
                 </RadioGroup>
-                {currentQuestion.type === 'single' && userAnswers[currentQuestion.id] && (
-                  <div className="mt-4 flex justify-start">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        const newUserAnswers = { ...userAnswers };
-                        delete newUserAnswers[currentQuestion.id];
-                        setUserAnswers(newUserAnswers);
-                      }}
-                    >
-                      選択を解除
-                    </Button>
-                  </div>
+                {(userAnswers[currentQuestion.id] || []).length > 0 && (
+                  <div className="mt-4"><Button variant="outline" size="sm" onClick={() => setUserAnswers(prev => ({...prev, [currentQuestion.id]: []}))}>選択を解除</Button></div>
                 )}
               </>
             ) : (
-              currentQuestion.shuffledOptions.map(({ option, originalIndex }) => {
-                const isCorrect = currentQuestion.correct_answers.includes(originalIndex);
-                const isSelected = (userAnswers[currentQuestion.id] || []).includes(originalIndex);
-                return (
-                  <Label
-                    key={originalIndex}
-                    htmlFor={`option-${originalIndex}`}
-                    className={`w-full p-4 rounded-xl border-2 text-left transition-all flex items-center gap-3 cursor-pointer ${
-                      showAnswer && isCorrect ? "border-green-500 bg-green-500/20" 
-                      : showAnswer && isSelected && !isCorrect ? "border-red-500 bg-red-500/20" 
-                      : isSelected ? "border-primary bg-primary/20" 
-                      : "border-border bg-secondary hover:bg-secondary/80"
-                    }`}
-                  >
-                    <Checkbox id={`option-${originalIndex}`} checked={isSelected} onCheckedChange={() => handleAnswerToggle(originalIndex)} />
+              currentQuestion.shuffledOptions.map(({ option, originalIndex }) => (
+                  <Label key={originalIndex} htmlFor={`option-${originalIndex}`} className={`w-full p-4 rounded-xl border-2 text-left transition-all flex items-center gap-3 cursor-pointer ${showAnswer && currentQuestion.correct_answers.includes(originalIndex) ? "border-green-500 bg-green-500/20" : showAnswer && (userAnswers[currentQuestion.id] || []).includes(originalIndex) ? "border-red-500 bg-red-500/20" : (userAnswers[currentQuestion.id] || []).includes(originalIndex) ? "border-primary bg-primary/20" : "border-border bg-secondary hover:bg-secondary/80"}`}>
+                    <Checkbox id={`option-${originalIndex}`} checked={(userAnswers[currentQuestion.id] || []).includes(originalIndex)} onCheckedChange={() => handleAnswerToggle(originalIndex)} />
                     {option}
                   </Label>
-                )
-              })
+              ))
             )}
           </div>
         </Card>
 
-                  {showAnswer && (
+        {showAnswer && (
+          <Card className="p-6 mb-6 border-border">
+            <h3 className="text-lg font-bold mb-2">解説</h3>
+            {isEditingExplanation ? (
+              <>
+                <Textarea value={editedExplanation} onChange={(e) => setEditedExplanation(e.target.value)} className="mb-2" />
+                <Button onClick={handleSaveExplanation}>解説を保存</Button>
+              </>
+            ) : (
+              <div className="flex flex-col gap-2">
+                <p className="text-muted-foreground whitespace-pre-wrap">{editedExplanation || "解説がありません。"}</p>
+                <Button onClick={() => setIsEditingExplanation(true)} variant="outline" className="w-fit">編集</Button>
+              </div>
+            )}
+          </Card>
+        )}
 
-                    <Card className="p-6 mb-6 border-border">
-
-                      <h3 className="text-lg font-bold mb-2">解説</h3>
-
-                      {isEditingExplanation ? (
-
-                        <>
-
-                          <Textarea 
-
-                            value={editedExplanation}
-
-                            onChange={(e) => setEditedExplanation(e.target.value)}
-
-                            className="mb-2"
-
-                          />
-
-                          <Button onClick={handleSaveExplanation}>解説を保存</Button>
-
-                        </>
-
-                      ) : (
-
-                        <div className="flex flex-col gap-2">
-
-                          <p className="text-muted-foreground whitespace-pre-wrap">{editedExplanation || "解説がありません。"}</p>
-
-                          <Button onClick={() => setIsEditingExplanation(true)} variant="outline" className="w-fit">編集</Button>
-
-                        </div>
-
-                      )}
-
-                    </Card>
-
-                  )}
-
-        {/* Navigation */}
         <div className="flex gap-3 mb-10">
-          <Button onClick={() => {
-            setShowAnswer(false);
-            setCurrentQuestionIndex(prev => Math.max(0, prev - 1));
-          }} disabled={currentQuestionIndex === 0} className="flex-1">
-            <ChevronLeft className="w-4 h-4 mr-2" />
-            前の問題
-          </Button>
-          <Button onClick={() => {
-            setShowAnswer(false);
-            setCurrentQuestionIndex(prev => Math.min(questions.length - 1, prev + 1));
-          }} disabled={currentQuestionIndex === questions.length - 1} className="flex-1">
-            次の問題
-            <ChevronRight className="w-4 h-4 ml-2" />
-          </Button>
+          <Button onClick={() => {setShowAnswer(false); setCurrentQuestionIndex(prev => Math.max(0, prev - 1));}} disabled={currentQuestionIndex === 0} className="flex-1"><ChevronLeft className="w-4 h-4 mr-2" />前の問題</Button>
+          <Button onClick={() => {setShowAnswer(false); setCurrentQuestionIndex(prev => Math.min(questions.length - 1, prev + 1));}} disabled={currentQuestionIndex === questions.length - 1} className="flex-1">次の問題<ChevronRight className="w-4 h-4 ml-2" /></Button>
         </div>
 
-        {/* Actions */}
         <div className="flex justify-between items-center mb-4">
-          <Button onClick={() => setShowAnswer(!showAnswer)} variant="outline">
-              <Eye className="w-4 h-4 mr-2" />
-              {showAnswer ? "解答を隠す" : "解答を表示"}
-          </Button>
-
+          <Button onClick={() => setShowAnswer(!showAnswer)} variant="outline"><Eye className="w-4 h-4 mr-2" />{showAnswer ? "解答を隠す" : "解答を表示"}</Button>
           <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="outline"><XCircle className="w-4 h-4 mr-2" />終了する</Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent style={{ backgroundColor: 'white', opacity: 1 }}>
+            <AlertDialogTrigger asChild><Button variant="outline"><XCircle className="w-4 h-4 mr-2" />終了する</Button></AlertDialogTrigger>
+            <AlertDialogContent style={{ backgroundColor: 'white' }}>
               <AlertDialogHeader>
                 <AlertDialogTitle>クイズを終了しますか？</AlertDialogTitle>
-                <AlertDialogDescription>
-                  採点を行い、結果画面に移動します。
-                </AlertDialogDescription>
+                <AlertDialogDescription>採点を行い、結果画面に移動します。</AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>キャンセル</AlertDialogCancel>
-                <AlertDialogAction onClick={handleFinishQuiz} className="outline outline-green-600 bg-green-300 hover:bg-green-600 hover:text-white">終了する</AlertDialogAction>
+                <AlertDialogAction onClick={handleFinishQuiz} className="bg-green-500 hover:bg-green-600 text-white">終了する</AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
@@ -585,6 +585,60 @@ export default function QuizPlayPage() {
 
         <Toaster />
       </div>
+
+      <Dialog open={isEditingQuestion} onOpenChange={setIsEditingQuestion}>
+        <DialogContent className="max-w-3xl w-full bg-white">
+          <DialogHeader><DialogTitle>問題を編集</DialogTitle></DialogHeader>
+          {editingQuestionData && (
+            <div className="space-y-4 p-1 max-h-[80vh] overflow-y-auto">
+              <div>
+                <Label htmlFor="edit-category">カテゴリ</Label>
+                <Input id="edit-category" value={editingQuestionData.category} onChange={(e) => handleEditingFormChange('category', e.target.value)} />
+              </div>
+              <div>
+                <Label htmlFor="edit-question">問題文</Label>
+                <Textarea id="edit-question" value={editingQuestionData.question ?? ''} onChange={(e) => handleEditingFormChange('question', e.target.value)} rows={4} />
+              </div>
+              <div>
+                <Label>選択肢と正解</Label>
+                <div className="space-y-2">
+                  {editingQuestionData.type === 'single' ? (
+                      <RadioGroup value={editingQuestionData.correct_answers[0]?.toString()} onValueChange={(value) => handleCorrectAnswerChange(parseInt(value))}>
+                          {editingQuestionData.options.map((option, index) => (
+                            <div key={index} className="flex items-center gap-2">
+                                <RadioGroupItem value={index.toString()} id={`edit-opt-${index}`} />
+                                <Input value={option} onChange={(e) => handleOptionChange(index, e.target.value)} />
+                                <Button variant="ghost" size="icon" onClick={() => handleDeleteOption(index)}><X className="w-4 h-4" /></Button>
+                            </div>
+                          ))}
+                      </RadioGroup>
+                  ) : (
+                      editingQuestionData.options.map((option, index) => (
+                          <div key={index} className="flex items-center gap-2">
+                              <Checkbox checked={editingQuestionData.correct_answers.includes(index)} onCheckedChange={() => handleCorrectAnswerChange(index)} />
+                              <Input value={option} onChange={(e) => handleOptionChange(index, e.target.value)} />
+                              <Button variant="ghost" size="icon" onClick={() => handleDeleteOption(index)}><X className="w-4 h-4" /></Button>
+                          </div>
+                      ))
+                  )}
+                </div>
+                <Button variant="outline" size="sm" onClick={handleAddOption} className="mt-2">
+                  選択肢を追加
+                </Button>
+              </div>
+              <div>
+                <Label htmlFor="edit-explanation">解説</Label>
+                <Textarea id="edit-explanation" value={editingQuestionData.explanation ?? ''} onChange={(e) => handleEditingFormChange('explanation', e.target.value)} rows={4} />
+              </div>
+              <div className="flex justify-end gap-2 pt-4">
+                <Button variant="outline" onClick={() => setIsEditingQuestion(false)}>キャンセル</Button>
+                <Button onClick={handleUpdateQuestion}>変更を保存</Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
     </div>
   )
 }

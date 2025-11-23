@@ -8,9 +8,8 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Spinner } from "@/components/ui/spinner"
 
-export default function ReviewPage({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
+export default function ReviewPage({ questionId }: { questionId: string | string[] | undefined }) {
   const router = useRouter();
-  const questionId = searchParams.questionId as string;
 
   const [question, setQuestion] = useState<Question | null>(null);
   const [userAnswers, setUserAnswers] = useState<number[]>([]);
