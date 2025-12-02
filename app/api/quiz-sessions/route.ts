@@ -48,17 +48,35 @@ export async function POST(request: Request) {
   }
 }
 
-// 全てのクイズセッションを削除するためのDELETE
-export async function DELETE() {
+// クイズセッションを削除するためのDELETE
+export async function DELETE(request: Request) {
     try {
-        const { error } = await supabase
-            .from('quiz_sessions')
-            .delete()
-            .neq('id', '00000000-0000-0000-0000-000000000000'); // ダミーの条件で全件削除
+        // ボディを試みとしてJSONパースする。ボディがない場合はnullになる
+        const body = await request.json().catch(() => null);
 
-        if (error) {
-            console.error('Supabase error:', error);
-            return NextResponse.json({ error: error.message }, { status: 500 });
+        // パターン1: bodyに 'ids' があり、それが配列で空でない場合、選択削除
+        if (body && body.ids && Array.isArray(body.ids) && body.ids.length > 0) {
+            const { error } = await supabase
+                .from('quiz_sessions')
+                .delete()
+                .in('id', body.ids);
+
+            if (error) {
+                console.error('Supabase error (selective delete):', error);
+                return NextResponse.json({ error: error.message }, { status: 500 });
+            }
+        } 
+        // パターン2: bodyがない、またはidsがない場合、全件削除（既存のロジック）
+        else {
+            const { error } = await supabase
+                .from('quiz_sessions')
+                .delete()
+                .neq('id', '00000000-0000-0000-0000-000000000000'); // ダミーの条件で全件削除
+
+            if (error) {
+                console.error('Supabase error (delete all):', error);
+                return NextResponse.json({ error: error.message }, { status: 500 });
+            }
         }
         
         // 関連ページのキャッシュを無効化
