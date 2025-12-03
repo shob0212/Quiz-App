@@ -169,13 +169,22 @@ export default function HistoryPage() {
 
   const categoryChartData = useMemo(() => {
     return allCategories.map(cat => {
-      const questionIdsInCategory = questions.filter(q => q.category === cat).map(q => q.id);
+      const questionsInCategory = questions.filter(q => q.category === cat);
+      const questionIdsInCategory = questionsInCategory.map(q => q.id);
+      const totalQuestionsInCategory = questionsInCategory.length;
+
       const historyForCategory = history.filter(h => questionIdsInCategory.includes(h.question_id));
-      if (historyForCategory.length === 0) return { name: cat, '正答率': 0 };
+      
+      // 正答率の計算
       const correctAttempts = historyForCategory.filter(h => h.result).length;
       const totalAttempts = historyForCategory.length;
-      const correctRate = Math.round((correctAttempts / totalAttempts) * 100);
-      return { name: cat, '正答率': correctRate };
+      const correctRate = totalAttempts > 0 ? Math.round((correctAttempts / totalAttempts) * 100) : 0;
+
+      // 学習率の計算
+      const answeredQuestions = new Set(historyForCategory.map(h => h.question_id));
+      const learningRate = totalQuestionsInCategory > 0 ? Math.round((answeredQuestions.size / totalQuestionsInCategory) * 100) : 0;
+
+      return { name: cat, '正答率': correctRate, '学習率': learningRate };
     }).sort((a, b) => b['正答率'] - a['正答率']);
   }, [allCategories, questions, history]);
 
@@ -286,31 +295,31 @@ export default function HistoryPage() {
           <Card className="p-5 mb-6 border-border">
             <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2"> <TrendingUp className="w-4 h-4" /> カテゴリ別パフォーマンス </h3>
             <div className="overflow-x-auto w-full">
-              <ResponsiveContainer width="800%" height={280}>
-                <BarChart data={categoryChartData} margin={{ top: 5, right: 10, left: -20, bottom: 5 }} onClick={handleCategoryClick} className="cursor-pointer">
+              <BarChart width={3000} height={280} data={categoryChartData} margin={{ top: 5, right: 10, left: -20, bottom: 5 }} onClick={handleCategoryClick} className="cursor-pointer" barCategoryGap="5%" barGap={1}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis dataKey="name" tickFormatter={(value) => value.length > 8 ? value.slice(0, 10) + "..." : value} tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12, angle: -45, textAnchor: "end" }} height={80}/>
+                  <XAxis dataKey="name" tickFormatter={(value) => value.length > 8 ? value.slice(0, 10) + "..." : value} tick={{fontSize: 12, angle: -45, textAnchor: "end" }} height={80}/>
                   <YAxis tickFormatter={(value) => `${value}%`} tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} />
                   <Tooltip formatter={(value) => `${value}%`} contentStyle={{ backgroundColor: "white", border: "1px solid hsl(var(--border))", borderRadius: "8px", }} />
                   <Legend wrapperStyle={{ fontSize: "12px" }} />
-                  <Bar dataKey="正答率" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="学習率" fill="#286ec9ff" radius={[4, 4, 0, 0]} barSize={30} />
+                  <Bar dataKey="正答率" fill="#20bd2dff" radius={[4, 4, 0, 0]} barSize={10} />
                 </BarChart>
-              </ResponsiveContainer>
             </div>
           </Card>
           </>
 
         {/* --- Selection Control --- */}
-        <div className="flex justify-end mb-4">
+        
           {!isSelectionMode && quizSessions.length > 0 && (
+          <div className="flex justify-end mt-8 mb-4">
             <Button variant="outline" onClick={handleEnterSelectionMode}>
               <Trash2 className="w-4 h-4 mr-2" />
               選択して削除
             </Button>
+          </div>
           )}
-        </div>
         {isSelectionMode && (
-            <div className="flex justify-end mb-4">
+            <div className="flex justify-end mt-8 mb-4">
               <Button variant="outline" onClick={handleCancelSelection}>キャンセル</Button>
               <Button className="ml-3 bg-red-300" onClick={handleDeleteSelected} disabled={isDeleting || selectedSessionIds.length === 0}>
                 {isDeleting ? <Spinner size="sm" /> : <Trash2 className="w-4 h-4 mr-2" />}
@@ -336,7 +345,7 @@ export default function HistoryPage() {
                 <div className="flex-grow">
                     <Card className={`p-4 border-border w-full transition-colors ${isSelectionMode ? (selectedSessionIds.includes(session.id) ? 'border-primary' : 'hover:bg-card/80') : 'hover:bg-card/80 cursor-pointer'}`}>
                         <div className="flex items-start gap-3">
-                            <div className={`flex items-center justify-center w-10 h-10 rounded-xl flex-shrink-0 ${ session.correct_rate >= 70 ? "bg-success/10" : "bg-destructive/10" }`}>
+                            <div className={`flex items-center justify-center w-10 h-10 rounded-xl flex-shrink-0 ${ session.correct_rate >= 70 ? "bg-green-200" : "bg-red-200" }`}>
                                 {session.correct_rate >= 70 ? ( <Check className="w-5 h-5 text-success" /> ) : ( <X className="w-5 h-5 text-destructive" /> )}
                             </div>
                             <div className="flex-1 min-w-0 flex flex-col justify-between">

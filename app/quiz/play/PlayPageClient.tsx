@@ -50,6 +50,7 @@ export default function QuizPlayPage() {
   const [isProgressModalOpen, setIsProgressModalOpen] = useState(false);
   const [history, setHistory] = useState<Record<string, History[]>>({});
 
+  const questionIdsParam = searchParams.get('questionIds');
   const categoriesParam = searchParams.get('categories');
   const limitParam = searchParams.get('limit');
   const showTimerParamFromUrl = searchParams.get('showTimer');
@@ -67,13 +68,14 @@ export default function QuizPlayPage() {
       userAnswers,
       currentQuestionIndex,
       elapsedTime,
+      questionIdsParam,
       categoriesParam,
       limitParam,
       showTimerParam: showTimer,
     };
     sessionStorage.setItem('suspendedQuiz', JSON.stringify(suspendedState));
     console.log('[PlayPage] Suspending quiz. State saved:', suspendedState);
-  }, [questions, userAnswers, currentQuestionIndex, elapsedTime, categoriesParam, limitParam, showTimer]);
+  }, [questions, userAnswers, currentQuestionIndex, elapsedTime, questionIdsParam, categoriesParam, limitParam, showTimer]);
 
   const handleJumpToQuestion = (index: number) => {
     setShowAnswer(false);
@@ -284,16 +286,23 @@ export default function QuizPlayPage() {
           historyByQuestionId[qId].sort((a, b) => new Date(b.answered_at).getTime() - new Date(a.answered_at).getTime());
         }
         setHistory(historyByQuestionId);
-
-        const categories = categoriesParam?.split(",") || [];
-        const limit = Number(limitParam);
+        
         setShowTimer(initialShowTimer);
-
         const allQuestions = await getQuestions();
-        const filtered = allQuestions.filter(q => categories.includes(q.category));
-        const shuffled = shuffleArray(filtered);
-        const selectedQuestions = shuffled.slice(0, limit);
+        let selectedQuestions: Question[] = [];
 
+        if (questionIdsParam) {
+          const questionIds = questionIdsParam.split(',');
+          const questionIdMap = new Map(allQuestions.map(q => [q.id, q]));
+          selectedQuestions = questionIds.map(id => questionIdMap.get(id)).filter((q): q is Question => !!q);
+        } else if (categoriesParam) {
+          const categories = categoriesParam.split(",");
+          const limit = Number(limitParam);
+          const filtered = allQuestions.filter(q => categories.includes(q.category));
+          const shuffled = shuffleArray(filtered);
+          selectedQuestions = shuffled.slice(0, limit);
+        }
+        
         const questionsWithShuffledOptions = selectedQuestions.map(q => {
           const optionsWithOriginalIndex = q.options.map((option, index) => ({
             option,
@@ -310,7 +319,7 @@ export default function QuizPlayPage() {
       setIsLoading(false);
     };
     loadQuiz();
-  }, [categoriesParam, limitParam, searchParams]);
+  }, [categoriesParam, limitParam, questionIdsParam, searchParams]);
 
   useEffect(() => {
     if (!showTimer || !startTime) return;
@@ -370,6 +379,7 @@ export default function QuizPlayPage() {
       const total_questions = questions.length;
       const correct_count = results.filter(r => r.isCorrect).length;
       const finished_at = new Date().toISOString();
+      const categoriesInQuiz = Array.from(new Set(questions.map(q => q.category)));
 
       const newQuizSession: QuizSession = {
         id: crypto.randomUUID(),
@@ -380,7 +390,7 @@ export default function QuizPlayPage() {
         incorrect_count: total_questions - correct_count,
         correct_rate: total_questions > 0 ? parseFloat(((correct_count / total_questions) * 100).toFixed(2)) : 0,
         elapsed_time_seconds: elapsedTime,
-        categories: categoriesParam?.split(",") || [],
+        categories: categoriesInQuiz,
       };
 
       const newHistoryEntries: History[] = results.map(result => ({
@@ -428,7 +438,7 @@ export default function QuizPlayPage() {
       toast({ title: "クイズの終了に失敗しました", variant: "destructive" });
       setIsFinishingQuiz(false);
     }
-  }, [questions, userAnswers, startTime, elapsedTime, categoriesParam, router, toast]);
+  }, [questions, userAnswers, startTime, elapsedTime, router, toast]);
 
   if (isLoading || !currentQuestion || isFinishingQuiz) {
     return (
