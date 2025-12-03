@@ -1,43 +1,62 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { getQuestions, Question } from "@/lib/data"
-import { Home, List, Target, BarChart3, ArrowLeft, Rocket, Clock } from "lucide-react"
+import { getQuestions, getHistory, Question, History } from "@/lib/data"
+import { Home, List, Target, BarChart3, ArrowLeft, Rocket, Clock, ChevronsUpDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Spinner } from "@/components/ui/spinner"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
+import { Label } from "@/components/ui/label"
+import Picker from "@/components/ui/picker"
+
 
 interface CategoryInfo {
   name: string;
   count: number;
+  totalCount: number;
 }
 
 export default function QuizSettingsPage() {
+  const [allQuestions, setAllQuestions] = useState<Question[]>([]);
+  const [history, setHistory] = useState<History[]>([]);
   const [categories, setCategories] = useState<CategoryInfo[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [numQuestions, setNumQuestions] = useState("10");
   const [showTimer, setShowTimer] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [suspendedQuiz, setSuspendedQuiz] = useState<any | null>(null);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const router = useRouter();
+
+  // Filter states
+  const [filterUnanswered, setFilterUnanswered] = useState(false);
+  const [filterLowCorrectness, setFilterLowCorrectness] = useState(false);
+  const [lowCorrectnessPercentage, setLowCorrectnessPercentage] = useState(70);
+  const [filterLastIncorrect, setFilterLastIncorrect] = useState(false);
+  const [filterConsecutiveMistakes, setFilterConsecutiveMistakes] = useState(false);
 
   useEffect(() => {
     const savedQuiz = sessionStorage.getItem('suspendedQuiz');
-    console.log('[QuizPage] Checking for suspended quiz...', { savedQuiz });
     if (savedQuiz) {
       setSuspendedQuiz(JSON.parse(savedQuiz));
     }
 
     const savedSettings = sessionStorage.getItem('quizSettings');
     if (savedSettings) {
-      const { selectedCategories, numQuestions, showTimer } = JSON.parse(savedSettings);
-      if (selectedCategories) setSelectedCategories(selectedCategories);
-      if (numQuestions) setNumQuestions(numQuestions);
-      if (typeof showTimer === 'boolean') setShowTimer(showTimer);
+      const settings = JSON.parse(savedSettings);
+      if (settings.selectedCategories) setSelectedCategories(settings.selectedCategories);
+      if (settings.numQuestions) setNumQuestions(settings.numQuestions);
+      if (typeof settings.showTimer === 'boolean') setShowTimer(settings.showTimer);
+      if (typeof settings.filterUnanswered === 'boolean') setFilterUnanswered(settings.filterUnanswered);
+      if (typeof settings.filterLowCorrectness === 'boolean') setFilterLowCorrectness(settings.filterLowCorrectness);
+      if (typeof settings.lowCorrectnessPercentage === 'number') setLowCorrectnessPercentage(settings.lowCorrectnessPercentage);
+      if (typeof settings.filterLastIncorrect === 'boolean') setFilterLastIncorrect(settings.filterLastIncorrect);
+      if (typeof settings.filterConsecutiveMistakes === 'boolean') setFilterConsecutiveMistakes(settings.filterConsecutiveMistakes);
     }
   }, []);
 
@@ -47,31 +66,116 @@ export default function QuizSettingsPage() {
         selectedCategories,
         numQuestions,
         showTimer,
+        filterUnanswered,
+        filterLowCorrectness,
+        lowCorrectnessPercentage,
+        filterLastIncorrect,
+        filterConsecutiveMistakes,
       };
       sessionStorage.setItem('quizSettings', JSON.stringify(settings));
     }
-  }, [selectedCategories, numQuestions, showTimer, isLoading]);
+  }, [selectedCategories, numQuestions, showTimer, filterUnanswered, filterLowCorrectness, lowCorrectnessPercentage, filterLastIncorrect, filterConsecutiveMistakes, isLoading]);
 
   useEffect(() => {
-    const fetchCategories = async () => {
+    const fetchInitialData = async () => {
       setIsLoading(true);
-      const allQuestions = await getQuestions();
-      const categoryCounts = allQuestions.reduce((acc, q) => {
-        acc[q.category] = (acc[q.category] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>);
-
-      const categoryInfo = Object.entries(categoryCounts).map(([name, count]) => ({ name, count }));
-      setCategories(categoryInfo);
-
-      const savedSettings = sessionStorage.getItem('quizSettings');
-      if (!savedSettings) {
-        setSelectedCategories(categoryInfo.map(c => c.name));
-      }
+      const [questions, historyData] = await Promise.all([getQuestions(), getHistory()]);
+      setAllQuestions(questions);
+      setHistory(historyData);
       setIsLoading(false);
     };
-    fetchCategories();
+    fetchInitialData();
   }, []);
+
+  const filteredQuestions = useMemo(() => {
+    const activeFilters = filterUnanswered || filterLowCorrectness || filterLastIncorrect || filterConsecutiveMistakes;
+
+    if (!activeFilters) {
+      return allQuestions;
+    }
+
+    const questionsToInclude = new Set<string>();
+
+    if (filterUnanswered) {
+      const answeredQuestionIds = new Set(history.map(h => h.question_id));
+      allQuestions.forEach(q => {
+        if (!answeredQuestionIds.has(q.id)) {
+          questionsToInclude.add(q.id);
+        }
+      });
+    }
+
+    if (filterLowCorrectness) {
+      const stats: { [key: string]: { correct: number, total: number } } = {};
+      for (const record of history) {
+        if (!stats[record.question_id]) {
+          stats[record.question_id] = { correct: 0, total: 0 };
+        }
+        stats[record.question_id].total++;
+        if (record.result) {
+          stats[record.question_id].correct++;
+        }
+      }
+      allQuestions.forEach(q => {
+        const stat = stats[q.id];
+        if (!stat || stat.total === 0 || (stat.correct / stat.total) * 100 <= lowCorrectnessPercentage) {
+          questionsToInclude.add(q.id);
+        }
+      });
+    }
+
+    if (filterLastIncorrect) {
+        const lastAnswered: { [key: string]: History } = {};
+        history.forEach(h => {
+          if (!lastAnswered[h.question_id] || new Date(h.answered_at) > new Date(lastAnswered[h.question_id].answered_at)) {
+            lastAnswered[h.question_id] = h;
+          }
+        });
+        Object.values(lastAnswered).forEach(h => {
+          if (!h.result) {
+            questionsToInclude.add(h.question_id);
+          }
+        });
+    }
+
+    if (filterConsecutiveMistakes) {
+        allQuestions.forEach(q => {
+          if (q.consecutive_wrong > 0) {
+            questionsToInclude.add(q.id);
+          }
+        });
+    }
+
+    return allQuestions.filter(q => questionsToInclude.has(q.id));
+  }, [allQuestions, history, filterUnanswered, filterLowCorrectness, lowCorrectnessPercentage, filterLastIncorrect, filterConsecutiveMistakes]);
+
+  useEffect(() => {
+    if (allQuestions.length === 0) return;
+
+    const totalCategoryCounts = allQuestions.reduce((acc, q) => {
+      acc[q.category] = (acc[q.category] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    const filteredCategoryCounts = filteredQuestions.reduce((acc, q) => {
+      acc[q.category] = (acc[q.category] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    const categoryInfo = Object.entries(totalCategoryCounts)
+      .map(([name, totalCount]) => ({
+        name,
+        count: filteredCategoryCounts[name] || 0,
+        totalCount,
+      }));
+
+    setCategories(categoryInfo);
+
+    const savedSettings = sessionStorage.getItem('quizSettings');
+    if (!savedSettings) {
+      setSelectedCategories(categoryInfo.map(c => c.name));
+    }
+  }, [allQuestions, filteredQuestions]);
 
   const handleCategoryToggle = (categoryName: string) => {
     setSelectedCategories(prev =>
@@ -89,7 +193,11 @@ export default function QuizSettingsPage() {
 
   const handleStartQuiz = () => {
     const params = new URLSearchParams();
-    params.set("categories", selectedCategories.join(","));
+    const questionIdsToQuiz = filteredQuestions
+      .filter(q => selectedCategories.includes(q.category))
+      .map(q => q.id);
+
+    params.set("questionIds", questionIdsToQuiz.slice(0, quizAmount).join(','));
     params.set("limit", quizAmount.toString());
     params.set("showTimer", showTimer.toString());
     router.push(`/quiz/play?${params.toString()}`);
@@ -105,7 +213,6 @@ export default function QuizSettingsPage() {
 
   if (suspendedQuiz) {
     const handleResume = () => {
-      // The play page will load from sessionStorage, no params needed
       router.push('/quiz/play');
     };
 
@@ -137,6 +244,9 @@ export default function QuizSettingsPage() {
     );
   }
 
+  const isFiltered = filterUnanswered || filterLowCorrectness || filterLastIncorrect || filterConsecutiveMistakes;
+  const percentageOptions = [" ", 30, 50, 70, " "];
+
   return (
     <div className="min-h-screen bg-background pb-20">
       <div className="container mx-auto px-4 py-6 max-w-2xl">
@@ -151,6 +261,72 @@ export default function QuizSettingsPage() {
             <p className="text-sm text-muted-foreground">挑戦する問題の範囲と数を選択</p>
           </div>
         </div>
+        
+        <Collapsible open={isFilterOpen} onOpenChange={setIsFilterOpen} className="mb-6">
+          <Card className="p-6 border-border">
+            <CollapsibleTrigger asChild>
+              <div className="flex justify-between items-center cursor-pointer">
+                <h2 className="text-lg font-semibold text-foreground">絞り込み</h2>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <span>{isFilterOpen ? '閉じる' : '開く'}</span>
+                  <ChevronsUpDown className="w-4 h-4" />
+                </div>
+              </div>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="mt-4">
+              <div className="space-y-4 pt-4 border-t">
+                <div className="flex items-center justify-between p-2 rounded-lg hover:bg-secondary/50">
+                  <div className="flex items-center gap-3">
+                    <Checkbox
+                      id="filter-unanswered"
+                      checked={filterUnanswered}
+                      onCheckedChange={setFilterUnanswered}
+                    />
+                    <Label htmlFor="filter-unanswered" className="text-sm font-medium text-foreground cursor-pointer">
+                      未回答の問題
+                    </Label>
+                  </div>
+                </div>
+                <div className="p-2 rounded-lg hover:bg-secondary/50">
+                   <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Checkbox
+                        id="filter-low-correctness"
+                        checked={filterLowCorrectness}
+                        onCheckedChange={setFilterLowCorrectness}
+                      />
+                      <Label htmlFor="filter-low-correctness" className="text-sm font-medium text-foreground cursor-pointer">
+                        低正答率の問題
+                      </Label>
+                    </div>
+                     <div className="flex items-center gap-2">
+                        <Picker
+                          options={percentageOptions}
+                          value={lowCorrectnessPercentage}
+                          onChange={(val) => setLowCorrectnessPercentage(Number(val))}
+                          disabled={!filterLowCorrectness}
+                        />
+                        <span className="text-sm font-semibold">%以下</span>
+                     </div>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between p-2 rounded-lg hover:bg-secondary/50">
+                  <div className="flex items-center gap-3">
+                    <Checkbox
+                      id="filter-last-incorrect"
+                      checked={filterLastIncorrect}
+                      onCheckedChange={setFilterLastIncorrect}
+                    />
+                    <Label htmlFor="filter-last-incorrect" className="text-sm font-medium text-foreground cursor-pointer">
+                      最終不正解の問題
+                    </Label>
+                  </div>
+                </div>
+              </div>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
+
 
         <Card className="p-6 border-border mb-6">
           <div className="flex justify-between items-center mb-4">
@@ -168,12 +344,15 @@ export default function QuizSettingsPage() {
                     id={cat.name}
                     checked={selectedCategories.includes(cat.name)}
                     onCheckedChange={() => handleCategoryToggle(cat.name)}
+                    disabled={cat.count === 0}
                   />
-                  <label htmlFor={cat.name} className="text-sm font-medium text-foreground cursor-pointer break-all">
+                  <label htmlFor={cat.name} className={`text-sm font-medium text-foreground break-all ${cat.count === 0 ? 'cursor-not-allowed text-muted-foreground' : 'cursor-pointer'}`}>
                     {cat.name}
                   </label>
                 </div>
-                <span className="text-sm text-muted-foreground flex-shrink-0">{cat.count}問</span>
+                <span className="text-sm text-muted-foreground flex-shrink-0">
+                  {`${cat.count}問`}
+                </span>
               </div>
             ))}
           </div>
