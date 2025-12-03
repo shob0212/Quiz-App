@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { getQuestions, updateQuestion, writeHistory, Question, History, QuizSession, writeQuizSessions, getHistory } from "@/lib/data"
-import { ArrowLeft, ChevronLeft, ChevronRight, Check, X, Clock, Eye, XCircle, List, Pencil } from "lucide-react"
+import { ArrowLeft, ChevronLeft, ChevronRight, Check, X, Clock, Eye, XCircle, List, Pencil, Copy } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
@@ -115,6 +115,38 @@ export default function QuizPlayPage() {
         title: '解説の保存に失敗しました',
         variant: 'destructive'
       })
+    }
+  };
+
+  const handleCopyQuestionAndOptions = async () => {
+    if (!currentQuestion) {
+      toast({
+        title: "コピーする問題がありません",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const questionText = currentQuestion.question;
+    const optionsText = currentQuestion.shuffledOptions.map((opt, index) => `${index + 1}. ${opt.option}`).join('\n');
+    const textToCopy = `問題:\n${questionText}\n\n選択肢:\n${optionsText}`;
+
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(textToCopy);
+        toast({
+          title: "問題と選択肢をクリップボードにコピーしました！",
+        });
+      } else {
+        throw new Error("Clipboard API not available");
+      }
+    } catch (error) {
+      console.error("Failed to copy:", error);
+      toast({
+        title: "コピーに失敗しました",
+        description: "クリップボードへのアクセスが許可されていないか、ブラウザが対応していません。",
+        variant: "destructive"
+      });
     }
   };
 
@@ -509,23 +541,28 @@ export default function QuizPlayPage() {
         </div>
 
         <Card className="p-6 mb-6 border-border">
-          <div className="mb-6 text-sm text-muted-foreground border-t border-b py-3">
-            <div className="flex items-center justify-between">
-              <span>最終回答: {currentQuestionHistory.length > 0 ? new Date(currentQuestionHistory[0].answered_at).toLocaleString('ja-JP') : "-"}</span>
-              <div className="flex items-center gap-2">
-                <span>直近5回:</span>
-                <div className="flex gap-1 font-mono">
-                  {currentQuestionHistory.slice(0, 5).map(h => h.result ? "O" : "X").join("").padEnd(5, "-").split("").map((char, index) => (
-                    <span key={index} className={char === "O" ? "text-green-500" : char === "X" ? "text-red-500" : ""}>{char}</span>
-                  ))}
+          <div>
+            <div className="mb-3 text-sm text-muted-foreground border-t border-b py-3">
+              <div className="flex items-center justify-between">
+                <span>最終回答: {currentQuestionHistory.length > 0 ? new Date(currentQuestionHistory[0].answered_at).toLocaleString('ja-JP') : "-"}</span>
+                <div className="flex items-center gap-2">
+                  <span>直近5回:</span>
+                  <div className="flex gap-1 font-mono">
+                    {currentQuestionHistory.slice(0, 5).map(h => h.result ? "〇" : "✕").join("").padEnd(5, "-").split("").map((char, index) => (
+                      <span key={index} className={char === "〇" ? "font-bold text-green-500" : char === "✕" ? "font-bold text-red-500" : ""}>{char}</span>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
+            <div className="flex justify-end gap-2 mb-6">
+              <Button variant="outline" size="sm" onClick={handleCopyQuestionAndOptions}><Copy className="w-4 h-4 mr-2" />コピー</Button>
+              <Button variant="outline" size="sm" onClick={handleEditQuestionClick}><Pencil className="w-4 h-4 mr-2" />編集</Button>
+            </div>
           </div>
           
-          <div className="flex justify-between items-start mb-6">
+          <div className="mb-6">
             <h2 className="text-lg font-semibold text-foreground leading-relaxed whitespace-pre-wrap flex-1 mr-4">{currentQuestion.question}</h2>
-            <Button variant="outline" size="sm" onClick={handleEditQuestionClick}><Pencil className="w-4 h-4 mr-2" />編集</Button>
           </div>
           
           <div className="space-y-3">

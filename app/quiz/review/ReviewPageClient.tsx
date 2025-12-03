@@ -2,19 +2,25 @@
 
 import { useState, useEffect } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
-import { getQuestions, Question } from "@/lib/data"
-import { ArrowLeft, Check, X } from "lucide-react"
+import { getQuestions, updateQuestion, Question } from "@/lib/data"
+import { ArrowLeft, Check, X, Pencil } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Spinner } from "@/components/ui/spinner"
+import { Textarea } from "@/components/ui/textarea"
+import { useToast } from "@/components/ui/use-toast"
+import { Toaster } from "@/components/ui/toaster"
 
-export default function ReviewPage({ questionId }: { questionId: string | string[] | undefined }) {
+export default function ReviewPageClient({ questionId }: { questionId: string | string[] | undefined }) {
   const router = useRouter();
+  const { toast } = useToast();
 
   const [question, setQuestion] = useState<Question | null>(null);
   const [userAnswers, setUserAnswers] = useState<number[]>([]);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isEditingExplanation, setIsEditingExplanation] = useState(false);
+  const [editedExplanation, setEditedExplanation] = useState("");
 
   useEffect(() => {
     const fetchQuestionAndAnswers = async () => {
@@ -24,12 +30,13 @@ export default function ReviewPage({ questionId }: { questionId: string | string
       }
       setIsLoading(true);
 
-      // Fetch question from local data
       const allQuestions = await getQuestions();
       const foundQuestion = allQuestions.find(q => q.id === questionId);
       setQuestion(foundQuestion || null);
+      if (foundQuestion) {
+        setEditedExplanation(foundQuestion.explanation || "");
+      }
 
-      // Get answers and result from sessionStorage
       const answersString = sessionStorage.getItem('quizUserAnswers');
       const resultsString = sessionStorage.getItem('quizResults');
       
@@ -47,6 +54,25 @@ export default function ReviewPage({ questionId }: { questionId: string | string
     };
     fetchQuestionAndAnswers();
   }, [questionId]);
+  
+  const handleSaveExplanation = async () => {
+    if (!question) return;
+
+    try {
+      const updatedQuestion = await updateQuestion({ id: question.id, explanation: editedExplanation });
+      setQuestion(prevQuestion => prevQuestion ? { ...prevQuestion, explanation: updatedQuestion.explanation } : null);
+      toast({
+        title: "解説を保存しました",
+      });
+      setIsEditingExplanation(false);
+    } catch(e) {
+      console.error(e)
+      toast({
+        title: '解説の保存に失敗しました',
+        variant: 'destructive'
+      })
+    }
+  };
 
   const handleBackToResults = () => {
     router.push('/quiz/results');
@@ -109,14 +135,38 @@ export default function ReviewPage({ questionId }: { questionId: string | string
 
         {isCorrect !== null && (
           <Card className={`p-6 mb-6 border-2 ${isCorrect ? "border-green-500 bg-green-500/5" : "border-red-500 bg-red-500/5"}`}>
-              <h3 className={`text-lg font-bold mb-2 ${isCorrect ? "text-green-500" : "text-red-500"}`}>
-                {isCorrect ? "正解！" : "不正解"}
-              </h3>
-              <p className="text-sm text-foreground leading-relaxed">{question.explanation}</p>
+              <div className="flex justify-between items-start">
+                <h3 className={`text-lg font-bold mb-2 ${isCorrect ? "text-green-500" : "text-red-500"}`}>
+                  {isCorrect ? "正解！" : "不正解"}
+                </h3>
+                {!isEditingExplanation && (
+                  <Button onClick={() => setIsEditingExplanation(true)} variant="ghost" size="icon">
+                    <Pencil className="w-4 h-4" />
+                  </Button>
+                )}
+              </div>
+
+              {isEditingExplanation ? (
+                <div className="flex flex-col gap-2 mt-2">
+                  <Textarea 
+                    value={editedExplanation} 
+                    onChange={(e) => setEditedExplanation(e.target.value)} 
+                    className="mb-2 text-base"
+                    rows={6}
+                  />
+                  <div className="flex justify-end gap-2">
+                    <Button onClick={() => setIsEditingExplanation(false)} variant="ghost">キャンセル</Button>
+                    <Button onClick={handleSaveExplanation}>解説を保存</Button>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{editedExplanation || "解説がありません。"}</p>
+              )}
           </Card>
         )}
 
         <Button onClick={handleBackToResults} className="w-full">結果一覧に戻る</Button>
+        <Toaster />
       </div>
     </div>
   )

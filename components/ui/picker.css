@@ -3,7 +3,7 @@
   --slide-spacing: 1px;
   --slide-size: var(--slide-height);
   position: relative;
-  width: 120px;
+  width: 60px;
 }
 
 .picker__viewport {
