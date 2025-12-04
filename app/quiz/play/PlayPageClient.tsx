@@ -1,8 +1,8 @@
 "use client"
 
-import { useState, useEffect, useMemo, useCallback } from "react"
+import { useState, useEffect, useMemo, useCallback, useRef } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { getQuestions, updateQuestion, writeHistory, Question, History, QuizSession, writeQuizSessions, getHistory } from "@/lib/data"
+import { getQuestions, updateQuestion, writeHistory, Question, History, QuizSession, writeQuizSessions, getHistory, AuthError } from "@/lib/data"
 import { ArrowLeft, ChevronLeft, ChevronRight, Check, X, Clock, Eye, XCircle, List, Pencil, Copy } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -32,6 +32,7 @@ const shuffleArray = (array: any[]) => {
 export default function QuizPlayPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const didMountRef = useRef(false);
 
   const [questions, setQuestions] = useState<(Question & { shuffledOptions: { option: string; originalIndex: number }[] })[]>([]);
   const [userAnswers, setUserAnswers] = useState<Record<string, number[]>>({});
@@ -50,32 +51,26 @@ export default function QuizPlayPage() {
   const [isProgressModalOpen, setIsProgressModalOpen] = useState(false);
   const [history, setHistory] = useState<Record<string, History[]>>({});
 
-  const questionIdsParam = searchParams.get('questionIds');
-  const categoriesParam = searchParams.get('categories');
-  const limitParam = searchParams.get('limit');
-  const showTimerParamFromUrl = searchParams.get('showTimer');
-
-  const initialShowTimer = useMemo(() => {
-    return showTimerParamFromUrl === 'true';
-  }, [showTimerParamFromUrl]);
-
   const [elapsedTime, setElapsedTime] = useState(0);
-  const [showTimer, setShowTimer] = useState(initialShowTimer);
+  const [showTimer, setShowTimer] = useState(false);
 
   const saveSuspendedQuiz = useCallback(() => {
+    if (!questions || questions.length === 0) {
+      console.warn('[PlayPage] Attempted to save a suspended quiz with no questions. Aborting save.');
+      // Ensure any old corrupted data is removed.
+      localStorage.removeItem('suspendedQuiz');
+      return;
+    }
     const suspendedState = {
       questions,
       userAnswers,
       currentQuestionIndex,
       elapsedTime,
-      questionIdsParam,
-      categoriesParam,
-      limitParam,
       showTimerParam: showTimer,
     };
     localStorage.setItem('suspendedQuiz', JSON.stringify(suspendedState));
-    console.log('[PlayPage] Suspending quiz. State saved:', suspendedState);
-  }, [questions, userAnswers, currentQuestionIndex, elapsedTime, questionIdsParam, categoriesParam, limitParam, showTimer]);
+    console.log(`[PlayPage] Suspending quiz. State saved with ${questions.length} questions.`);
+  }, [questions, userAnswers, currentQuestionIndex, elapsedTime, showTimer]);
 
   const handleJumpToQuestion = (index: number) => {
     setShowAnswer(false);
@@ -110,11 +105,21 @@ export default function QuizPlayPage() {
       });
       setIsEditingExplanation(false);
     } catch(e) {
-      console.error(e)
-      toast({
-        title: '解説の保存に失敗しました',
-        variant: 'destructive'
-      })
+      console.error(e);
+      if (e instanceof AuthError) {
+        toast({
+          title: "セッションが切れました",
+          description: "クイズの進捗を保存して、クイズ選択画面に戻ります。",
+          variant: "destructive",
+        });
+        saveSuspendedQuiz();
+        router.push('/quiz');
+      } else {
+        toast({
+          title: '解説の保存に失敗しました',
+          variant: 'destructive'
+        })
+      }
     }
   };
 
@@ -285,30 +290,86 @@ export default function QuizPlayPage() {
       });
     } catch (error) {
         console.error("Failed to update question:", error);
-        toast({
-            title: "更新に失敗しました",
-            description: error instanceof Error ? error.message : "コンソールでエラーを確認してください。",
+        if (error instanceof AuthError) {
+          toast({
+            title: "セッションが切れました",
+            description: "クイズの進捗を保存して、クイズ選択画面に戻ります。",
             variant: "destructive",
-        });
+          });
+          saveSuspendedQuiz();
+          router.push('/quiz');
+        } else {
+          toast({
+              title: "更新に失敗しました",
+              description: error instanceof Error ? error.message : "コンソールでエラーを確認してください。",
+              variant: "destructive",
+          });
+        }
     }
   }, [editingQuestionData, toast]);
 
   useEffect(() => {
+    if (didMountRef.current) {
+      return;
+    }
+    didMountRef.current = true;
+
     const loadQuiz = async () => {
       setIsLoading(true);
-      const savedStateJSON = localStorage.getItem('suspendedQuiz'); //修正点：sessionStorageからlocalStorageに変更
+      const savedStateJSON = localStorage.getItem('suspendedQuiz');
 
       if (savedStateJSON) {
-        const savedState = JSON.parse(savedStateJSON);
-        setQuestions(savedState.questions || []);
-        setUserAnswers(savedState.userAnswers || {});
-        setCurrentQuestionIndex(savedState.currentQuestionIndex || 0);
-        setElapsedTime(savedState.elapsedTime || 0);
-        setShowTimer(savedState.showTimerParam);
-        setStartTime(new Date());
-        
-        localStorage.removeItem('suspendedQuiz'); // 修正点：読み込んだら削除する
+        console.log("Suspended quiz found, attempting to restore.");
+        let restored = false;
+        try {
+          const savedState = JSON.parse(savedStateJSON);
+          if (savedState.questions && savedState.questions.length > 0) {
+            setQuestions(savedState.questions);
+            setUserAnswers(savedState.userAnswers || {});
+            setCurrentQuestionIndex(savedState.currentQuestionIndex || 0);
+            setElapsedTime(savedState.elapsedTime || 0);
+            setShowTimer(savedState.showTimerParam);
+            setStartTime(new Date());
+
+            router.replace('/quiz/play', { scroll: false });
+            restored = true;
+            console.log("Quiz restored successfully.");
+          }
+        } catch (error) {
+          console.error("Failed to parse suspended quiz state.", error);
+        } finally {
+          // Always remove the item after attempting to restore
+          localStorage.removeItem('suspendedQuiz');
+        }
+
+        if (restored) {
+          setIsLoading(false);
+        } else {
+          console.log("Failed to restore quiz, redirecting to home.");
+          toast({
+            title: "中断したクイズの復元に失敗しました",
+            description: "クイズ選択画面に戻ります。",
+            variant: "destructive",
+          });
+          router.push('/quiz');
+          // We are navigating away, so no need to set isLoading to false.
+        }
       } else {
+        // No suspended quiz, load a new one
+        await loadNewQuiz();
+        setIsLoading(false);
+      }
+    };
+
+    const loadNewQuiz = async () => {
+        console.log("No suspended quiz, starting new one.");
+        const questionIdsParam = searchParams.get('questionIds');
+        const categoriesParam = searchParams.get('categories');
+        const limitParam = searchParams.get('limit');
+        const showTimerParamFromUrl = searchParams.get('showTimer');
+        const initialShowTimer = showTimerParamFromUrl === 'true';
+
+        // Fetch history only for new quizzes to avoid unnecessary fetches on restore
         const allHistory = await getHistory();
         const historyByQuestionId: Record<string, History[]> = {};
         for (const h of allHistory) {
@@ -338,6 +399,12 @@ export default function QuizPlayPage() {
           selectedQuestions = shuffled.slice(0, limit);
         }
         
+        if (selectedQuestions.length === 0) {
+          console.log("No questions selected, redirecting to quiz home.");
+          router.push('/quiz');
+          return; 
+        }
+
         const questionsWithShuffledOptions = selectedQuestions.map(q => {
           const optionsWithOriginalIndex = q.options.map((option, index) => ({
             option,
@@ -350,11 +417,10 @@ export default function QuizPlayPage() {
         });
         setQuestions(questionsWithShuffledOptions);
         setStartTime(new Date());
-      }
-      setIsLoading(false);
-    };
+    }
+
     loadQuiz();
-  }, [categoriesParam, limitParam, questionIdsParam, initialShowTimer]);
+  }, []);
 
   useEffect(() => {
     if (!showTimer || !startTime) return;
@@ -470,8 +536,18 @@ export default function QuizPlayPage() {
       router.push(`/quiz/results`);
     } catch (error) {
       console.error("Failed to finish quiz:", error);
-      toast({ title: "クイズの終了に失敗しました", variant: "destructive" });
-      setIsFinishingQuiz(false);
+      if (error instanceof AuthError) {
+        toast({
+          title: "セッションが切れました",
+          description: "クイズの進捗を保存して、クイズ選択画面に戻ります。",
+          variant: "destructive",
+        });
+        saveSuspendedQuiz();
+        router.push('/quiz');
+      } else {
+        toast({ title: "クイズの終了に失敗しました", variant: "destructive" });
+        setIsFinishingQuiz(false);
+      }
     }
   }, [questions, userAnswers, startTime, elapsedTime, router, toast]);
 

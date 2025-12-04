@@ -349,12 +349,12 @@ export default function HistoryPage() {
                                 {session.correct_rate >= 70 ? ( <Check className="w-5 h-5 text-success" /> ) : ( <X className="w-5 h-5 text-destructive" /> )}
                             </div>
                             <div className="flex-1 min-w-0 flex flex-col justify-between">
-                                <div className="flex justify-between items-center gap-2">
+                                <span className="flex justify-end mb-4 text-xs text-muted-foreground whitespace-nowrap">
+                                    {session.finished_at ? new Date(session.finished_at).toLocaleString('ja-JP') : '-'}
+                                </span>
+                                <div className="items-center gap-2">
                                 <span className="text-xs px-2 py-1 rounded-md bg-primary/10 text-primary font-medium">
                                     {session.categories.join(', ')}
-                                </span>
-                                <span className="text-xs text-muted-foreground whitespace-nowrap">
-                                    {session.finished_at ? new Date(session.finished_at).toLocaleString('ja-JP') : '-'}
                                 </span>
                                 </div>
                                 <div className="my-2">
