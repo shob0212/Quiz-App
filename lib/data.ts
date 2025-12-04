@@ -23,111 +23,241 @@ export interface History {
 }
 
 export interface QuizSession {
+
   id: string;
+
   started_at: string;
+
   finished_at: string;
+
   total_questions: number;
+
   correct_count: number;
+
   incorrect_count: number;
+
   correct_rate: number;
+
   elapsed_time_seconds: number;
+
   categories: string[];
+
 }
+
+
+
+export class AuthError extends Error {
+
+  constructor(message?: string) {
+
+    super(message);
+
+    this.name = 'AuthError';
+
+  }
+
+}
+
+
+
+async function handleResponse(res: Response): Promise<any> {
+
+    if (res.status === 401) {
+
+        throw new AuthError('Authentication failed');
+
+    }
+
+    if (!res.ok) {
+
+        const errorBody = await res.json().catch(() => ({ error: `Request failed with status ${res.status}` }));
+
+        throw new Error(errorBody.error || `Request failed with status ${res.status}`);
+
+    }
+
+    if (res.headers.get('Content-Length') === '0' || !res.headers.get('Content-Type')?.includes('application/json')) {
+
+        return null;
+
+    }
+
+    return res.json();
+
+}
+
+
+
+
 
 export async function getQuestions(): Promise<Question[]> {
+
   const res = await fetch('/api/questions');
+
   if (!res.ok) {
+
     throw new Error('Failed to fetch questions');
+
   }
+
   return res.json();
+
 }
+
+
 
 export async function updateQuestion(question: Partial<Question>): Promise<Question> {
+
   const res = await fetch(`/api/questions`, {
+
     method: 'PATCH',
+
     headers: {
+
       'Content-Type': 'application/json',
+
     },
+
     body: JSON.stringify(question),
+
   });
-  if (!res.ok) {
-    const errorBody = await res.json().catch(() => ({ error: 'Failed to parse error response' }));
-    throw new Error(errorBody.error || 'Failed to update question');
-  }
-  return res.json();
+
+  return handleResponse(res);
+
 }
+
+
 
 export async function getHistory(): Promise<History[]> {
+
   const res = await fetch('/api/history');
+
   if (!res.ok) {
+
     throw new Error('Failed to fetch history');
+
   }
+
   return res.json();
+
 }
+
+
 
 export async function writeQuestions(questions: Question[]): Promise<void> {
+
   const res = await fetch('/api/questions', {
+
     method: 'POST',
+
     headers: {
+
       'Content-Type': 'application/json',
+
     },
+
     body: JSON.stringify(questions),
+
   });
-  if (!res.ok) {
-    const errorBody = await res.json().catch(() => ({ error: 'Failed to parse error response' }));
-    throw new Error(errorBody.error || 'Failed to write questions');
-  }
+
+  await handleResponse(res);
+
 }
+
+
 
 // 新しい履歴エントリ（単数または複数）を追加する
+
 export async function writeHistory(newEntries: History | History[]): Promise<void> {
+
   const res = await fetch('/api/history', {
+
     method: 'POST',
+
     headers: {
+
       'Content-Type': 'application/json',
+
     },
+
     // サーバー側で配列として処理するため、単一オブジェクトも配列でラップする
+
     body: JSON.stringify(Array.isArray(newEntries) ? newEntries : [newEntries]),
+
   });
-  if (!res.ok) {
-    const errorBody = await res.json().catch(() => ({ error: 'Failed to parse error response' }));
-    throw new Error(errorBody.error || 'Failed to write history');
-  }
+
+  await handleResponse(res);
+
 }
+
+
 
 // すべての履歴を削除する
+
 export async function deleteHistory(): Promise<void> {
-  await fetch('/api/history', {
+
+  const res = await fetch('/api/history', {
+
     method: 'DELETE',
+
   });
+
+  await handleResponse(res);
+
 }
+
+
 
 export async function getQuizSessions(): Promise<QuizSession[]> {
+
   const res = await fetch('/api/quiz-sessions');
+
   if (!res.ok) {
+
     throw new Error('Failed to fetch quiz sessions');
+
   }
+
   return res.json();
+
 }
+
+
 
 // 新しいクイズセッション（単数または複数）を追加する
+
 export async function writeQuizSessions(newSessions: QuizSession | QuizSession[]): Promise<void> {
+
   const res = await fetch('/api/quiz-sessions', {
+
     method: 'POST',
+
     headers: {
+
       'Content-Type': 'application/json',
+
     },
+
     body: JSON.stringify(newSessions),
+
   });
-  if (!res.ok) {
-    const errorBody = await res.json().catch(() => ({ error: 'Failed to parse error response' }));
-    throw new Error(errorBody.error || 'Failed to write quiz sessions');
-  }
+
+  await handleResponse(res);
+
 }
 
+
+
 // すべてのクイズセッションを削除する
+
 export async function deleteQuizSessions(): Promise<void> {
-  await fetch('/api/quiz-sessions', {
+
+  const res = await fetch('/api/quiz-sessions', {
+
     method: 'DELETE',
+
   });
+
+  await handleResponse(res);
+
 }
