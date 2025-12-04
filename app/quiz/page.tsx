@@ -41,27 +41,42 @@ export default function QuizSettingsPage() {
   const [filterConsecutiveMistakes, setFilterConsecutiveMistakes] = useState(false);
 
   useEffect(() => {
-    const savedQuiz = sessionStorage.getItem('suspendedQuiz');
-    if (savedQuiz) {
-      setSuspendedQuiz(JSON.parse(savedQuiz));
-    }
+    const initializePage = async () => {
+      const savedQuiz = localStorage.getItem('suspendedQuiz');
+      if (savedQuiz) {
+        setSuspendedQuiz(JSON.parse(savedQuiz));
+        setIsLoading(false); // 中断クイズがあるので、データ取得せずにローディング完了
+        return; // これ以降の処理は不要
+      }
 
-    const savedSettings = sessionStorage.getItem('quizSettings');
-    if (savedSettings) {
-      const settings = JSON.parse(savedSettings);
-      if (settings.selectedCategories) setSelectedCategories(settings.selectedCategories);
-      if (settings.numQuestions) setNumQuestions(settings.numQuestions);
-      if (typeof settings.showTimer === 'boolean') setShowTimer(settings.showTimer);
-      if (typeof settings.filterUnanswered === 'boolean') setFilterUnanswered(settings.filterUnanswered);
-      if (typeof settings.filterLowCorrectness === 'boolean') setFilterLowCorrectness(settings.filterLowCorrectness);
-      if (typeof settings.lowCorrectnessPercentage === 'number') setLowCorrectnessPercentage(settings.lowCorrectnessPercentage);
-      if (typeof settings.filterLastIncorrect === 'boolean') setFilterLastIncorrect(settings.filterLastIncorrect);
-      if (typeof settings.filterConsecutiveMistakes === 'boolean') setFilterConsecutiveMistakes(settings.filterConsecutiveMistakes);
-    }
+      // 中断クイズがない場合のみ、通常の初期化処理を実行
+      setIsLoading(true);
+
+      const savedSettings = sessionStorage.getItem('quizSettings');
+      if (savedSettings) {
+        const settings = JSON.parse(savedSettings);
+        if (settings.selectedCategories) setSelectedCategories(settings.selectedCategories);
+        if (settings.numQuestions) setNumQuestions(settings.numQuestions);
+        if (typeof settings.showTimer === 'boolean') setShowTimer(settings.showTimer);
+        if (typeof settings.filterUnanswered === 'boolean') setFilterUnanswered(settings.filterUnanswered);
+        if (typeof settings.filterLowCorrectness === 'boolean') setFilterLowCorrectness(settings.filterLowCorrectness);
+        if (typeof settings.lowCorrectnessPercentage === 'number') setLowCorrectnessPercentage(settings.lowCorrectnessPercentage);
+        if (typeof settings.filterLastIncorrect === 'boolean') setFilterLastIncorrect(settings.filterLastIncorrect);
+        if (typeof settings.filterConsecutiveMistakes === 'boolean') setFilterConsecutiveMistakes(settings.filterConsecutiveMistakes);
+      }
+
+      const [questions, historyData] = await Promise.all([getQuestions(), getHistory()]);
+      setAllQuestions(questions);
+      setHistory(historyData);
+      setIsLoading(false);
+    };
+
+    initializePage();
   }, []);
 
   useEffect(() => {
-    if (!isLoading) {
+    // isLoadingがfalseになった後、かつ中断クイズがない場合のみ設定を保存
+    if (!isLoading && !suspendedQuiz) {
       const settings = {
         selectedCategories,
         numQuestions,
@@ -74,18 +89,7 @@ export default function QuizSettingsPage() {
       };
       sessionStorage.setItem('quizSettings', JSON.stringify(settings));
     }
-  }, [selectedCategories, numQuestions, showTimer, filterUnanswered, filterLowCorrectness, lowCorrectnessPercentage, filterLastIncorrect, filterConsecutiveMistakes, isLoading]);
-
-  useEffect(() => {
-    const fetchInitialData = async () => {
-      setIsLoading(true);
-      const [questions, historyData] = await Promise.all([getQuestions(), getHistory()]);
-      setAllQuestions(questions);
-      setHistory(historyData);
-      setIsLoading(false);
-    };
-    fetchInitialData();
-  }, []);
+  }, [selectedCategories, numQuestions, showTimer, filterUnanswered, filterLowCorrectness, lowCorrectnessPercentage, filterLastIncorrect, filterConsecutiveMistakes, isLoading, suspendedQuiz]);
 
   const filteredQuestions = useMemo(() => {
     const activeFilters = filterUnanswered || filterLowCorrectness || filterLastIncorrect || filterConsecutiveMistakes;
@@ -217,7 +221,7 @@ export default function QuizSettingsPage() {
     };
 
     const handleStartNew = () => {
-      sessionStorage.removeItem('suspendedQuiz');
+      localStorage.removeItem('suspendedQuiz');
       setSuspendedQuiz(null);
     };
 

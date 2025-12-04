@@ -73,7 +73,7 @@ export default function QuizPlayPage() {
       limitParam,
       showTimerParam: showTimer,
     };
-    sessionStorage.setItem('suspendedQuiz', JSON.stringify(suspendedState));
+    localStorage.setItem('suspendedQuiz', JSON.stringify(suspendedState));
     console.log('[PlayPage] Suspending quiz. State saved:', suspendedState);
   }, [questions, userAnswers, currentQuestionIndex, elapsedTime, questionIdsParam, categoriesParam, limitParam, showTimer]);
 
@@ -296,7 +296,8 @@ export default function QuizPlayPage() {
   useEffect(() => {
     const loadQuiz = async () => {
       setIsLoading(true);
-      const savedStateJSON = sessionStorage.getItem('suspendedQuiz');
+      const savedStateJSON = localStorage.getItem('suspendedQuiz'); //修正点：sessionStorageからlocalStorageに変更
+
       if (savedStateJSON) {
         const savedState = JSON.parse(savedStateJSON);
         setQuestions(savedState.questions || []);
@@ -305,6 +306,8 @@ export default function QuizPlayPage() {
         setElapsedTime(savedState.elapsedTime || 0);
         setShowTimer(savedState.showTimerParam);
         setStartTime(new Date());
+        
+        localStorage.removeItem('suspendedQuiz'); // 修正点：読み込んだら削除する
       } else {
         const allHistory = await getHistory();
         const historyByQuestionId: Record<string, History[]> = {};
@@ -351,7 +354,7 @@ export default function QuizPlayPage() {
       setIsLoading(false);
     };
     loadQuiz();
-  }, [categoriesParam, limitParam, questionIdsParam, searchParams]);
+  }, [categoriesParam, limitParam, questionIdsParam, initialShowTimer]);
 
   useEffect(() => {
     if (!showTimer || !startTime) return;
