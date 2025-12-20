@@ -74,3 +74,42 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: 'An unknown error occurred' }, { status: 500 });
   }
 }
+
+export async function DELETE(request: Request) {
+  try {
+    const body = await request.json().catch(() => null);
+
+    if (body && body.ids && Array.isArray(body.ids) && body.ids.length > 0) {
+      // Delete related history first
+      const { error: historyError } = await supabase
+        .from('history')
+        .delete()
+        .in('question_id', body.ids);
+
+      if (historyError) {
+        console.error('Supabase error deleting history:', historyError);
+        return NextResponse.json({ error: historyError.message }, { status: 500 });
+      }
+
+      // Then delete the questions
+      const { error: questionError } = await supabase
+        .from('questions')
+        .delete()
+        .in('id', body.ids);
+
+      if (questionError) {
+        console.error('Supabase error deleting questions:', questionError);
+        return NextResponse.json({ error: questionError.message }, { status: 500 });
+      }
+
+      return NextResponse.json({ success: true, deleted: body.ids.length });
+    } else {
+      return NextResponse.json({ error: 'Invalid request body. Expected { ids: string[] }' }, { status: 400 });
+    }
+  } catch (e) {
+    if (e instanceof Error) {
+      return NextResponse.json({ error: e.message }, { status: 500 });
+    }
+    return NextResponse.json({ error: 'An unknown error occurred' }, { status: 500 });
+  }
+}
