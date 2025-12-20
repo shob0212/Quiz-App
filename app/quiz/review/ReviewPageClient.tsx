@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { getQuestions, updateQuestion, Question } from "@/lib/data"
 import { ArrowLeft, Check, X, Pencil } from "lucide-react"
@@ -13,6 +13,7 @@ import { Toaster } from "@/components/ui/toaster"
 
 export default function ReviewPageClient({ questionId }: { questionId: string | string[] | undefined }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
 
   const [question, setQuestion] = useState<Question | null>(null);
@@ -22,16 +23,21 @@ export default function ReviewPageClient({ questionId }: { questionId: string | 
   const [isEditingExplanation, setIsEditingExplanation] = useState(false);
   const [editedExplanation, setEditedExplanation] = useState("");
 
+  const resolvedQuestionId = useMemo(() => {
+    if (Array.isArray(questionId)) return questionId[0];
+    return questionId ?? searchParams.get("questionId") ?? undefined;
+  }, [questionId, searchParams]);
+
   useEffect(() => {
     const fetchQuestionAndAnswers = async () => {
-      if (!questionId) {
+      if (!resolvedQuestionId) {
         setIsLoading(false);
         return;
       }
       setIsLoading(true);
 
       const allQuestions = await getQuestions();
-      const foundQuestion = allQuestions.find(q => q.id === questionId);
+      const foundQuestion = allQuestions.find(q => q.id === resolvedQuestionId);
       setQuestion(foundQuestion || null);
       if (foundQuestion) {
         setEditedExplanation(foundQuestion.explanation || "");
@@ -44,16 +50,16 @@ export default function ReviewPageClient({ questionId }: { questionId: string | 
         const allUserAnswers = JSON.parse(answersString);
         const allResults = JSON.parse(resultsString);
         
-        setUserAnswers(allUserAnswers[questionId] || []);
+        setUserAnswers(allUserAnswers[resolvedQuestionId] || []);
 
-        const result = allResults.find((r: any) => r.questionId === questionId);
+        const result = allResults.find((r: any) => r.questionId === resolvedQuestionId);
         setIsCorrect(result ? result.isCorrect : null);
       }
 
       setIsLoading(false);
     };
     fetchQuestionAndAnswers();
-  }, [questionId]);
+  }, [resolvedQuestionId]);
   
   const handleSaveExplanation = async () => {
     if (!question) return;

@@ -53,6 +53,10 @@ export default function QuizPlayPage() {
 
   const [elapsedTime, setElapsedTime] = useState(0);
   const [showTimer, setShowTimer] = useState(false);
+  const [isExamMode, setIsExamMode] = useState(false);
+  const EXAM_DURATION_SECONDS = 130 * 60;
+  const [remainingTime, setRemainingTime] = useState(EXAM_DURATION_SECONDS);
+  const [unscoredQuestionIds, setUnscoredQuestionIds] = useState<string[]>([]);
 
   const saveSuspendedQuiz = useCallback(() => {
     if (!questions || questions.length === 0) {
@@ -256,7 +260,7 @@ export default function QuizPlayPage() {
     };
 
     try {
-      const { shuffledOptions, ...questionToUpdate } = cleanedQuestionData;
+      const questionToUpdate = { ...cleanedQuestionData } as Question;
       const updatedQuestion = await updateQuestion(questionToUpdate);
 
       setQuestions(prevQuestions => {
@@ -316,7 +320,9 @@ export default function QuizPlayPage() {
 
     const loadQuiz = async () => {
       setIsLoading(true);
-      const savedStateJSON = localStorage.getItem('suspendedQuiz');
+      const examParam = searchParams.get('exam') === 'true';
+      setIsExamMode(examParam);
+      const savedStateJSON = examParam ? null : localStorage.getItem('suspendedQuiz');
 
       if (savedStateJSON) {
         console.log("Suspended quiz found, attempting to restore.");
@@ -368,6 +374,7 @@ export default function QuizPlayPage() {
         const limitParam = searchParams.get('limit');
         const showTimerParamFromUrl = searchParams.get('showTimer');
         const initialShowTimer = showTimerParamFromUrl === 'true';
+        const examParamLocal = searchParams.get('exam') === 'true';
 
         // Fetch history only for new quizzes to avoid unnecessary fetches on restore
         const allHistory = await getHistory();
@@ -383,7 +390,7 @@ export default function QuizPlayPage() {
         }
         setHistory(historyByQuestionId);
         
-        setShowTimer(initialShowTimer);
+        setShowTimer(examParamLocal ? true : initialShowTimer);
         const allQuestions = await getQuestions();
         let selectedQuestions: Question[] = [];
 
@@ -391,6 +398,8 @@ export default function QuizPlayPage() {
           const questionIds = questionIdsParam.split(',');
           const questionIdMap = new Map(allQuestions.map(q => [q.id, q]));
           selectedQuestions = questionIds.map(id => questionIdMap.get(id)).filter((q): q is Question => !!q);
+          // Shuffle the selected questions
+          selectedQuestions = shuffleArray(selectedQuestions);
         } else if (categoriesParam) {
           const categories = categoriesParam.split(",");
           const limit = Number(limitParam);
@@ -417,31 +426,55 @@ export default function QuizPlayPage() {
         });
         setQuestions(questionsWithShuffledOptions);
         setStartTime(new Date());
+        if (examParamLocal) {
+          const ids = selectedQuestions.map(q => q.id);
+          const shuffledIds = shuffleArray(ids);
+          setUnscoredQuestionIds(shuffledIds.slice(0, Math.min(15, shuffledIds.length)));
+          setRemainingTime(EXAM_DURATION_SECONDS);
+        }
     }
 
     loadQuiz();
   }, []);
 
   useEffect(() => {
-    if (!showTimer || !startTime) return;
+    if (!startTime) return;
+    if (isExamMode) {
+      const timer = setInterval(() => {
+        const elapsed = Math.floor((new Date().getTime() - startTime.getTime()) / 1000);
+        const remain = Math.max(0, EXAM_DURATION_SECONDS - elapsed);
+        setRemainingTime(remain);
+        if (remain <= 0) {
+          clearInterval(timer);
+          handleFinishQuiz();
+        }
+      }, 1000);
+      return () => clearInterval(timer);
+    }
+    if (!showTimer) return;
     const initialElapsed = elapsedTime;
     const timer = setInterval(() => {
       const currentElapsed = Math.floor((new Date().getTime() - startTime.getTime()) / 1000);
       setElapsedTime(initialElapsed + currentElapsed);
     }, 1000);
     return () => clearInterval(timer);
-  }, [startTime, showTimer]);
+  }, [startTime, showTimer, isExamMode]);
 
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      saveSuspendedQuiz();
-      e.returnValue = '';
+      if (isExamMode) {
+        e.preventDefault();
+        e.returnValue = '';
+      } else {
+        saveSuspendedQuiz();
+        e.returnValue = '';
+      }
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
-  }, [saveSuspendedQuiz]);
+  }, [saveSuspendedQuiz, isExamMode]);
 
   const handleAnswerToggle = (optionIndex: number) => {
     if (!currentQuestion) return;
@@ -479,6 +512,12 @@ export default function QuizPlayPage() {
 
       const total_questions = questions.length;
       const correct_count = results.filter(r => r.isCorrect).length;
+      const scoredResults = isExamMode ? results.filter(r => !unscoredQuestionIds.includes(r.questionId)) : results;
+      const scored_total = scoredResults.length;
+      const scored_correct = scoredResults.filter(r => r.isCorrect).length;
+      const correct_rate_excluding_unscored = scored_total > 0 ? parseFloat(((scored_correct / scored_total) * 100).toFixed(2)) : 0;
+      const pass_threshold = 72;
+      const pass = isExamMode ? correct_rate_excluding_unscored >= pass_threshold : undefined;
       const finished_at = new Date().toISOString();
       const categoriesInQuiz = Array.from(new Set(questions.map(q => q.category)));
 
@@ -490,8 +529,14 @@ export default function QuizPlayPage() {
         correct_count: correct_count,
         incorrect_count: total_questions - correct_count,
         correct_rate: total_questions > 0 ? parseFloat(((correct_count / total_questions) * 100).toFixed(2)) : 0,
-        elapsed_time_seconds: elapsedTime,
+        elapsed_time_seconds: isExamMode ? (EXAM_DURATION_SECONDS - remainingTime) : elapsedTime,
         categories: categoriesInQuiz,
+        is_exam_mode: isExamMode,
+        unscored_question_ids: isExamMode ? unscoredQuestionIds : undefined,
+        correct_rate_excluding_unscored: isExamMode ? correct_rate_excluding_unscored : undefined,
+        pass: isExamMode ? pass : undefined,
+        pass_threshold: isExamMode ? pass_threshold : undefined,
+        exam_duration_seconds: isExamMode ? EXAM_DURATION_SECONDS : undefined,
       };
 
       const newHistoryEntries: History[] = results.map(result => ({
@@ -532,6 +577,17 @@ export default function QuizPlayPage() {
 
       sessionStorage.setItem('quizResults', JSON.stringify(results));
       sessionStorage.setItem('quizUserAnswers', JSON.stringify(userAnswers));
+      if (isExamMode) {
+        sessionStorage.setItem('examMode', 'true');
+        sessionStorage.setItem('unscoredQuestionIds', JSON.stringify(unscoredQuestionIds));
+        sessionStorage.setItem('examScoredRate', JSON.stringify(correct_rate_excluding_unscored));
+        sessionStorage.setItem('examPass', JSON.stringify(pass));
+      } else {
+        sessionStorage.removeItem('examMode');
+        sessionStorage.removeItem('unscoredQuestionIds');
+        sessionStorage.removeItem('examScoredRate');
+        sessionStorage.removeItem('examPass');
+      }
       sessionStorage.removeItem('suspendedQuiz');
       router.push(`/quiz/results`);
     } catch (error) {
@@ -566,6 +622,13 @@ export default function QuizPlayPage() {
     return `${mins}:${secs}`;
   }
 
+    const formatTimeWithHours = (seconds: number) => {
+      const hours = Math.floor(seconds / 3600).toString().padStart(2, '0');
+      const mins = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
+      const secs = (seconds % 60).toString().padStart(2, '0');
+      return `${hours}:${mins}:${secs}`;
+    }
+
   return (
     <div className="min-h-screen bg-background pb-20">
       <div className="container mx-auto px-4 py-6 max-w-2xl">
@@ -577,15 +640,26 @@ export default function QuizPlayPage() {
               </AlertDialogTrigger>
               <AlertDialogContent style={{ backgroundColor: 'white' }}>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>クイズを中断しますか？</AlertDialogTitle>
-                  <AlertDialogDescription>現在の進捗は保存され、後で再開できます。</AlertDialogDescription>
+                  {isExamMode ? (
+                    <>
+                      <AlertDialogTitle>試験中は中断できません</AlertDialogTitle>
+                      <AlertDialogDescription>このまま続行してください（進捗は保存されません）。</AlertDialogDescription>
+                    </>
+                  ) : (
+                    <>
+                      <AlertDialogTitle>クイズを中断しますか？</AlertDialogTitle>
+                      <AlertDialogDescription>現在の進捗は保存され、後で再開できます。</AlertDialogDescription>
+                    </>
+                  )}
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>キャンセル</AlertDialogCancel>
-                  <AlertDialogAction onClick={() => {
-                    saveSuspendedQuiz();
-                    router.push("/quiz");
-                  }} className="bg-red-500 hover:bg-red-600 text-white">中断して戻る</AlertDialogAction>
+                  <AlertDialogCancel>{isExamMode ? '続行する' : 'キャンセル'}</AlertDialogCancel>
+                  {!isExamMode && (
+                    <AlertDialogAction onClick={() => {
+                      saveSuspendedQuiz();
+                      router.push("/quiz");
+                    }} className="bg-red-500 hover:bg-red-600 text-white">中断して戻る</AlertDialogAction>
+                  )}
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
@@ -610,35 +684,37 @@ export default function QuizPlayPage() {
                 </div>
               </DialogContent>
             </Dialog>
-            {showTimer && (
+            {(isExamMode || showTimer) && (
               <div className="flex items-center gap-2 text-lg font-semibold text-foreground">
                 <Clock className="w-5 h-5" />
-                <span>{formatTime(elapsedTime)}</span>
+                  <span>{isExamMode ? formatTimeWithHours(remainingTime) : formatTime(elapsedTime)}</span>
               </div>
             )}
           </div>
         </div>
 
         <Card className="p-6 mb-6 border-border">
-          <div>
-            <div className="mb-3 text-sm text-muted-foreground border-t border-b py-3">
-              <div className="flex items-center justify-between">
-                <span>最終回答: {currentQuestionHistory.length > 0 ? new Date(currentQuestionHistory[0].answered_at).toLocaleString('ja-JP') : "-"}</span>
-                <div className="flex items-center gap-2">
-                  <span>直近5回:</span>
-                  <div className="flex gap-1 font-mono">
-                    {currentQuestionHistory.slice(0, 5).map(h => h.result ? "〇" : "✕").join("").padEnd(5, "-").split("").map((char, index) => (
-                      <span key={index} className={char === "〇" ? "font-bold text-green-500" : char === "✕" ? "font-bold text-red-500" : ""}>{char}</span>
-                    ))}
+          {!isExamMode && (
+            <div>
+              <div className="mb-3 text-sm text-muted-foreground border-t border-b py-3">
+                <div className="flex items-center justify-between">
+                  <span>最終回答: {currentQuestionHistory.length > 0 ? new Date(currentQuestionHistory[0].answered_at).toLocaleString('ja-JP') : "-"}</span>
+                  <div className="flex items-center gap-2">
+                    <span>直近5回:</span>
+                    <div className="flex gap-1 font-mono">
+                      {currentQuestionHistory.slice(0, 5).map(h => h.result ? "〇" : "✕").join("").padEnd(5, "-").split("").map((char, index) => (
+                        <span key={index} className={char === "〇" ? "font-bold text-green-500" : char === "✕" ? "font-bold text-red-500" : ""}>{char}</span>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
+              <div className="flex justify-end gap-2 mb-6">
+                <Button variant="outline" size="sm" onClick={handleCopyQuestionAndOptions}><Copy className="w-4 h-4 mr-2" />コピー</Button>
+                <Button variant="outline" size="sm" onClick={handleEditQuestionClick}><Pencil className="w-4 h-4 mr-2" />編集</Button>
+              </div>
             </div>
-            <div className="flex justify-end gap-2 mb-6">
-              <Button variant="outline" size="sm" onClick={handleCopyQuestionAndOptions}><Copy className="w-4 h-4 mr-2" />コピー</Button>
-              <Button variant="outline" size="sm" onClick={handleEditQuestionClick}><Pencil className="w-4 h-4 mr-2" />編集</Button>
-            </div>
-          </div>
+          )}
           
           <div className="mb-6">
             <h2 className="text-lg font-semibold text-foreground leading-relaxed whitespace-pre-wrap flex-1 mr-4">{currentQuestion.question}</h2>
@@ -670,7 +746,7 @@ export default function QuizPlayPage() {
           </div>
         </Card>
 
-        {showAnswer && (
+        {showAnswer && !isExamMode && (
           <Card className="p-6 mb-6 border-border">
             <h3 className="text-lg font-bold mb-2">解説</h3>
             {isEditingExplanation ? (
@@ -693,7 +769,10 @@ export default function QuizPlayPage() {
         </div>
 
         <div className="flex justify-between items-center mb-4">
-          <Button onClick={() => setShowAnswer(!showAnswer)} variant="outline"><Eye className="w-4 h-4 mr-2" />{showAnswer ? "解答を隠す" : "解答を表示"}</Button>
+          {!isExamMode && (
+            <Button onClick={() => setShowAnswer(!showAnswer)} variant="outline"><Eye className="w-4 h-4 mr-2" />{showAnswer ? "解答を隠す" : "解答を表示"}</Button>
+          )}
+          {isExamMode && <div />}
           <AlertDialog>
             <AlertDialogTrigger asChild><Button variant="outline"><XCircle className="w-4 h-4 mr-2" />終了する</Button></AlertDialogTrigger>
             <AlertDialogContent style={{ backgroundColor: 'white' }}>

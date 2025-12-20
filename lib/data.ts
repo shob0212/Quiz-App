@@ -42,6 +42,14 @@ export interface QuizSession {
 
   categories: string[];
 
+  // exam mode fields (optional to preserve compatibility)
+  is_exam_mode?: boolean;
+  unscored_question_ids?: string[];
+  correct_rate_excluding_unscored?: number;
+  pass?: boolean;
+  pass_threshold?: number;
+  exam_duration_seconds?: number;
+
 }
 
 
@@ -260,4 +268,16 @@ export async function deleteQuizSessions(): Promise<void> {
 
   await handleResponse(res);
 
+}
+
+// 選択した問題を削除する
+export async function deleteQuestions(questionIds: string[]): Promise<void> {
+  const res = await fetch('/api/questions', {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ ids: questionIds }),
+  });
+  await handleResponse(res);
 }

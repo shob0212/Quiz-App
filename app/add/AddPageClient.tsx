@@ -4,7 +4,7 @@
 import React, { useState, useEffect, useMemo, useRef, memo, Suspense } from "react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
-import { getQuestions, getHistory, writeQuestions, deleteHistory, deleteQuizSessions, Question, History, QuizSession } from "@/lib/data"
+import { getQuestions, getHistory, writeQuestions, deleteHistory, deleteQuizSessions, deleteQuestions, Question, History, QuizSession } from "@/lib/data"
 import {
   Home, Plus, List, Target, BarChart3, ArrowLeft, GripVertical, ChevronDown, Search, Trash2, PenSquare, ArrowUp, ArrowDown
 } from "lucide-react"
@@ -36,6 +36,7 @@ import { Spinner } from "@/components/ui/spinner"
 
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
+import { Checkbox } from "@/components/ui/checkbox"
 import { useToast } from "@/components/ui/use-toast"
 
 // --- 型定義 ---
@@ -106,6 +107,8 @@ export default function AddPageClient() {
   }, [isEditMode]);
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [selectedQuestionIds, setSelectedQuestionIds] = useState<Set<string>>(new Set())
   const [editingQuestion, setEditingQuestion] = useState<ManagedQuestion | null>(null)
   const [currentFormData, setCurrentFormData] = useState<EditFormData>({})
   const [highlightedQuestionId, setHighlightedQuestionId] = useState<string | null>(null)
@@ -295,6 +298,70 @@ const handleResetHistoryClick = () => {
     }
   };
 
+  const handleDeleteSelectedQuestions = () => {
+    if (selectedQuestionIds.size === 0) {
+      toast({
+        title: "削除する問題を選択してください",
+        variant: "destructive",
+      });
+      return;
+    }
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    try {
+      const questionIdsToDelete = Array.from(selectedQuestionIds);
+      
+      // Delete questions from Supabase (this also deletes related history)
+      await deleteQuestions(questionIdsToDelete);
+      
+      // Update local state
+      const remainingQuestions = questions.filter(q => !selectedQuestionIds.has(q.id));
+      
+      // Reindex the positions
+      const reindexedQuestions = remainingQuestions.map((q, index) => ({
+        ...q,
+        position: index,
+      }));
+
+      setQuestions(reindexedQuestions);
+      setSelectedQuestionIds(new Set());
+      setIsDeleteDialogOpen(false);
+      toast({
+        title: "成功",
+        description: `${questionIdsToDelete.length}件の問題が削除されました。`,
+      });
+    } catch (error) {
+      console.error("Failed to delete questions:", error);
+      toast({
+        title: "エラー",
+        description: "問題の削除中にエラーが発生しました。",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleCheckboxChange = (questionId: string) => {
+    setSelectedQuestionIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(questionId)) {
+        newSet.delete(questionId);
+      } else {
+        newSet.add(questionId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleSelectAll = () => {
+    if (selectedQuestionIds.size === filteredQuestions.length) {
+      setSelectedQuestionIds(new Set());
+    } else {
+      setSelectedQuestionIds(new Set(filteredQuestions.map(q => q.id)));
+    }
+  };
+
   useEffect(() => {
     const highlightId = searchParams.highlight as string | undefined;
     if (highlightId) {
@@ -393,10 +460,21 @@ const handleResetHistoryClick = () => {
                     onSelect={setFilterCategory}
                 />
                 {isEditMode ? (
-                    <Button variant="default" className="bg-red-600 text-white" onClick={handleResetHistoryClick}>
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    学習履歴リセット
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="default" 
+                        className={`${selectedQuestionIds.size > 0 ? 'bg-red-600 hover:bg-red-700' : 'bg-gray-400'} text-white`}
+                        onClick={handleDeleteSelectedQuestions}
+                        disabled={selectedQuestionIds.size === 0}
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        {selectedQuestionIds.size > 0 ? `削除 (${selectedQuestionIds.size})` : "削除"}
+                      </Button>
+                      <Button variant="default" className="bg-red-600 text-white" onClick={handleResetHistoryClick}>
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        学習履歴リセット
+                      </Button>
+                    </div>
                 ) : (
                     <Link href="/questions/new">
                     <Button className="bg-green-600 hover:bg-green-700 text-white">
@@ -426,6 +504,15 @@ const handleResetHistoryClick = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      {isEditMode && (
+                        <TableHead className="w-12">
+                          <Checkbox 
+                            checked={selectedQuestionIds.size === filteredQuestions.length && filteredQuestions.length > 0}
+                            onCheckedChange={handleSelectAll}
+                            className="cursor-pointer"
+                          />
+                        </TableHead>
+                      )}
                       {isEditMode && <TableHead className="w-20"></TableHead>}
                       <TableHead className="w-20 cursor-pointer" onClick={() => handleSort('correctRate')}>
                         <div className="flex items-center">
@@ -458,9 +545,18 @@ const handleResetHistoryClick = () => {
                       {filteredQuestions.map((q) => (
                         <TableRow
                           key={q.id}
-                          className={highlightedQuestionId === q.id ? "bg-yellow-100 dark:bg-yellow-900" : ""}
+                          className={`${highlightedQuestionId === q.id ? "bg-yellow-100 dark:bg-yellow-900" : ""} ${selectedQuestionIds.has(q.id) ? "bg-blue-50 dark:bg-blue-900" : ""}`}
                           ref={(el) => (rowRefs.current[q.id] = el)}
                         >
+                            {isEditMode && (
+                                <TableCell className="w-12">
+                                    <Checkbox 
+                                      checked={selectedQuestionIds.has(q.id)}
+                                      onCheckedChange={() => handleCheckboxChange(q.id)}
+                                      className="cursor-pointer"
+                                    />
+                                </TableCell>
+                            )}
                             {isEditMode && (
                                 <TableCell className="w-20">
                                     <div className="flex items-center">
@@ -499,6 +595,20 @@ const handleResetHistoryClick = () => {
             <AlertDialogFooter>
             <AlertDialogCancel>キャンセル</AlertDialogCancel>
             <AlertDialogAction className="bg-red-500 text-white" onClick={handleResetHistoryConfirm}>削除</AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+        </AlertDialog>
+        <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+            <AlertDialogHeader>
+            <AlertDialogTitle>問題を削除</AlertDialogTitle>
+            <AlertDialogDescription>
+                本当に{selectedQuestionIds.size}件の問題を削除しますか？この操作は元に戻せません。
+            </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+            <AlertDialogCancel>キャンセル</AlertDialogCancel>
+            <AlertDialogAction className="bg-red-500 text-white" onClick={handleDeleteConfirm}>削除</AlertDialogAction>
             </AlertDialogFooter>
         </AlertDialogContent>
         </AlertDialog>
