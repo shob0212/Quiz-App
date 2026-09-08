@@ -49,7 +49,6 @@ type EditFormData = {
   question?: string;
   options?: string[];
   correct_answers_str?: string;
-  explanation?: string;
   category?: string;
 };
 
@@ -184,7 +183,6 @@ export default function AddPageClient() {
         question: question.question,
         options: question.options,
         correct_answers_str: question.correct_answers.map(n => n + 1).join(','), // Convert number[] to string for input
-        explanation: question.explanation || '',
         category: question.category,
     });
     setIsEditDialogOpen(true);
@@ -221,7 +219,7 @@ export default function AddPageClient() {
       question: currentFormData.question || editingQuestion.question,
       options: currentFormData.options || editingQuestion.options,
       correct_answers: parsedCorrectAnswers,
-      explanation: currentFormData.explanation || editingQuestion.explanation,
+      explanation: null,
       category: currentFormData.category || editingQuestion.category,
       position: editingQuestion.position, // Keep original
       last_answered: editingQuestion.last_answered, // Keep original
@@ -657,18 +655,6 @@ const handleResetHistoryClick = () => {
                     id="correct_answers_str"
                     name="correct_answers_str"
                     value={currentFormData.correct_answers_str || ''}
-                    onChange={handleFormChange}
-                    className="col-span-3"
-                />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="explanation" className="text-right">
-                    解説
-                </Label>
-                <Textarea
-                    id="explanation"
-                    name="explanation"
-                    value={currentFormData.explanation || ''}
                     onChange={handleFormChange}
                     className="col-span-3"
                 />

@@ -4,6 +4,7 @@ import { GeistMono } from 'geist/font/mono'
 import { Analytics } from '@vercel/analytics/next'
 import { Toaster } from '@/components/ui/toaster'
 import { ConditionalBottomNav } from '@/components/layout/conditional-bottom-nav'
+import { AuthGate } from '@/components/layout/auth-gate'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -20,6 +21,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable}`}>
+        <AuthGate />
         <main className="pb-20">{children}</main>
         <ConditionalBottomNav />
         <Analytics />

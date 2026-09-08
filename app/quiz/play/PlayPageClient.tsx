@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback, useRef } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { getQuestions, updateQuestion, writeHistory, Question, History, QuizSession, writeQuizSessions, getHistory, AuthError } from "@/lib/data"
+import { getQuestions, updateQuestion, writeHistory, Question, History, QuizSession, writeQuizSessions, getHistory, AuthError, getQuestionNote, upsertQuestionNote } from "@/lib/data"
 import { ArrowLeft, ChevronLeft, ChevronRight, Check, X, Clock, Eye, XCircle, List, Pencil, Copy } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -90,22 +90,26 @@ export default function QuizPlayPage() {
   }, [currentQuestion, history]);
 
   useEffect(() => {
-    if (currentQuestion) {
-      setEditedExplanation(currentQuestion.explanation || "");
+    const loadNote = async () => {
+      if (!currentQuestion) return;
       setShowAnswer(false);
-    }
+      try {
+        const note = await getQuestionNote(currentQuestion.id);
+        setEditedExplanation(note?.note || "");
+      } catch {
+        setEditedExplanation("");
+      }
+    };
+    loadNote();
   }, [currentQuestion]);
   
   const handleSaveExplanation = async () => {
     if (!currentQuestion) return;
 
     try {
-      const updatedQuestion = await updateQuestion({ id: currentQuestion.id, explanation: editedExplanation });
-      setQuestions(prevQuestions => prevQuestions.map(q =>
-        q.id === currentQuestion.id ? { ...q, explanation: updatedQuestion.explanation } : q
-      ));
+      await upsertQuestionNote(currentQuestion.id, editedExplanation);
       toast({
-        title: "解説を保存しました",
+        title: "メモを保存しました",
       });
       setIsEditingExplanation(false);
     } catch(e) {
@@ -120,7 +124,7 @@ export default function QuizPlayPage() {
         router.push('/quiz');
       } else {
         toast({
-          title: '解説の保存に失敗しました',
+          title: 'メモの保存に失敗しました',
           variant: 'destructive'
         })
       }
@@ -748,15 +752,15 @@ export default function QuizPlayPage() {
 
         {showAnswer && !isExamMode && (
           <Card className="p-6 mb-6 border-border">
-            <h3 className="text-lg font-bold mb-2">解説</h3>
+            <h3 className="text-lg font-bold mb-2">個人メモ</h3>
             {isEditingExplanation ? (
               <>
                 <Textarea value={editedExplanation} onChange={(e) => setEditedExplanation(e.target.value)} className="mb-2" />
-                <Button onClick={handleSaveExplanation}>解説を保存</Button>
+                <Button onClick={handleSaveExplanation}>メモを保存</Button>
               </>
             ) : (
               <div className="flex flex-col gap-2">
-                <p className="text-muted-foreground whitespace-pre-wrap">{editedExplanation || "解説がありません。"}</p>
+                <p className="text-muted-foreground whitespace-pre-wrap">{editedExplanation || "メモがありません。"}</p>
                 <Button onClick={() => setIsEditingExplanation(true)} variant="outline" className="w-fit">編集</Button>
               </div>
             )}

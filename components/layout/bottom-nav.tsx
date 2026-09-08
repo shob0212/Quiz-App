@@ -2,13 +2,14 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Home, List, Target, BarChart3 } from "lucide-react"
+import { Home, List, Target, BarChart3, User } from "lucide-react"
 
 const navItems = [
   { href: "/", label: "ホーム", icon: Home },
   { href: "/quiz", label: "出題", icon: Target },
   { href: "/add", label: "管理", icon: List },
   { href: "/history", label: "履歴", icon: BarChart3 },
+  { href: "/profile", label: "Profile", icon: User },
 ]
 
 export function BottomNav() {
