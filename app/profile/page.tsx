@@ -2,20 +2,18 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, LogOut } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Spinner } from '@/components/ui/spinner'
-import { getCurrentUser, getProfile, runLegacyMigrationToCurrentAdmin, signOut, updateProfile, UserProfile } from '@/lib/data'
+import { getCurrentUser, getProfile, signOut, UserProfile } from '@/lib/data'
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [email, setEmail] = useState<string>('')
-  const [displayName, setDisplayName] = useState('')
   const [isLoading, setIsLoading] = useState(true)
-  const [isSaving, setIsSaving] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
 
   useEffect(() => {
@@ -25,7 +23,6 @@ export default function ProfilePage() {
         const [user, p] = await Promise.all([getCurrentUser(), getProfile()])
         setEmail(user?.email || '')
         setProfile(p)
-        setDisplayName(p.display_name || '')
       } catch (e) {
         setMessage(e instanceof Error ? e.message : 'プロフィール取得に失敗しました。')
       } finally {
@@ -35,33 +32,6 @@ export default function ProfilePage() {
 
     load()
   }, [])
-
-  const onSave = async () => {
-    setIsSaving(true)
-    setMessage(null)
-    try {
-      const updated = await updateProfile(displayName)
-      setProfile(updated)
-      setMessage('プロフィールを更新しました。')
-    } catch (e) {
-      setMessage(e instanceof Error ? e.message : '更新に失敗しました。')
-    } finally {
-      setIsSaving(false)
-    }
-  }
-
-  const onMigrate = async () => {
-    setIsSaving(true)
-    setMessage(null)
-    try {
-      const result = await runLegacyMigrationToCurrentAdmin()
-      setMessage(`移行完了: ${JSON.stringify(result.result ?? result)}`)
-    } catch (e) {
-      setMessage(e instanceof Error ? e.message : '移行に失敗しました。')
-    } finally {
-      setIsSaving(false)
-    }
-  }
 
   const onLogout = async () => {
     await signOut()
@@ -87,7 +57,7 @@ export default function ProfilePage() {
           </Link>
           <div>
             <h1 className="text-2xl font-bold text-foreground">プロフィール</h1>
-            <p className="text-sm text-muted-foreground">ユーザー情報と移行管理</p>
+            <p className="text-sm text-muted-foreground">ユーザー情報</p>
           </div>
         </div>
 
@@ -97,19 +67,13 @@ export default function ProfilePage() {
             <Input value={email} disabled />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="displayName">表示名</Label>
-            <Input id="displayName" value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
-          </div>
-
-          <div className="flex gap-2">
-            <Button onClick={onSave} disabled={isSaving}>表示名を保存</Button>
-            <Button variant="outline" onClick={onMigrate} disabled={isSaving}>既存履歴/解説をadminへ移行</Button>
-            <Button variant="destructive" onClick={onLogout}>ログアウト</Button>
-          </div>
-
           {message && <p className="text-sm text-muted-foreground">{message}</p>}
           {profile && <p className="text-xs text-muted-foreground">User ID: {profile.id}</p>}
+
+          <Button variant="destructive" size="lg" className="w-full" onClick={onLogout}>
+            <LogOut className="w-4 h-4 mr-2" />
+            ログアウト
+          </Button>
         </Card>
       </div>
     </div>

@@ -249,21 +249,3 @@ export async function getProfile(): Promise<UserProfile> {
   return handleResponse(res);
 }
 
-export async function updateProfile(displayName: string): Promise<UserProfile> {
-  const res = await authFetch('/api/profile', {
-    method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ display_name: displayName }),
-  });
-
-  return handleResponse(res);
-}
-
-export async function runLegacyMigrationToCurrentAdmin(): Promise<any> {
-  const res = await authFetch('/api/admin/legacy-migration', {
-    method: 'POST',
-  });
-  return handleResponse(res);
-}

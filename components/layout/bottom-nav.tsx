@@ -9,7 +9,7 @@ const navItems = [
   { href: "/quiz", label: "出題", icon: Target },
   { href: "/add", label: "管理", icon: List },
   { href: "/history", label: "履歴", icon: BarChart3 },
-  { href: "/profile", label: "Profile", icon: User },
+  { href: "/profile", label: "プロフィール", icon: User },
 ]
 
 export function BottomNav() {
@@ -25,9 +25,8 @@ export function BottomNav() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex flex-col items-center gap-1 transition-colors ${
-                  isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
-                }`}
+                className={`flex flex-col items-center gap-1 transition-colors ${isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
+                  }`}
               >
                 <item.icon className="w-5 h-5" />
                 <span className="text-xs font-medium">{item.label}</span>
