@@ -24,5 +24,13 @@ export async function getRequestUser(request: Request) {
     throw new ApiAuthError('Authentication failed', 401)
   }
 
-  return { user: data.user, supabase }
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('display_name')
+    .eq('id', data.user.id)
+    .maybeSingle()
+
+  const isAdmin = profile?.display_name?.trim().toLowerCase() === 'admin'
+
+  return { user: data.user, supabase, isAdmin }
 }

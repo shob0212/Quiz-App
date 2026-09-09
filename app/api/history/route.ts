@@ -4,13 +4,11 @@ import { ApiAuthError, getRequestUser } from '@/lib/serverAuth';
 
 export async function GET(request: Request) {
   try {
-    const { user, supabase } = await getRequestUser(request);
+    const { user, supabase, isAdmin } = await getRequestUser(request);
 
-    const { data, error } = await supabase
-      .from('history')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('answered_at', { ascending: false });
+    let query = supabase.from('history').select('*');
+    query = isAdmin ? query.or(`user_id.eq.${user.id},user_id.is.null`) : query.eq('user_id', user.id);
+    const { data, error } = await query.order('answered_at', { ascending: false });
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });

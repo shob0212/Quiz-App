@@ -4,9 +4,9 @@
 import React, { useState, useEffect, useMemo, useRef, memo, Suspense } from "react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
-import { getQuestions, getHistory, writeQuestions, deleteHistory, deleteQuizSessions, deleteQuestions, Question, History, QuizSession } from "@/lib/data"
+import { getQuestions, getHistory, getProfile, writeQuestions, deleteHistory, deleteQuizSessions, deleteQuestions, Question, History, QuizSession } from "@/lib/data"
 import {
-  Home, Plus, List, Target, BarChart3, ArrowLeft, ChevronDown, Search, Trash2, ArrowUp, ArrowDown
+  Home, Plus, List, Target, BarChart3, ArrowLeft, ChevronDown, Search, Trash2, PenSquare, ArrowUp, ArrowDown
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -19,7 +19,17 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Card } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
 import { Spinner } from "@/components/ui/spinner"
@@ -34,6 +44,13 @@ interface ManagedQuestion extends Question {
   attempts: number
   correctRate: number
 }
+
+type EditFormData = {
+  question?: string;
+  options?: string[];
+  correct_answers_str?: string;
+  category?: string;
+};
 
 // --- カテゴリドロップダウン ---
 function CategoryDropdown({ categories, selected, onSelect }: { categories: string[], selected: string | null, onSelect: (cat: string | null) => void }) {
@@ -87,9 +104,13 @@ export default function AddPageClient() {
     // console.log('--- isEditMode changed:', isEditMode); // ログを削除
   }, [isEditMode]);
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false)
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [selectedQuestionIds, setSelectedQuestionIds] = useState<Set<string>>(new Set())
+  const [editingQuestion, setEditingQuestion] = useState<ManagedQuestion | null>(null)
+  const [currentFormData, setCurrentFormData] = useState<EditFormData>({})
   const [highlightedQuestionId, setHighlightedQuestionId] = useState<string | null>(null)
+  const [isAdmin, setIsAdmin] = useState(false)
   const rowRefs = useRef<Record<string, HTMLTableRowElement | null>>({})
   const { toast } = useToast()
   const categories = useMemo(() => [...new Set(questions.map(q => q.category))], [questions])
@@ -146,12 +167,87 @@ export default function AddPageClient() {
         return { ...q, attempts: qh.length, correctRate }
       })
       setQuestions(processed)
+      try {
+        const profile = await getProfile()
+        setIsAdmin(profile.display_name?.trim().toLowerCase() === 'admin')
+      } catch {
+        setIsAdmin(false)
+      }
       setIsLoading(false)
     }
     fetchData()
   }, [])
 
-const handleResetHistoryClick = () => {
+const handleEditClick = (question: ManagedQuestion) => {
+    if (!isAdmin) return;
+    setEditingQuestion(question);
+    setCurrentFormData({
+        question: question.question,
+        options: question.options,
+        correct_answers_str: question.correct_answers.map(n => n + 1).join(','),
+        category: question.category,
+    });
+    setIsEditDialogOpen(true);
+    };
+
+  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    if (name.startsWith('option')) {
+      const index = parseInt(name.replace('option', ''));
+      setCurrentFormData(prev => {
+        const newOptions = [...(prev.options || [])];
+        newOptions[index] = value;
+        return { ...prev, options: newOptions };
+      });
+    } else {
+      setCurrentFormData(prev => ({ ...prev, [name]: value }));
+    }
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingQuestion) return;
+
+    const parsedCorrectAnswers = currentFormData.correct_answers_str
+      ? currentFormData.correct_answers_str.split(',').map(s => parseInt(s.trim(), 10) - 1).filter(n => !isNaN(n) && n >= 0)
+      : [];
+
+    const questionType = parsedCorrectAnswers.length > 1 ? "multiple" : "single";
+
+    const updatedCoreQuestion: Question = {
+      id: editingQuestion.id,
+      question: currentFormData.question || editingQuestion.question,
+      options: currentFormData.options || editingQuestion.options,
+      correct_answers: parsedCorrectAnswers,
+      explanation: null,
+      category: currentFormData.category || editingQuestion.category,
+      position: editingQuestion.position,
+      last_answered: editingQuestion.last_answered,
+      created_at: editingQuestion.created_at,
+      consecutive_correct: editingQuestion.consecutive_correct,
+      consecutive_wrong: editingQuestion.consecutive_wrong,
+      type: questionType,
+    };
+
+    const updatedManagedQuestion: ManagedQuestion = {
+      ...editingQuestion,
+      ...updatedCoreQuestion,
+    };
+
+    const newQuestionsState = questions.map(q =>
+      q.id === updatedManagedQuestion.id ? updatedManagedQuestion : q
+    );
+    setQuestions(newQuestionsState);
+
+    const questionsToPersist: Question[] = newQuestionsState.map(({ attempts, correctRate, ...q }) => q);
+
+    await writeQuestions(questionsToPersist);
+
+    setIsEditDialogOpen(false);
+    setEditingQuestion(null);
+    setCurrentFormData({});
+  };
+
+  const handleResetHistoryClick = () => {
     setIsResetDialogOpen(true);
   };
 
@@ -320,39 +416,42 @@ const handleResetHistoryClick = () => {
                 </div>
 
                 <div className="flex flex-col md:flex-row items-end md:items-center gap-2 md:gap-4">
-                <div className="flex items-center space-x-2">
-                    <Switch id="edit-mode" checked={isEditMode} onCheckedChange={setIsEditMode} />
-                    <Label htmlFor="edit-mode">編集</Label>
-                </div>
+                {isAdmin && (
+                    <div className="flex items-center space-x-2">
+                        <Switch id="edit-mode" checked={isEditMode} onCheckedChange={setIsEditMode} />
+                        <Label htmlFor="edit-mode">編集</Label>
+                    </div>
+                )}
                 <CategoryDropdown
                     categories={categories}
                     selected={filterCategory}
                     onSelect={setFilterCategory}
                 />
-                {isEditMode ? (
-                    <div className="flex gap-2">
-                      <Button 
-                        variant="default" 
-                        className={`${selectedQuestionIds.size > 0 ? 'bg-red-600 hover:bg-red-700' : 'bg-gray-400'} text-white`}
-                        onClick={handleDeleteSelectedQuestions}
-                        disabled={selectedQuestionIds.size === 0}
-                      >
-                        <Trash2 className="w-4 h-4 mr-2" />
-                        {selectedQuestionIds.size > 0 ? `削除 (${selectedQuestionIds.size})` : "削除"}
-                      </Button>
-                      <Button variant="default" className="bg-red-600 text-white" onClick={handleResetHistoryClick}>
-                        <Trash2 className="w-4 h-4 mr-2" />
-                        学習履歴リセット
-                      </Button>
-                    </div>
-                ) : (
+                <div className="flex gap-2">
+                  {isAdmin && isEditMode && (
+                    <Button
+                      variant="default"
+                      className={`${selectedQuestionIds.size > 0 ? 'bg-red-600 hover:bg-red-700' : 'bg-gray-400'} text-white`}
+                      onClick={handleDeleteSelectedQuestions}
+                      disabled={selectedQuestionIds.size === 0}
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      {selectedQuestionIds.size > 0 ? `削除 (${selectedQuestionIds.size})` : "削除"}
+                    </Button>
+                  )}
+                  <Button variant="default" className="bg-red-600 text-white" onClick={handleResetHistoryClick}>
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    学習履歴リセット
+                  </Button>
+                  {isAdmin && !isEditMode && (
                     <Link href="/questions/new">
                     <Button className="bg-green-600 hover:bg-green-700 text-white">
                         <Plus className="w-4 h-4 mr-2" />
                         新規登録
                     </Button>
                     </Link>
-                )}
+                  )}
+                </div>
                 </div>
             </div>
 
@@ -374,15 +473,16 @@ const handleResetHistoryClick = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      {isEditMode && (
+                      {isAdmin && isEditMode && (
                         <TableHead className="w-12">
-                          <Checkbox 
+                          <Checkbox
                             checked={selectedQuestionIds.size === filteredQuestions.length && filteredQuestions.length > 0}
                             onCheckedChange={handleSelectAll}
                             className="cursor-pointer"
                           />
                         </TableHead>
                       )}
+                      {isAdmin && isEditMode && <TableHead className="w-12"></TableHead>}
                       <TableHead className="w-20 cursor-pointer" onClick={() => handleSort('correctRate')}>
                         <div className="flex items-center">
                           正答率
@@ -417,13 +517,20 @@ const handleResetHistoryClick = () => {
                           className={`${highlightedQuestionId === q.id ? "bg-yellow-100 dark:bg-yellow-900" : ""} ${selectedQuestionIds.has(q.id) ? "bg-blue-50 dark:bg-blue-900" : ""}`}
                           ref={(el) => { rowRefs.current[q.id] = el; }}
                         >
-                            {isEditMode && (
+                            {isAdmin && isEditMode && (
                                 <TableCell className="w-12">
-                                    <Checkbox 
+                                    <Checkbox
                                       checked={selectedQuestionIds.has(q.id)}
                                       onCheckedChange={() => handleCheckboxChange(q.id)}
                                       className="cursor-pointer"
                                     />
+                                </TableCell>
+                            )}
+                            {isAdmin && isEditMode && (
+                                <TableCell className="w-12">
+                                    <Button variant="ghost" size="icon" onClick={() => handleEditClick(q)}>
+                                        <PenSquare className="w-5 h-5 text-muted-foreground" />
+                                    </Button>
                                 </TableCell>
                             )}
                             <TableCell className="w-20">{q.correctRate}%</TableCell>
@@ -469,6 +576,73 @@ const handleResetHistoryClick = () => {
             </AlertDialogFooter>
         </AlertDialogContent>
         </AlertDialog>
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="bg-white sm:max-w-[500px]">
+            <DialogHeader>
+            <DialogTitle>問題を編集</DialogTitle>
+            <DialogDescription>
+                問題の内容を編集し、保存してください。
+            </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={(e) => { e.preventDefault(); handleSaveEdit(); }} className="max-h-[calc(100vh-200px)] overflow-y-auto p-4">
+            <div className="grid gap-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="question" className="text-right">
+                    問題文
+                </Label>
+                <Textarea
+                    id="question"
+                    name="question"
+                    value={currentFormData.question || ''}
+                    onChange={handleFormChange}
+                    className="col-span-3"
+                />
+                </div>
+                {currentFormData.options && currentFormData.options.map((option, index) => (
+                <div key={index} className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor={`option${index}`} className="text-right">
+                    選択肢 {index + 1}
+                    </Label>
+                    <Input
+                    id={`option${index}`}
+                    name={`option${index}`}
+                    value={option}
+                    onChange={handleFormChange}
+                    className="col-span-3"
+                    />
+                </div>
+                ))}
+                <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="correct_answers_str">
+                    正答番号(例: 1,3)
+                </Label>
+                <Input
+                    id="correct_answers_str"
+                    name="correct_answers_str"
+                    value={currentFormData.correct_answers_str || ''}
+                    onChange={handleFormChange}
+                    className="col-span-3"
+                />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="category" className="text-right">
+                    カテゴリ
+                </Label>
+                <Input
+                    id="category"
+                    name="category"
+                    value={currentFormData.category || ''}
+                    onChange={handleFormChange}
+                    className="col-span-3"
+                />
+                </div>
+            </div>
+            <DialogFooter>
+                <Button type="submit">変更を保存</Button>
+            </DialogFooter>
+            </form>
+        </DialogContent>
+        </Dialog>
         </div>
     </Suspense>
     </div>

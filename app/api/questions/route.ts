@@ -1,6 +1,15 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabaseClient';
+import type { Question } from '@/lib/data';
 import { ApiAuthError, getRequestUser } from '@/lib/serverAuth';
+
+// Fields any authenticated user is allowed to change (per-answer stat tracking).
+// Everything else counts as "editing" the question, which only admin may do.
+const CONTENT_FIELDS = ['question', 'options', 'correct_answers', 'category', 'type', 'explanation', 'position'] as const;
+
+function hasContentChange(incoming: Question, current: Question) {
+  return CONTENT_FIELDS.some((field) => JSON.stringify(incoming[field]) !== JSON.stringify(current[field]));
+}
 
 export async function GET() {
   const { data, error } = await supabase
@@ -17,8 +26,33 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const { supabase } = await getRequestUser(request);
-    const questions = await request.json();
+    const { supabase, isAdmin } = await getRequestUser(request);
+    const body = await request.json();
+    const questions: Question[] = Array.isArray(body) ? body : [body];
+
+    if (!isAdmin) {
+      const ids = questions.map((q) => q.id).filter(Boolean);
+      const { data: existing, error: fetchError } = await supabase
+        .from('questions')
+        .select('*')
+        .in('id', ids);
+
+      if (fetchError) {
+        return NextResponse.json({ error: fetchError.message }, { status: 500 });
+      }
+
+      const existingById = new Map((existing ?? []).map((q) => [q.id, q as Question]));
+
+      for (const q of questions) {
+        const current = existingById.get(q.id);
+        if (!current) {
+          return NextResponse.json({ error: 'Only admin can add questions' }, { status: 403 });
+        }
+        if (hasContentChange(q, current)) {
+          return NextResponse.json({ error: 'Only admin can edit questions' }, { status: 403 });
+        }
+      }
+    }
 
     const { error } = await supabase
       .from('questions')
@@ -42,7 +76,12 @@ export async function POST(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
-    const { supabase } = await getRequestUser(request);
+    const { supabase, isAdmin } = await getRequestUser(request);
+
+    if (!isAdmin) {
+      return NextResponse.json({ error: 'Only admin can delete questions' }, { status: 403 });
+    }
+
     const body = await request.json().catch(() => null);
 
     if (body && body.ids && Array.isArray(body.ids) && body.ids.length > 0) {
