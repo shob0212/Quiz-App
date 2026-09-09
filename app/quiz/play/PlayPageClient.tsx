@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback, useRef } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { getQuestions, updateQuestion, writeHistory, Question, History, QuizSession, writeQuizSessions, getHistory, AuthError } from "@/lib/data"
+import { getProfile, getQuestions, writeHistory, writeQuestions, Question, History, QuizSession, writeQuizSessions, getHistory, AuthError, getQuestionNote, upsertQuestionNote } from "@/lib/data"
 import { ArrowLeft, ChevronLeft, ChevronRight, Check, X, Clock, Eye, XCircle, List, Pencil, Copy } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -43,7 +43,8 @@ export default function QuizPlayPage() {
   const [startTime, setStartTime] = useState<Date | null>(null);
   const [editedExplanation, setEditedExplanation] = useState("");
   const [isEditingExplanation, setIsEditingExplanation] = useState(false);
-  
+  const [isAdmin, setIsAdmin] = useState(false);
+
   const [isEditingQuestion, setIsEditingQuestion] = useState(false);
   const [editingQuestionData, setEditingQuestionData] = useState<Question | null>(null);
 
@@ -57,6 +58,12 @@ export default function QuizPlayPage() {
   const EXAM_DURATION_SECONDS = 130 * 60;
   const [remainingTime, setRemainingTime] = useState(EXAM_DURATION_SECONDS);
   const [unscoredQuestionIds, setUnscoredQuestionIds] = useState<string[]>([]);
+
+  useEffect(() => {
+    getProfile()
+      .then((profile) => setIsAdmin(profile.display_name?.trim().toLowerCase() === 'admin'))
+      .catch(() => setIsAdmin(false));
+  }, []);
 
   const saveSuspendedQuiz = useCallback(() => {
     if (!questions || questions.length === 0) {
@@ -90,22 +97,26 @@ export default function QuizPlayPage() {
   }, [currentQuestion, history]);
 
   useEffect(() => {
-    if (currentQuestion) {
-      setEditedExplanation(currentQuestion.explanation || "");
+    const loadNote = async () => {
+      if (!currentQuestion) return;
       setShowAnswer(false);
-    }
+      try {
+        const note = await getQuestionNote(currentQuestion.id);
+        setEditedExplanation(note?.note || "");
+      } catch {
+        setEditedExplanation("");
+      }
+    };
+    loadNote();
   }, [currentQuestion]);
   
   const handleSaveExplanation = async () => {
     if (!currentQuestion) return;
 
     try {
-      const updatedQuestion = await updateQuestion({ id: currentQuestion.id, explanation: editedExplanation });
-      setQuestions(prevQuestions => prevQuestions.map(q =>
-        q.id === currentQuestion.id ? { ...q, explanation: updatedQuestion.explanation } : q
-      ));
+      await upsertQuestionNote(currentQuestion.id, editedExplanation);
       toast({
-        title: "解説を保存しました",
+        title: "メモを保存しました",
       });
       setIsEditingExplanation(false);
     } catch(e) {
@@ -120,7 +131,7 @@ export default function QuizPlayPage() {
         router.push('/quiz');
       } else {
         toast({
-          title: '解説の保存に失敗しました',
+          title: 'メモの保存に失敗しました',
           variant: 'destructive'
         })
       }
@@ -160,10 +171,10 @@ export default function QuizPlayPage() {
   };
 
   const handleEditQuestionClick = useCallback(() => {
-    if (!currentQuestion) return;
+    if (!currentQuestion || !isAdmin) return;
     setEditingQuestionData(JSON.parse(JSON.stringify(currentQuestion)));
     setIsEditingQuestion(true);
-  }, [currentQuestion]);
+  }, [currentQuestion, isAdmin]);
 
   const handleEditingFormChange = useCallback((field: keyof Question, value: any) => {
     setEditingQuestionData(prev => prev ? { ...prev, [field]: value } : null);
@@ -194,7 +205,7 @@ export default function QuizPlayPage() {
       return { ...prev, correct_answers: newCorrectAnswers };
     });
   }, []);
-  
+
   const handleAddOption = useCallback(() => {
     setEditingQuestionData(prev => {
       if (!prev) return null;
@@ -215,7 +226,7 @@ export default function QuizPlayPage() {
                 return oldIndex;
             })
             .filter(newIndex => newIndex !== -1);
-        
+
         return {
             ...prev,
             options: newOptions,
@@ -238,7 +249,7 @@ export default function QuizPlayPage() {
     });
 
     const newOptions = editingQuestionData.options.filter(opt => opt.trim() !== "");
-    
+
     if (newOptions.length === 0) {
         toast({
             title: "保存できません",
@@ -253,33 +264,32 @@ export default function QuizPlayPage() {
         .filter(newIndex => newIndex !== -1)
         .sort((a,b) => a - b);
 
-    const cleanedQuestionData = {
+    const cleanedQuestionData: Question = {
         ...editingQuestionData,
         options: newOptions,
         correct_answers: newCorrectAnswers,
     };
 
     try {
-      const questionToUpdate = { ...cleanedQuestionData } as Question;
-      const updatedQuestion = await updateQuestion(questionToUpdate);
+      await writeQuestions([cleanedQuestionData]);
 
       setQuestions(prevQuestions => {
           const newQuestions = [...prevQuestions];
-          const localIndex = newQuestions.findIndex(q => q.id === updatedQuestion.id);
+          const localIndex = newQuestions.findIndex(q => q.id === cleanedQuestionData.id);
           if (localIndex !== -1) {
               const originalShuffledData = newQuestions[localIndex].shuffledOptions;
-              const newOptionMap = new Map(updatedQuestion.options.map((opt, i) => [i, opt]));
-              
+              const newOptionMap = new Map(cleanedQuestionData.options.map((opt, i) => [i, opt]));
+
               const updatedShuffledOptions = originalShuffledData
                 .map(shuffledOpt => ({
                     ...shuffledOpt,
                     option: newOptionMap.get(shuffledOpt.originalIndex) ?? shuffledOpt.option,
                 }))
                 .filter(shuffledOpt => newOptions.includes(shuffledOpt.option));
-              
+
               newQuestions[localIndex] = {
                   ...newQuestions[localIndex],
-                  ...updatedQuestion,
+                  ...cleanedQuestionData,
                   shuffledOptions: updatedShuffledOptions,
               };
           }
@@ -711,7 +721,9 @@ export default function QuizPlayPage() {
               </div>
               <div className="flex justify-end gap-2 mb-6">
                 <Button variant="outline" size="sm" onClick={handleCopyQuestionAndOptions}><Copy className="w-4 h-4 mr-2" />コピー</Button>
-                <Button variant="outline" size="sm" onClick={handleEditQuestionClick}><Pencil className="w-4 h-4 mr-2" />編集</Button>
+                {isAdmin && (
+                  <Button variant="outline" size="sm" onClick={handleEditQuestionClick}><Pencil className="w-4 h-4 mr-2" />編集</Button>
+                )}
               </div>
             </div>
           )}
@@ -748,15 +760,15 @@ export default function QuizPlayPage() {
 
         {showAnswer && !isExamMode && (
           <Card className="p-6 mb-6 border-border">
-            <h3 className="text-lg font-bold mb-2">解説</h3>
+            <h3 className="text-lg font-bold mb-2">個人メモ</h3>
             {isEditingExplanation ? (
               <>
                 <Textarea value={editedExplanation} onChange={(e) => setEditedExplanation(e.target.value)} className="mb-2" />
-                <Button onClick={handleSaveExplanation}>解説を保存</Button>
+                <Button onClick={handleSaveExplanation}>メモを保存</Button>
               </>
             ) : (
               <div className="flex flex-col gap-2">
-                <p className="text-muted-foreground whitespace-pre-wrap">{editedExplanation || "解説がありません。"}</p>
+                <p className="text-muted-foreground whitespace-pre-wrap">{editedExplanation || "メモがありません。"}</p>
                 <Button onClick={() => setIsEditingExplanation(true)} variant="outline" className="w-fit">編集</Button>
               </div>
             )}
@@ -791,59 +803,56 @@ export default function QuizPlayPage() {
         <Toaster />
       </div>
 
-      <Dialog open={isEditingQuestion} onOpenChange={setIsEditingQuestion}>
-        <DialogContent className="max-w-3xl w-full bg-white">
-          <DialogHeader><DialogTitle>問題を編集</DialogTitle></DialogHeader>
-          {editingQuestionData && (
-            <div className="space-y-4 p-1 max-h-[80vh] overflow-y-auto">
-              <div>
-                <Label htmlFor="edit-category">カテゴリ</Label>
-                <Input id="edit-category" value={editingQuestionData.category} onChange={(e) => handleEditingFormChange('category', e.target.value)} />
-              </div>
-              <div>
-                <Label htmlFor="edit-question">問題文</Label>
-                <Textarea id="edit-question" value={editingQuestionData.question ?? ''} onChange={(e) => handleEditingFormChange('question', e.target.value)} rows={4} />
-              </div>
-              <div>
-                <Label>選択肢と正解</Label>
-                <div className="space-y-2">
-                  {editingQuestionData.type === 'single' ? (
-                      <RadioGroup value={editingQuestionData.correct_answers[0]?.toString()} onValueChange={(value) => handleCorrectAnswerChange(parseInt(value))}>
-                          {editingQuestionData.options.map((option, index) => (
+      {isAdmin && (
+        <Dialog open={isEditingQuestion} onOpenChange={setIsEditingQuestion}>
+          <DialogContent className="max-w-3xl w-full bg-white">
+            <DialogHeader><DialogTitle>問題を編集</DialogTitle></DialogHeader>
+            {editingQuestionData && (
+              <div className="space-y-4 p-1 max-h-[80vh] overflow-y-auto">
+                <div>
+                  <Label htmlFor="edit-category">カテゴリ</Label>
+                  <Input id="edit-category" value={editingQuestionData.category} onChange={(e) => handleEditingFormChange('category', e.target.value)} />
+                </div>
+                <div>
+                  <Label htmlFor="edit-question">問題文</Label>
+                  <Textarea id="edit-question" value={editingQuestionData.question ?? ''} onChange={(e) => handleEditingFormChange('question', e.target.value)} rows={4} />
+                </div>
+                <div>
+                  <Label>選択肢と正解</Label>
+                  <div className="space-y-2">
+                    {editingQuestionData.type === 'single' ? (
+                        <RadioGroup value={editingQuestionData.correct_answers[0]?.toString()} onValueChange={(value) => handleCorrectAnswerChange(parseInt(value))}>
+                            {editingQuestionData.options.map((option, index) => (
+                              <div key={index} className="flex items-center gap-2">
+                                  <RadioGroupItem value={index.toString()} id={`edit-opt-${index}`} />
+                                  <Input value={option} onChange={(e) => handleOptionChange(index, e.target.value)} />
+                                  <Button variant="ghost" size="icon" onClick={() => handleDeleteOption(index)}><X className="w-4 h-4" /></Button>
+                              </div>
+                            ))}
+                        </RadioGroup>
+                    ) : (
+                        editingQuestionData.options.map((option, index) => (
                             <div key={index} className="flex items-center gap-2">
-                                <RadioGroupItem value={index.toString()} id={`edit-opt-${index}`} />
+                                <Checkbox checked={editingQuestionData.correct_answers.includes(index)} onCheckedChange={() => handleCorrectAnswerChange(index)} />
                                 <Input value={option} onChange={(e) => handleOptionChange(index, e.target.value)} />
                                 <Button variant="ghost" size="icon" onClick={() => handleDeleteOption(index)}><X className="w-4 h-4" /></Button>
                             </div>
-                          ))}
-                      </RadioGroup>
-                  ) : (
-                      editingQuestionData.options.map((option, index) => (
-                          <div key={index} className="flex items-center gap-2">
-                              <Checkbox checked={editingQuestionData.correct_answers.includes(index)} onCheckedChange={() => handleCorrectAnswerChange(index)} />
-                              <Input value={option} onChange={(e) => handleOptionChange(index, e.target.value)} />
-                              <Button variant="ghost" size="icon" onClick={() => handleDeleteOption(index)}><X className="w-4 h-4" /></Button>
-                          </div>
-                      ))
-                  )}
+                        ))
+                    )}
+                  </div>
+                  <Button variant="outline" size="sm" onClick={handleAddOption} className="mt-2">
+                    選択肢を追加
+                  </Button>
                 </div>
-                <Button variant="outline" size="sm" onClick={handleAddOption} className="mt-2">
-                  選択肢を追加
-                </Button>
+                <div className="flex justify-end gap-2 pt-4">
+                  <Button variant="outline" onClick={() => setIsEditingQuestion(false)}>キャンセル</Button>
+                  <Button onClick={handleUpdateQuestion}>変更を保存</Button>
+                </div>
               </div>
-              <div>
-                <Label htmlFor="edit-explanation">解説</Label>
-                <Textarea id="edit-explanation" value={editingQuestionData.explanation ?? ''} onChange={(e) => handleEditingFormChange('explanation', e.target.value)} rows={4} />
-              </div>
-              <div className="flex justify-end gap-2 pt-4">
-                <Button variant="outline" onClick={() => setIsEditingQuestion(false)}>キャンセル</Button>
-                <Button onClick={handleUpdateQuestion}>変更を保存</Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
+            )}
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   )
 }

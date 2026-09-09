@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
-import { getQuestions, updateQuestion, Question } from "@/lib/data"
+import { getQuestions, getQuestionNote, upsertQuestionNote, Question } from "@/lib/data"
 import { ArrowLeft, Check, X, Pencil } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -40,7 +40,12 @@ export default function ReviewPageClient({ questionId }: { questionId: string | 
       const foundQuestion = allQuestions.find(q => q.id === resolvedQuestionId);
       setQuestion(foundQuestion || null);
       if (foundQuestion) {
-        setEditedExplanation(foundQuestion.explanation || "");
+        try {
+          const note = await getQuestionNote(foundQuestion.id);
+          setEditedExplanation(note?.note || "");
+        } catch {
+          setEditedExplanation("");
+        }
       }
 
       const answersString = sessionStorage.getItem('quizUserAnswers');
@@ -65,16 +70,15 @@ export default function ReviewPageClient({ questionId }: { questionId: string | 
     if (!question) return;
 
     try {
-      const updatedQuestion = await updateQuestion({ id: question.id, explanation: editedExplanation });
-      setQuestion(prevQuestion => prevQuestion ? { ...prevQuestion, explanation: updatedQuestion.explanation } : null);
+      await upsertQuestionNote(question.id, editedExplanation);
       toast({
-        title: "解説を保存しました",
+        title: "メモを保存しました",
       });
       setIsEditingExplanation(false);
     } catch(e) {
       console.error(e)
       toast({
-        title: '解説の保存に失敗しました',
+        title: 'メモの保存に失敗しました',
         variant: 'destructive'
       })
     }
@@ -162,11 +166,11 @@ export default function ReviewPageClient({ questionId }: { questionId: string | 
                   />
                   <div className="flex justify-end gap-2">
                     <Button onClick={() => setIsEditingExplanation(false)} variant="ghost">キャンセル</Button>
-                    <Button onClick={handleSaveExplanation}>解説を保存</Button>
+                    <Button onClick={handleSaveExplanation}>メモを保存</Button>
                   </div>
                 </div>
               ) : (
-                <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{editedExplanation || "解説がありません。"}</p>
+                <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{editedExplanation || "メモがありません。"}</p>
               )}
           </Card>
         )}

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Home, Plus, Target, BarChart3, ArrowLeft, Check, List, Eye, EyeOff } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -9,7 +10,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { QuestionPreview } from "@/components/ui/question-preview"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
-import { getQuestions, writeQuestions, Question } from "@/lib/data";
+import { Spinner } from "@/components/ui/spinner"
+import { getProfile, getQuestions, writeQuestions, Question } from "@/lib/data";
 import { cn } from "@/lib/utils"
 
 // --- タイプ定義 ---
@@ -48,6 +50,7 @@ const parseForPreview = (text: string): ParsedDataType => {
 
 // --- メインコンポーネント ---
 export default function AddNewQuestionPage() {
+  const router = useRouter();
   // --- State管理 ---
   const [inputValue, setInputValue] = useState("");
   const [showToast, setShowToast] = useState(false);
@@ -55,6 +58,7 @@ export default function AddNewQuestionPage() {
   const [isCategorySticky, setIsCategorySticky] = useState(true);
   const [clickedAnswers, setClickedAnswers] = useState<number[]>([]);
   const [isHoverPreviewVisible, setIsHoverPreviewVisible] = useState(false);
+  const [isAuthorized, setIsAuthorized] = useState(false);
 
   const [previewMode, setPreviewMode] = useState<PreviewMode>("side");
 
@@ -65,6 +69,22 @@ export default function AddNewQuestionPage() {
       if (stored === "hover" || stored === "side") setPreviewMode(stored);
     } catch (e) { }
   }, []);
+
+  useEffect(() => {
+    const checkAdmin = async () => {
+      try {
+        const profile = await getProfile();
+        if (profile.display_name?.trim().toLowerCase() === 'admin') {
+          setIsAuthorized(true);
+        } else {
+          router.replace('/add');
+        }
+      } catch {
+        router.replace('/add');
+      }
+    };
+    checkAdmin();
+  }, [router]);
 
   useEffect(() => {
     try { localStorage.setItem("previewMode", previewMode); } catch (e) { }
@@ -188,6 +208,14 @@ export default function AddNewQuestionPage() {
       </Card>
     </>
   );
+
+  if (!isAuthorized) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background pb-20">

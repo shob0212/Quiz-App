@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { getQuestions, getHistory, Question, History } from "@/lib/data";
+import { getQuestions, getHistory, getProfile, Question, History } from "@/lib/data";
 import { Home, Target, BarChart3, List } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -16,6 +16,7 @@ interface DashboardStats {
 export default function HomePage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -52,10 +53,14 @@ export default function HomePage() {
     };
 
     fetchStats();
+
+    getProfile()
+      .then((profile) => setIsAdmin(profile.display_name?.trim().toLowerCase() === 'admin'))
+      .catch(() => setIsAdmin(false));
   }, []);
 
-  const correctRate = stats && stats.answered_questions_count > 0 
-    ? Math.round((stats.latest_attempt_correct_count / stats.answered_questions_count) * 100) 
+  const correctRate = stats && stats.answered_questions_count > 0
+    ? Math.round((stats.latest_attempt_correct_count / stats.answered_questions_count) * 100)
     : 0;
 
   return (
@@ -72,20 +77,6 @@ export default function HomePage() {
 
         {/* Main Actions */}
         <div className="grid gap-4">
-          <Link href="/add">
-            <Card className="p-6 hover:bg-card/80 transition-colors cursor-pointer border-border">
-              <div className="flex items-center gap-4">
-                <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-primary/10">
-                  <List className="w-6 h-6 text-primary" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-foreground mb-1">問題管理</h3>
-                  <p className="text-sm text-muted-foreground">問題の一覧、編集、削除</p>
-                </div>
-              </div>
-            </Card>
-          </Link>
-
           <Link href="/quiz">
             <Card className="p-6 hover:bg-card/80 transition-colors cursor-pointer border-border">
               <div className="flex items-center gap-4">
@@ -95,6 +86,20 @@ export default function HomePage() {
                 <div className="flex-1">
                   <h3 className="text-lg font-semibold text-foreground mb-1">クイズ開始</h3>
                   <p className="text-sm text-muted-foreground">ランダムな問題に挑戦する</p>
+                </div>
+              </div>
+            </Card>
+          </Link>
+
+          <Link href="/add">
+            <Card className="p-6 hover:bg-card/80 transition-colors cursor-pointer border-border">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-primary/10">
+                  <List className="w-6 h-6 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-foreground mb-1">問題管理</h3>
+                  <p className="text-sm text-muted-foreground">問題の一覧{isAdmin && "、編集、削除"}</p>
                 </div>
               </div>
             </Card>

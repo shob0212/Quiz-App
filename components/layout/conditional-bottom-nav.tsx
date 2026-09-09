@@ -6,7 +6,10 @@ import { BottomNav } from './bottom-nav';
 export function ConditionalBottomNav() {
   const pathname = usePathname();
   
-  const shouldShowFooter = !pathname.startsWith('/quiz/play') && !pathname.startsWith('/quiz/results');
+  const shouldShowFooter =
+    !pathname.startsWith('/quiz/play') &&
+    !pathname.startsWith('/quiz/results') &&
+    !pathname.startsWith('/login');
 
   if (!shouldShowFooter) {
     return null;

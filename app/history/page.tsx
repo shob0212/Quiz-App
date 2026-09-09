@@ -314,7 +314,7 @@ export default function HistoryPage() {
                   <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2"> <BarChart3 className="w-4 h-4" /> 解答状況分布 </h3>
                   <ResponsiveContainer width="100%" height={420}>
                     <PieChart>
-                      <Pie data={correctnessPieData} cx="50%" cy="50%" labelLine={true} label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`} outerRadius={100} fill="#8884d8" dataKey="value" >
+                      <Pie data={correctnessPieData} cx="50%" cy="50%" labelLine={true} label={({ name, percent }) => `${name}: ${((percent ?? 0) * 100).toFixed(0)}%`} outerRadius={100} fill="#8884d8" dataKey="value" >
                         {correctnessPieData.map((entry, index) => ( <Cell key={`cell-${index}`} fill={entry.color} /> ))}
                       </Pie>
                       <Tooltip contentStyle={{ backgroundColor: "white", border: "1px solid hsl(var(--border))", borderRadius: "8px", }} />
@@ -343,7 +343,7 @@ export default function HistoryPage() {
                   <div className="overflow-x-auto w-full">
                     <BarChart width={4000} height={280} data={sortedCategoryChartData} margin={{ top: 5, right: 10, left: -20, bottom: 5 }} onClick={handleCategoryClick} className="cursor-pointer" barCategoryGap="5%" barGap={1}>
                         <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                        <XAxis dataKey="name" tickFormatter={(value) => value.length > 8 ? value.slice(0, 10) + "..." : value} tick={{fontSize: 12, angle: -45, textAnchor: "end" }} height={80}/>
+                        <XAxis dataKey="name" tickFormatter={(value) => value.length > 8 ? value.slice(0, 10) + "..." : value} tick={{fontSize: 12, angle: -45, textAnchor: "end" } as React.SVGProps<SVGTextElement>} height={80}/>
                         <YAxis tickFormatter={(value) => `${value}%`} tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} />
                         <Tooltip formatter={(value) => `${value}%`} contentStyle={{ backgroundColor: "white", border: "1px solid hsl(var(--border))", borderRadius: "8px", }} />
                         <Legend wrapperStyle={{ fontSize: "12px" }} />

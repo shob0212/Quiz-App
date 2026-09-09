@@ -4,9 +4,9 @@
 import React, { useState, useEffect, useMemo, useRef, memo, Suspense } from "react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
-import { getQuestions, getHistory, writeQuestions, deleteHistory, deleteQuizSessions, deleteQuestions, Question, History, QuizSession } from "@/lib/data"
+import { getQuestions, getHistory, getProfile, writeQuestions, deleteHistory, deleteQuizSessions, deleteQuestions, Question, History, QuizSession } from "@/lib/data"
 import {
-  Home, Plus, List, Target, BarChart3, ArrowLeft, GripVertical, ChevronDown, Search, Trash2, PenSquare, ArrowUp, ArrowDown
+  Home, Plus, List, Target, BarChart3, ArrowLeft, ChevronDown, Search, Trash2, PenSquare, ArrowUp, ArrowDown
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -49,10 +49,8 @@ type EditFormData = {
   question?: string;
   options?: string[];
   correct_answers_str?: string;
-  explanation?: string;
   category?: string;
 };
-
 
 // --- カテゴリドロップダウン ---
 function CategoryDropdown({ categories, selected, onSelect }: { categories: string[], selected: string | null, onSelect: (cat: string | null) => void }) {
@@ -112,6 +110,7 @@ export default function AddPageClient() {
   const [editingQuestion, setEditingQuestion] = useState<ManagedQuestion | null>(null)
   const [currentFormData, setCurrentFormData] = useState<EditFormData>({})
   const [highlightedQuestionId, setHighlightedQuestionId] = useState<string | null>(null)
+  const [isAdmin, setIsAdmin] = useState(false)
   const rowRefs = useRef<Record<string, HTMLTableRowElement | null>>({})
   const { toast } = useToast()
   const categories = useMemo(() => [...new Set(questions.map(q => q.category))], [questions])
@@ -168,23 +167,24 @@ export default function AddPageClient() {
         return { ...q, attempts: qh.length, correctRate }
       })
       setQuestions(processed)
+      try {
+        const profile = await getProfile()
+        setIsAdmin(profile.display_name?.trim().toLowerCase() === 'admin')
+      } catch {
+        setIsAdmin(false)
+      }
       setIsLoading(false)
     }
     fetchData()
   }, [])
 
-  // --- ここに残りの編集やドラッグ処理、ダイアログ処理も同様に ---
-  // handleEditClick, handleFormChange, handleSaveEdit, handleResetHistoryClick, handleResetHistoryConfirm, handleDragEnd
-  // 上で示したものと同じ処理をこのコンポーネント内に配置
-
-  const handleEditClick = (question: ManagedQuestion) => {
+const handleEditClick = (question: ManagedQuestion) => {
+    if (!isAdmin) return;
     setEditingQuestion(question);
-    // Initialize form data, converting correct_answers array to a comma-separated string for input
     setCurrentFormData({
         question: question.question,
         options: question.options,
-        correct_answers_str: question.correct_answers.map(n => n + 1).join(','), // Convert number[] to string for input
-        explanation: question.explanation || '',
+        correct_answers_str: question.correct_answers.map(n => n + 1).join(','),
         category: question.category,
     });
     setIsEditDialogOpen(true);
@@ -192,10 +192,10 @@ export default function AddPageClient() {
 
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    if (name.startsWith('option')) { // Changed from 'choice' to 'option'
+    if (name.startsWith('option')) {
       const index = parseInt(name.replace('option', ''));
       setCurrentFormData(prev => {
-        const newOptions = [...(prev.options || [])]; // `options` in prev
+        const newOptions = [...(prev.options || [])];
         newOptions[index] = value;
         return { ...prev, options: newOptions };
       });
@@ -207,41 +207,37 @@ export default function AddPageClient() {
   const handleSaveEdit = async () => {
     if (!editingQuestion) return;
 
-    // Parse correct_answers_str to number[]
     const parsedCorrectAnswers = currentFormData.correct_answers_str
       ? currentFormData.correct_answers_str.split(',').map(s => parseInt(s.trim(), 10) - 1).filter(n => !isNaN(n) && n >= 0)
       : [];
 
-    // Determine question type based on parsed correct answers
     const questionType = parsedCorrectAnswers.length > 1 ? "multiple" : "single";
 
-    // Build the core Question object from currentFormData and immutable fields from editingQuestion
     const updatedCoreQuestion: Question = {
       id: editingQuestion.id,
       question: currentFormData.question || editingQuestion.question,
       options: currentFormData.options || editingQuestion.options,
       correct_answers: parsedCorrectAnswers,
-      explanation: currentFormData.explanation || editingQuestion.explanation,
+      explanation: null,
       category: currentFormData.category || editingQuestion.category,
-      position: editingQuestion.position, // Keep original
-      last_answered: editingQuestion.last_answered, // Keep original
-      created_at: editingQuestion.created_at, // Keep original
-      consecutive_correct: editingQuestion.consecutive_correct, // Keep original
-      consecutive_wrong: editingQuestion.consecutive_wrong, // Keep original
-      type: questionType, // Set based on correct_answers
+      position: editingQuestion.position,
+      last_answered: editingQuestion.last_answered,
+      created_at: editingQuestion.created_at,
+      consecutive_correct: editingQuestion.consecutive_correct,
+      consecutive_wrong: editingQuestion.consecutive_wrong,
+      type: questionType,
     };
 
     const updatedManagedQuestion: ManagedQuestion = {
-      ...editingQuestion, // Keep attempts, correctRate, etc. from original ManagedQuestion
-      ...updatedCoreQuestion, // Overlay with updated core data
+      ...editingQuestion,
+      ...updatedCoreQuestion,
     };
 
-   const newQuestionsState = questions.map(q =>
+    const newQuestionsState = questions.map(q =>
       q.id === updatedManagedQuestion.id ? updatedManagedQuestion : q
     );
     setQuestions(newQuestionsState);
 
-    // Prepare data for persistence (strip UI-only fields)
     const questionsToPersist: Question[] = newQuestionsState.map(({ attempts, correctRate, ...q }) => q);
 
     await writeQuestions(questionsToPersist);
@@ -251,8 +247,7 @@ export default function AddPageClient() {
     setCurrentFormData({});
   };
 
-
-const handleResetHistoryClick = () => {
+  const handleResetHistoryClick = () => {
     setIsResetDialogOpen(true);
   };
 
@@ -363,7 +358,7 @@ const handleResetHistoryClick = () => {
   };
 
   useEffect(() => {
-    const highlightId = searchParams.highlight as string | undefined;
+    const highlightId = searchParams.get('highlight') ?? undefined;
     if (highlightId) {
       setHighlightedQuestionId(highlightId);
       // Wait for questions to load and render
@@ -389,35 +384,6 @@ const handleResetHistoryClick = () => {
 
 
 
-
-  const handleDragEnd = async (event: any) => {
-    const { active, over } = event;
-    if (!over) return;
-
-    if (active.id !== over.id) {
-      const oldIndex = questions.findIndex((q) => q.id === active.id);
-      const newIndex = questions.findIndex((q) => q.id === over.id);
-      
-      if (oldIndex === -1 || newIndex === -1) {
-        console.warn("Dragged item or target not found in questions list.");
-        setActiveId(null);
-        return;
-      }
-
-      const newOrder = arrayMove(questions, oldIndex, newIndex);
-
-      const reindexedQuestions = newOrder.map((q, index) => ({
-        ...q,
-        position: index,
-      }));
-
-      setQuestions(reindexedQuestions);
-
-      const questionsToSave: Question[] = reindexedQuestions.map(({ attempts, correctRate, ...q }) => q);
-      await writeQuestions(questionsToSave);
-    }
-    setActiveId(null);
-  };
 
   if (isLoading)
     return <div className="min-h-screen flex items-center justify-center"><Spinner className="w-12 h-12" /></div>
@@ -450,39 +416,42 @@ const handleResetHistoryClick = () => {
                 </div>
 
                 <div className="flex flex-col md:flex-row items-end md:items-center gap-2 md:gap-4">
-                <div className="flex items-center space-x-2">
-                    <Switch id="edit-mode" checked={isEditMode} onCheckedChange={setIsEditMode} />
-                    <Label htmlFor="edit-mode">編集</Label>
-                </div>
+                {isAdmin && (
+                    <div className="flex items-center space-x-2">
+                        <Switch id="edit-mode" checked={isEditMode} onCheckedChange={setIsEditMode} />
+                        <Label htmlFor="edit-mode">編集</Label>
+                    </div>
+                )}
                 <CategoryDropdown
                     categories={categories}
                     selected={filterCategory}
                     onSelect={setFilterCategory}
                 />
-                {isEditMode ? (
-                    <div className="flex gap-2">
-                      <Button 
-                        variant="default" 
-                        className={`${selectedQuestionIds.size > 0 ? 'bg-red-600 hover:bg-red-700' : 'bg-gray-400'} text-white`}
-                        onClick={handleDeleteSelectedQuestions}
-                        disabled={selectedQuestionIds.size === 0}
-                      >
-                        <Trash2 className="w-4 h-4 mr-2" />
-                        {selectedQuestionIds.size > 0 ? `削除 (${selectedQuestionIds.size})` : "削除"}
-                      </Button>
-                      <Button variant="default" className="bg-red-600 text-white" onClick={handleResetHistoryClick}>
-                        <Trash2 className="w-4 h-4 mr-2" />
-                        学習履歴リセット
-                      </Button>
-                    </div>
-                ) : (
+                <div className="flex gap-2">
+                  {isAdmin && isEditMode && (
+                    <Button
+                      variant="default"
+                      className={`${selectedQuestionIds.size > 0 ? 'bg-red-600 hover:bg-red-700' : 'bg-gray-400'} text-white`}
+                      onClick={handleDeleteSelectedQuestions}
+                      disabled={selectedQuestionIds.size === 0}
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      {selectedQuestionIds.size > 0 ? `削除 (${selectedQuestionIds.size})` : "削除"}
+                    </Button>
+                  )}
+                  <Button variant="default" className="bg-red-600 text-white" onClick={handleResetHistoryClick}>
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    学習履歴リセット
+                  </Button>
+                  {isAdmin && !isEditMode && (
                     <Link href="/questions/new">
                     <Button className="bg-green-600 hover:bg-green-700 text-white">
                         <Plus className="w-4 h-4 mr-2" />
                         新規登録
                     </Button>
                     </Link>
-                )}
+                  )}
+                </div>
                 </div>
             </div>
 
@@ -504,16 +473,16 @@ const handleResetHistoryClick = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      {isEditMode && (
+                      {isAdmin && isEditMode && (
                         <TableHead className="w-12">
-                          <Checkbox 
+                          <Checkbox
                             checked={selectedQuestionIds.size === filteredQuestions.length && filteredQuestions.length > 0}
                             onCheckedChange={handleSelectAll}
                             className="cursor-pointer"
                           />
                         </TableHead>
                       )}
-                      {isEditMode && <TableHead className="w-20"></TableHead>}
+                      {isAdmin && isEditMode && <TableHead className="w-12"></TableHead>}
                       <TableHead className="w-20 cursor-pointer" onClick={() => handleSort('correctRate')}>
                         <div className="flex items-center">
                           正答率
@@ -546,27 +515,22 @@ const handleResetHistoryClick = () => {
                         <TableRow
                           key={q.id}
                           className={`${highlightedQuestionId === q.id ? "bg-yellow-100 dark:bg-yellow-900" : ""} ${selectedQuestionIds.has(q.id) ? "bg-blue-50 dark:bg-blue-900" : ""}`}
-                          ref={(el) => (rowRefs.current[q.id] = el)}
+                          ref={(el) => { rowRefs.current[q.id] = el; }}
                         >
-                            {isEditMode && (
+                            {isAdmin && isEditMode && (
                                 <TableCell className="w-12">
-                                    <Checkbox 
+                                    <Checkbox
                                       checked={selectedQuestionIds.has(q.id)}
                                       onCheckedChange={() => handleCheckboxChange(q.id)}
                                       className="cursor-pointer"
                                     />
                                 </TableCell>
                             )}
-                            {isEditMode && (
-                                <TableCell className="w-20">
-                                    <div className="flex items-center">
-                                        <Button variant="ghost" size="icon" className="cursor-grab">
-                                            <GripVertical className="w-5 h-5 text-muted-foreground" />
-                                        </Button>
-                                        <Button variant="ghost" size="icon" onClick={() => handleEditClick(q)}>
-                                            <PenSquare className="w-5 h-5 text-muted-foreground" />
-                                        </Button>
-                                    </div>
+                            {isAdmin && isEditMode && (
+                                <TableCell className="w-12">
+                                    <Button variant="ghost" size="icon" onClick={() => handleEditClick(q)}>
+                                        <PenSquare className="w-5 h-5 text-muted-foreground" />
+                                    </Button>
                                 </TableCell>
                             )}
                             <TableCell className="w-20">{q.correctRate}%</TableCell>
@@ -634,7 +598,6 @@ const handleResetHistoryClick = () => {
                     className="col-span-3"
                 />
                 </div>
-                {/* Options */}
                 {currentFormData.options && currentFormData.options.map((option, index) => (
                 <div key={index} className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor={`option${index}`} className="text-right">
@@ -642,7 +605,7 @@ const handleResetHistoryClick = () => {
                     </Label>
                     <Input
                     id={`option${index}`}
-                    name={`option${index}`} // Unique name for each option
+                    name={`option${index}`}
                     value={option}
                     onChange={handleFormChange}
                     className="col-span-3"
@@ -657,18 +620,6 @@ const handleResetHistoryClick = () => {
                     id="correct_answers_str"
                     name="correct_answers_str"
                     value={currentFormData.correct_answers_str || ''}
-                    onChange={handleFormChange}
-                    className="col-span-3"
-                />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="explanation" className="text-right">
-                    解説
-                </Label>
-                <Textarea
-                    id="explanation"
-                    name="explanation"
-                    value={currentFormData.explanation || ''}
                     onChange={handleFormChange}
                     className="col-span-3"
                 />
