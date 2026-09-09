@@ -28,8 +28,14 @@ export default function LoginPageClient() {
 
     try {
       if (mode === 'signup') {
-        await signUpWithEmail(email, password)
-        setMessage('登録しました。メール確認後にログインしてください。')
+        const data = await signUpWithEmail(email, password)
+        if (data.session) {
+          router.replace(next)
+        } else {
+          setPassword('')
+          setMode('signin')
+          setMessage('登録しました。メール確認後にログインしてください。')
+        }
       } else if (mode === 'forgot') {
         await sendPasswordResetEmail(email)
         setMessage('パスワード再設定用のメールを送信しました。メール内のリンクから再設定してください。')
@@ -73,18 +79,27 @@ export default function LoginPageClient() {
         </form>
 
         {mode === 'signin' && (
-          <Button variant="link" className="w-full mt-2" onClick={() => { setMode('forgot'); setMessage(null) }}>
-            パスワードをお忘れですか？
-          </Button>
+          <div className="text-center mt-3">
+            <button
+              type="button"
+              className="text-sm text-primary underline underline-offset-4 hover:opacity-80"
+              onClick={() => { setMode('forgot'); setMessage(null) }}
+            >
+              パスワードをお忘れですか？
+            </button>
+          </div>
         )}
 
-        <Button
-          variant="ghost"
-          className="w-full mt-1"
-          onClick={() => { setMode(mode === 'signup' ? 'signin' : mode === 'forgot' ? 'signin' : 'signup'); setMessage(null) }}
-        >
-          {mode === 'signup' ? 'ログインへ戻る' : mode === 'forgot' ? 'ログインへ戻る' : '新規登録へ'}
-        </Button>
+        <div className="border-t border-border mt-4 pt-4">
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full"
+            onClick={() => { setMode(mode === 'signup' ? 'signin' : mode === 'forgot' ? 'signin' : 'signup'); setMessage(null) }}
+          >
+            {mode === 'signup' ? 'ログインへ戻る' : mode === 'forgot' ? 'ログインへ戻る' : '新規登録へ'}
+          </Button>
+        </div>
       </Card>
     </div>
   )
