@@ -9,7 +9,7 @@ const navItems = [
   { href: "/quiz", label: "出題", icon: Target },
   { href: "/add", label: "管理", icon: List },
   { href: "/history", label: "履歴", icon: BarChart3 },
-  { href: "/profile", label: "プロフィール", icon: User },
+  { href: "/profile", label: "ユーザー", icon: User },
 ]
 
 export function BottomNav() {
