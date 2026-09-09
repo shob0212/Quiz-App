@@ -39,7 +39,7 @@ const Picker: React.FC<PickerProps> = ({ options, value, onChange, disabled }) =
     if (emblaApi) {
       const selectedIndex = options.indexOf(value)
       if (emblaApi.selectedScrollSnap() !== selectedIndex) {
-        emblaApi.scrollTo(selectedIndex, 0)
+        emblaApi.scrollTo(selectedIndex, false)
       }
     }
   }, [emblaApi, value, options])

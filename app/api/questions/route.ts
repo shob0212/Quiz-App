@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabaseClient';
-import type { Question } from '@/lib/data';
 import { ApiAuthError, getRequestUser } from '@/lib/serverAuth';
 
 export async function GET() {
@@ -18,7 +17,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    await getRequestUser(request);
+    const { supabase } = await getRequestUser(request);
     const questions = await request.json();
 
     const { error } = await supabase
@@ -41,47 +40,9 @@ export async function POST(request: Request) {
   }
 }
 
-export async function PATCH(request: Request) {
-  try {
-    await getRequestUser(request);
-    const question: Question = await request.json();
-
-    if (!question.id) {
-      return NextResponse.json({ error: 'Question ID is required' }, { status: 400 });
-    }
-
-    const { created_at, ...updateData } = question;
-
-    const { data, error } = await supabase
-      .from('questions')
-      .update(updateData)
-      .eq('id', question.id)
-      .select()
-      .single();
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-
-    if (!data) {
-      return NextResponse.json({ error: 'Question not found or no changes made' }, { status: 404 });
-    }
-
-    return NextResponse.json(data);
-  } catch (e) {
-    if (e instanceof ApiAuthError) {
-      return NextResponse.json({ error: e.message }, { status: e.status });
-    }
-    if (e instanceof Error) {
-      return NextResponse.json({ error: e.message }, { status: 500 });
-    }
-    return NextResponse.json({ error: 'An unknown error occurred' }, { status: 500 });
-  }
-}
-
 export async function DELETE(request: Request) {
   try {
-    await getRequestUser(request);
+    const { supabase } = await getRequestUser(request);
     const body = await request.json().catch(() => null);
 
     if (body && body.ids && Array.isArray(body.ids) && body.ids.length > 0) {

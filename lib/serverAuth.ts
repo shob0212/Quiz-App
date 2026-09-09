@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabaseClient'
+import { createRequestScopedClient } from '@/lib/supabaseClient'
 
 export class ApiAuthError extends Error {
   status: number
@@ -17,11 +17,12 @@ export async function getRequestUser(request: Request) {
   }
 
   const token = authHeader.slice('Bearer '.length)
+  const supabase = createRequestScopedClient(token)
   const { data, error } = await supabase.auth.getUser(token)
 
   if (error || !data?.user) {
     throw new ApiAuthError('Authentication failed', 401)
   }
 
-  return data.user
+  return { user: data.user, supabase }
 }

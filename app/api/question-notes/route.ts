@@ -1,10 +1,9 @@
 import { NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabaseClient'
 import { ApiAuthError, getRequestUser } from '@/lib/serverAuth'
 
 export async function GET(request: Request) {
   try {
-    const user = await getRequestUser(request)
+    const { user, supabase } = await getRequestUser(request)
     const { searchParams } = new URL(request.url)
     const questionId = searchParams.get('questionId')
 
@@ -37,7 +36,7 @@ export async function GET(request: Request) {
 
 export async function PUT(request: Request) {
   try {
-    const user = await getRequestUser(request)
+    const { user, supabase } = await getRequestUser(request)
     const body = await request.json()
 
     if (!body?.question_id) {

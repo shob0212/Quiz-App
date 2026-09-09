@@ -6,7 +6,7 @@ import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { getQuestions, getHistory, writeQuestions, deleteHistory, deleteQuizSessions, deleteQuestions, Question, History, QuizSession } from "@/lib/data"
 import {
-  Home, Plus, List, Target, BarChart3, ArrowLeft, GripVertical, ChevronDown, Search, Trash2, PenSquare, ArrowUp, ArrowDown
+  Home, Plus, List, Target, BarChart3, ArrowLeft, ChevronDown, Search, Trash2, ArrowUp, ArrowDown
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -19,17 +19,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
 import { Card } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
 import { Spinner } from "@/components/ui/spinner"
@@ -44,14 +34,6 @@ interface ManagedQuestion extends Question {
   attempts: number
   correctRate: number
 }
-
-type EditFormData = {
-  question?: string;
-  options?: string[];
-  correct_answers_str?: string;
-  category?: string;
-};
-
 
 // --- カテゴリドロップダウン ---
 function CategoryDropdown({ categories, selected, onSelect }: { categories: string[], selected: string | null, onSelect: (cat: string | null) => void }) {
@@ -105,11 +87,8 @@ export default function AddPageClient() {
     // console.log('--- isEditMode changed:', isEditMode); // ログを削除
   }, [isEditMode]);
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false)
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [selectedQuestionIds, setSelectedQuestionIds] = useState<Set<string>>(new Set())
-  const [editingQuestion, setEditingQuestion] = useState<ManagedQuestion | null>(null)
-  const [currentFormData, setCurrentFormData] = useState<EditFormData>({})
   const [highlightedQuestionId, setHighlightedQuestionId] = useState<string | null>(null)
   const rowRefs = useRef<Record<string, HTMLTableRowElement | null>>({})
   const { toast } = useToast()
@@ -171,84 +150,6 @@ export default function AddPageClient() {
     }
     fetchData()
   }, [])
-
-  // --- ここに残りの編集やドラッグ処理、ダイアログ処理も同様に ---
-  // handleEditClick, handleFormChange, handleSaveEdit, handleResetHistoryClick, handleResetHistoryConfirm, handleDragEnd
-  // 上で示したものと同じ処理をこのコンポーネント内に配置
-
-  const handleEditClick = (question: ManagedQuestion) => {
-    setEditingQuestion(question);
-    // Initialize form data, converting correct_answers array to a comma-separated string for input
-    setCurrentFormData({
-        question: question.question,
-        options: question.options,
-        correct_answers_str: question.correct_answers.map(n => n + 1).join(','), // Convert number[] to string for input
-        category: question.category,
-    });
-    setIsEditDialogOpen(true);
-    };
-
-  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    if (name.startsWith('option')) { // Changed from 'choice' to 'option'
-      const index = parseInt(name.replace('option', ''));
-      setCurrentFormData(prev => {
-        const newOptions = [...(prev.options || [])]; // `options` in prev
-        newOptions[index] = value;
-        return { ...prev, options: newOptions };
-      });
-    } else {
-      setCurrentFormData(prev => ({ ...prev, [name]: value }));
-    }
-  };
-
-  const handleSaveEdit = async () => {
-    if (!editingQuestion) return;
-
-    // Parse correct_answers_str to number[]
-    const parsedCorrectAnswers = currentFormData.correct_answers_str
-      ? currentFormData.correct_answers_str.split(',').map(s => parseInt(s.trim(), 10) - 1).filter(n => !isNaN(n) && n >= 0)
-      : [];
-
-    // Determine question type based on parsed correct answers
-    const questionType = parsedCorrectAnswers.length > 1 ? "multiple" : "single";
-
-    // Build the core Question object from currentFormData and immutable fields from editingQuestion
-    const updatedCoreQuestion: Question = {
-      id: editingQuestion.id,
-      question: currentFormData.question || editingQuestion.question,
-      options: currentFormData.options || editingQuestion.options,
-      correct_answers: parsedCorrectAnswers,
-      explanation: null,
-      category: currentFormData.category || editingQuestion.category,
-      position: editingQuestion.position, // Keep original
-      last_answered: editingQuestion.last_answered, // Keep original
-      created_at: editingQuestion.created_at, // Keep original
-      consecutive_correct: editingQuestion.consecutive_correct, // Keep original
-      consecutive_wrong: editingQuestion.consecutive_wrong, // Keep original
-      type: questionType, // Set based on correct_answers
-    };
-
-    const updatedManagedQuestion: ManagedQuestion = {
-      ...editingQuestion, // Keep attempts, correctRate, etc. from original ManagedQuestion
-      ...updatedCoreQuestion, // Overlay with updated core data
-    };
-
-   const newQuestionsState = questions.map(q =>
-      q.id === updatedManagedQuestion.id ? updatedManagedQuestion : q
-    );
-    setQuestions(newQuestionsState);
-
-    // Prepare data for persistence (strip UI-only fields)
-    const questionsToPersist: Question[] = newQuestionsState.map(({ attempts, correctRate, ...q }) => q);
-
-    await writeQuestions(questionsToPersist);
-
-    setIsEditDialogOpen(false);
-    setEditingQuestion(null);
-    setCurrentFormData({});
-  };
-
 
 const handleResetHistoryClick = () => {
     setIsResetDialogOpen(true);
@@ -361,7 +262,7 @@ const handleResetHistoryClick = () => {
   };
 
   useEffect(() => {
-    const highlightId = searchParams.highlight as string | undefined;
+    const highlightId = searchParams.get('highlight') ?? undefined;
     if (highlightId) {
       setHighlightedQuestionId(highlightId);
       // Wait for questions to load and render
@@ -387,35 +288,6 @@ const handleResetHistoryClick = () => {
 
 
 
-
-  const handleDragEnd = async (event: any) => {
-    const { active, over } = event;
-    if (!over) return;
-
-    if (active.id !== over.id) {
-      const oldIndex = questions.findIndex((q) => q.id === active.id);
-      const newIndex = questions.findIndex((q) => q.id === over.id);
-      
-      if (oldIndex === -1 || newIndex === -1) {
-        console.warn("Dragged item or target not found in questions list.");
-        setActiveId(null);
-        return;
-      }
-
-      const newOrder = arrayMove(questions, oldIndex, newIndex);
-
-      const reindexedQuestions = newOrder.map((q, index) => ({
-        ...q,
-        position: index,
-      }));
-
-      setQuestions(reindexedQuestions);
-
-      const questionsToSave: Question[] = reindexedQuestions.map(({ attempts, correctRate, ...q }) => q);
-      await writeQuestions(questionsToSave);
-    }
-    setActiveId(null);
-  };
 
   if (isLoading)
     return <div className="min-h-screen flex items-center justify-center"><Spinner className="w-12 h-12" /></div>
@@ -511,7 +383,6 @@ const handleResetHistoryClick = () => {
                           />
                         </TableHead>
                       )}
-                      {isEditMode && <TableHead className="w-20"></TableHead>}
                       <TableHead className="w-20 cursor-pointer" onClick={() => handleSort('correctRate')}>
                         <div className="flex items-center">
                           正答率
@@ -544,7 +415,7 @@ const handleResetHistoryClick = () => {
                         <TableRow
                           key={q.id}
                           className={`${highlightedQuestionId === q.id ? "bg-yellow-100 dark:bg-yellow-900" : ""} ${selectedQuestionIds.has(q.id) ? "bg-blue-50 dark:bg-blue-900" : ""}`}
-                          ref={(el) => (rowRefs.current[q.id] = el)}
+                          ref={(el) => { rowRefs.current[q.id] = el; }}
                         >
                             {isEditMode && (
                                 <TableCell className="w-12">
@@ -553,18 +424,6 @@ const handleResetHistoryClick = () => {
                                       onCheckedChange={() => handleCheckboxChange(q.id)}
                                       className="cursor-pointer"
                                     />
-                                </TableCell>
-                            )}
-                            {isEditMode && (
-                                <TableCell className="w-20">
-                                    <div className="flex items-center">
-                                        <Button variant="ghost" size="icon" className="cursor-grab">
-                                            <GripVertical className="w-5 h-5 text-muted-foreground" />
-                                        </Button>
-                                        <Button variant="ghost" size="icon" onClick={() => handleEditClick(q)}>
-                                            <PenSquare className="w-5 h-5 text-muted-foreground" />
-                                        </Button>
-                                    </div>
                                 </TableCell>
                             )}
                             <TableCell className="w-20">{q.correctRate}%</TableCell>
@@ -610,74 +469,6 @@ const handleResetHistoryClick = () => {
             </AlertDialogFooter>
         </AlertDialogContent>
         </AlertDialog>
-        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="bg-white sm:max-w-[500px]">
-            <DialogHeader>
-            <DialogTitle>問題を編集</DialogTitle>
-            <DialogDescription>
-                問題の内容を編集し、保存してください。
-            </DialogDescription>
-            </DialogHeader>
-            <form onSubmit={(e) => { e.preventDefault(); handleSaveEdit(); }} className="max-h-[calc(100vh-200px)] overflow-y-auto p-4">
-            <div className="grid gap-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="question" className="text-right">
-                    問題文
-                </Label>
-                <Textarea
-                    id="question"
-                    name="question"
-                    value={currentFormData.question || ''}
-                    onChange={handleFormChange}
-                    className="col-span-3"
-                />
-                </div>
-                {/* Options */}
-                {currentFormData.options && currentFormData.options.map((option, index) => (
-                <div key={index} className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor={`option${index}`} className="text-right">
-                    選択肢 {index + 1}
-                    </Label>
-                    <Input
-                    id={`option${index}`}
-                    name={`option${index}`} // Unique name for each option
-                    value={option}
-                    onChange={handleFormChange}
-                    className="col-span-3"
-                    />
-                </div>
-                ))}
-                <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="correct_answers_str">
-                    正答番号(例: 1,3)
-                </Label>
-                <Input
-                    id="correct_answers_str"
-                    name="correct_answers_str"
-                    value={currentFormData.correct_answers_str || ''}
-                    onChange={handleFormChange}
-                    className="col-span-3"
-                />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="category" className="text-right">
-                    カテゴリ
-                </Label>
-                <Input
-                    id="category"
-                    name="category"
-                    value={currentFormData.category || ''}
-                    onChange={handleFormChange}
-                    className="col-span-3"
-                />
-                </div>
-            </div>
-            <DialogFooter>
-                <Button type="submit">変更を保存</Button>
-            </DialogFooter>
-            </form>
-        </DialogContent>
-        </Dialog>
         </div>
     </Suspense>
     </div>

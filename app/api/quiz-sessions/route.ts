@@ -1,11 +1,10 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabaseClient';
 import { revalidatePath } from 'next/cache';
 import { ApiAuthError, getRequestUser } from '@/lib/serverAuth';
 
 export async function GET(request: Request) {
   try {
-    const user = await getRequestUser(request);
+    const { user, supabase } = await getRequestUser(request);
 
     const { data, error } = await supabase
       .from('quiz_sessions')
@@ -31,7 +30,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const user = await getRequestUser(request);
+    const { user, supabase } = await getRequestUser(request);
     const newSession = await request.json();
     const sessionsToInsert = (Array.isArray(newSession) ? newSession : [newSession]).map((session) => ({
       ...session,
@@ -66,7 +65,7 @@ export async function POST(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
-    const user = await getRequestUser(request);
+    const { user, supabase } = await getRequestUser(request);
     const body = await request.json().catch(() => null);
 
     if (body && body.ids && Array.isArray(body.ids) && body.ids.length > 0) {

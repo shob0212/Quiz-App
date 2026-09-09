@@ -1,11 +1,10 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabaseClient';
 import { revalidatePath } from 'next/cache';
 import { ApiAuthError, getRequestUser } from '@/lib/serverAuth';
 
 export async function GET(request: Request) {
   try {
-    const user = await getRequestUser(request);
+    const { user, supabase } = await getRequestUser(request);
 
     const { data, error } = await supabase
       .from('history')
@@ -31,7 +30,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const user = await getRequestUser(request);
+    const { user, supabase } = await getRequestUser(request);
     const newEntries = await request.json();
 
     if (!Array.isArray(newEntries)) {
@@ -70,7 +69,7 @@ export async function POST(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
-    const user = await getRequestUser(request);
+    const { user, supabase } = await getRequestUser(request);
 
     const { error } = await supabase
       .from('history')

@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useMemo, useCallback, useRef } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { getQuestions, updateQuestion, writeHistory, Question, History, QuizSession, writeQuizSessions, getHistory, AuthError, getQuestionNote, upsertQuestionNote } from "@/lib/data"
-import { ArrowLeft, ChevronLeft, ChevronRight, Check, X, Clock, Eye, XCircle, List, Pencil, Copy } from "lucide-react"
+import { getQuestions, writeHistory, Question, History, QuizSession, writeQuizSessions, getHistory, AuthError, getQuestionNote, upsertQuestionNote } from "@/lib/data"
+import { ArrowLeft, ChevronLeft, ChevronRight, Check, Clock, Eye, XCircle, List, Copy } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
@@ -15,7 +15,6 @@ import { Toaster } from "@/components/ui/toaster"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { Spinner } from "@/components/ui/spinner"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
 
 // Fisher-Yates (aka Knuth) Shuffle Algorithm
 const shuffleArray = (array: any[]) => {
@@ -43,9 +42,6 @@ export default function QuizPlayPage() {
   const [startTime, setStartTime] = useState<Date | null>(null);
   const [editedExplanation, setEditedExplanation] = useState("");
   const [isEditingExplanation, setIsEditingExplanation] = useState(false);
-  
-  const [isEditingQuestion, setIsEditingQuestion] = useState(false);
-  const [editingQuestionData, setEditingQuestionData] = useState<Question | null>(null);
 
   const { toast } = useToast();
   const [isProgressModalOpen, setIsProgressModalOpen] = useState(false);
@@ -162,159 +158,6 @@ export default function QuizPlayPage() {
       });
     }
   };
-
-  const handleEditQuestionClick = useCallback(() => {
-    if (!currentQuestion) return;
-    setEditingQuestionData(JSON.parse(JSON.stringify(currentQuestion)));
-    setIsEditingQuestion(true);
-  }, [currentQuestion]);
-
-  const handleEditingFormChange = useCallback((field: keyof Question, value: any) => {
-    setEditingQuestionData(prev => prev ? { ...prev, [field]: value } : null);
-  }, []);
-
-  const handleOptionChange = useCallback((index: number, value: string) => {
-    setEditingQuestionData(prev => {
-      if (!prev) return null;
-      const newOptions = [...prev.options];
-      newOptions[index] = value;
-      return { ...prev, options: newOptions };
-    });
-  }, []);
-
-  const handleCorrectAnswerChange = useCallback((index: number) => {
-    setEditingQuestionData(prev => {
-      if (!prev) return null;
-      let newCorrectAnswers = [...prev.correct_answers];
-      if (prev.type === 'single') {
-        newCorrectAnswers = [index];
-      } else {
-        if (newCorrectAnswers.includes(index)) {
-          newCorrectAnswers = newCorrectAnswers.filter(i => i !== index);
-        } else {
-          newCorrectAnswers.push(index);
-        }
-      }
-      return { ...prev, correct_answers: newCorrectAnswers };
-    });
-  }, []);
-  
-  const handleAddOption = useCallback(() => {
-    setEditingQuestionData(prev => {
-      if (!prev) return null;
-      return { ...prev, options: [...prev.options, ""] };
-    });
-  }, []);
-
-  const handleDeleteOption = useCallback((indexToDelete: number) => {
-    setEditingQuestionData(prev => {
-        if (!prev) return null;
-
-        const newOptions = prev.options.filter((_, i) => i !== indexToDelete);
-
-        const newCorrectAnswers = prev.correct_answers
-            .map(oldIndex => {
-                if (oldIndex === indexToDelete) return -1;
-                if (oldIndex > indexToDelete) return oldIndex - 1;
-                return oldIndex;
-            })
-            .filter(newIndex => newIndex !== -1);
-        
-        return {
-            ...prev,
-            options: newOptions,
-            correct_answers: newCorrectAnswers,
-        };
-    });
-  }, []);
-
-  const handleUpdateQuestion = useCallback(async () => {
-    if (!editingQuestionData) return;
-
-    const reIndexMap: number[] = [];
-    let newIndexCounter = 0;
-    editingQuestionData.options.forEach(opt => {
-        if (opt.trim() !== "") {
-            reIndexMap.push(newIndexCounter++);
-        } else {
-            reIndexMap.push(-1);
-        }
-    });
-
-    const newOptions = editingQuestionData.options.filter(opt => opt.trim() !== "");
-    
-    if (newOptions.length === 0) {
-        toast({
-            title: "保存できません",
-            description: "少なくとも1つの選択肢が必要です。",
-            variant: "destructive",
-        });
-        return;
-    }
-
-    const newCorrectAnswers = editingQuestionData.correct_answers
-        .map(oldIndex => reIndexMap[oldIndex])
-        .filter(newIndex => newIndex !== -1)
-        .sort((a,b) => a - b);
-
-    const cleanedQuestionData = {
-        ...editingQuestionData,
-        options: newOptions,
-        correct_answers: newCorrectAnswers,
-    };
-
-    try {
-      const questionToUpdate = { ...cleanedQuestionData } as Question;
-      const updatedQuestion = await updateQuestion(questionToUpdate);
-
-      setQuestions(prevQuestions => {
-          const newQuestions = [...prevQuestions];
-          const localIndex = newQuestions.findIndex(q => q.id === updatedQuestion.id);
-          if (localIndex !== -1) {
-              const originalShuffledData = newQuestions[localIndex].shuffledOptions;
-              const newOptionMap = new Map(updatedQuestion.options.map((opt, i) => [i, opt]));
-              
-              const updatedShuffledOptions = originalShuffledData
-                .map(shuffledOpt => ({
-                    ...shuffledOpt,
-                    option: newOptionMap.get(shuffledOpt.originalIndex) ?? shuffledOpt.option,
-                }))
-                .filter(shuffledOpt => newOptions.includes(shuffledOpt.option));
-              
-              newQuestions[localIndex] = {
-                  ...newQuestions[localIndex],
-                  ...updatedQuestion,
-                  shuffledOptions: updatedShuffledOptions,
-              };
-          }
-          return newQuestions;
-      });
-
-      setIsEditingQuestion(false);
-      setEditingQuestionData(null);
-      toast({
-          title: "問題が更新されました",
-          description: "変更が正常に保存されました。",
-      });
-    } catch (error) {
-        console.error("Failed to update question:", error);
-        if (error instanceof AuthError) {
-          toast({
-            title: "セッションが切れました",
-            description: "クイズの進捗を保存して、クイズ選択画面に戻ります。",
-            variant: "destructive",
-          });
-          saveSuspendedQuiz();
-          router.push('/quiz');
-        } else {
-          toast({
-              title: "更新に失敗しました",
-              description: error instanceof Error ? error.message : "コンソールでエラーを確認してください。",
-              variant: "destructive",
-          });
-        }
-    }
-  }, [editingQuestionData, toast]);
 
   useEffect(() => {
     if (didMountRef.current) {
@@ -715,7 +558,6 @@ export default function QuizPlayPage() {
               </div>
               <div className="flex justify-end gap-2 mb-6">
                 <Button variant="outline" size="sm" onClick={handleCopyQuestionAndOptions}><Copy className="w-4 h-4 mr-2" />コピー</Button>
-                <Button variant="outline" size="sm" onClick={handleEditQuestionClick}><Pencil className="w-4 h-4 mr-2" />編集</Button>
               </div>
             </div>
           )}
@@ -794,60 +636,6 @@ export default function QuizPlayPage() {
 
         <Toaster />
       </div>
-
-      <Dialog open={isEditingQuestion} onOpenChange={setIsEditingQuestion}>
-        <DialogContent className="max-w-3xl w-full bg-white">
-          <DialogHeader><DialogTitle>問題を編集</DialogTitle></DialogHeader>
-          {editingQuestionData && (
-            <div className="space-y-4 p-1 max-h-[80vh] overflow-y-auto">
-              <div>
-                <Label htmlFor="edit-category">カテゴリ</Label>
-                <Input id="edit-category" value={editingQuestionData.category} onChange={(e) => handleEditingFormChange('category', e.target.value)} />
-              </div>
-              <div>
-                <Label htmlFor="edit-question">問題文</Label>
-                <Textarea id="edit-question" value={editingQuestionData.question ?? ''} onChange={(e) => handleEditingFormChange('question', e.target.value)} rows={4} />
-              </div>
-              <div>
-                <Label>選択肢と正解</Label>
-                <div className="space-y-2">
-                  {editingQuestionData.type === 'single' ? (
-                      <RadioGroup value={editingQuestionData.correct_answers[0]?.toString()} onValueChange={(value) => handleCorrectAnswerChange(parseInt(value))}>
-                          {editingQuestionData.options.map((option, index) => (
-                            <div key={index} className="flex items-center gap-2">
-                                <RadioGroupItem value={index.toString()} id={`edit-opt-${index}`} />
-                                <Input value={option} onChange={(e) => handleOptionChange(index, e.target.value)} />
-                                <Button variant="ghost" size="icon" onClick={() => handleDeleteOption(index)}><X className="w-4 h-4" /></Button>
-                            </div>
-                          ))}
-                      </RadioGroup>
-                  ) : (
-                      editingQuestionData.options.map((option, index) => (
-                          <div key={index} className="flex items-center gap-2">
-                              <Checkbox checked={editingQuestionData.correct_answers.includes(index)} onCheckedChange={() => handleCorrectAnswerChange(index)} />
-                              <Input value={option} onChange={(e) => handleOptionChange(index, e.target.value)} />
-                              <Button variant="ghost" size="icon" onClick={() => handleDeleteOption(index)}><X className="w-4 h-4" /></Button>
-                          </div>
-                      ))
-                  )}
-                </div>
-                <Button variant="outline" size="sm" onClick={handleAddOption} className="mt-2">
-                  選択肢を追加
-                </Button>
-              </div>
-              <div>
-                <Label htmlFor="edit-explanation">解説</Label>
-                <Textarea id="edit-explanation" value={editingQuestionData.explanation ?? ''} onChange={(e) => handleEditingFormChange('explanation', e.target.value)} rows={4} />
-              </div>
-              <div className="flex justify-end gap-2 pt-4">
-                <Button variant="outline" onClick={() => setIsEditingQuestion(false)}>キャンセル</Button>
-                <Button onClick={handleUpdateQuestion}>変更を保存</Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
     </div>
   )
 }

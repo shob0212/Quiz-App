@@ -1,10 +1,9 @@
 import { NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabaseClient'
 import { ApiAuthError, getRequestUser } from '@/lib/serverAuth'
 
 export async function GET(request: Request) {
   try {
-    const user = await getRequestUser(request)
+    const { user, supabase } = await getRequestUser(request)
 
     const { data, error } = await supabase
       .from('profiles')
@@ -49,7 +48,7 @@ export async function GET(request: Request) {
 
 export async function PATCH(request: Request) {
   try {
-    const user = await getRequestUser(request)
+    const { user, supabase } = await getRequestUser(request)
     const body = await request.json()
 
     const profile = {

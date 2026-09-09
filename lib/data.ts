@@ -106,7 +106,13 @@ async function handleResponse(res: Response): Promise<any> {
 }
 
 export async function signUpWithEmail(email: string, password: string) {
-  const { data, error } = await supabase.auth.signUp({ email, password });
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      emailRedirectTo: `${window.location.origin}/auth/callback`,
+    },
+  });
   if (error) throw new Error(error.message);
   return data;
 }
@@ -115,6 +121,18 @@ export async function signInWithEmail(email: string, password: string) {
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) throw new Error(error.message);
   return data;
+}
+
+export async function sendPasswordResetEmail(email: string) {
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${window.location.origin}/reset-password`,
+  });
+  if (error) throw new Error(error.message);
+}
+
+export async function updatePassword(newPassword: string) {
+  const { error } = await supabase.auth.updateUser({ password: newPassword });
+  if (error) throw new Error(error.message);
 }
 
 export async function signOut() {
@@ -134,18 +152,6 @@ export async function getQuestions(): Promise<Question[]> {
     throw new Error('Failed to fetch questions');
   }
   return res.json();
-}
-
-export async function updateQuestion(question: Partial<Question>): Promise<Question> {
-  const res = await authFetch('/api/questions', {
-    method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(question),
-  });
-
-  return handleResponse(res);
 }
 
 export async function getHistory(): Promise<History[]> {

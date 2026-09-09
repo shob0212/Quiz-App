@@ -4,7 +4,12 @@ import { useEffect, useState } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
 
-const PUBLIC_PATHS = new Set(['/login'])
+const PUBLIC_PATHS = new Set(['/login', '/reset-password', '/auth/callback'])
+// Paths that should bounce an already-authenticated user away.
+// /reset-password and /auth/callback intentionally end up with a session
+// (recovery / email confirmation) and manage their own redirect, so they're
+// excluded here to avoid AuthGate racing them out before they can finish.
+const REDIRECT_IF_AUTHED_PATHS = new Set(['/login'])
 
 export function AuthGate() {
   const pathname = usePathname()
@@ -39,7 +44,7 @@ export function AuthGate() {
         router.replace(`/login?next=${encodeURIComponent(nextPath)}`)
       }
 
-      if (isPublic && session) {
+      if (REDIRECT_IF_AUTHED_PATHS.has(pathname) && session) {
         const next = searchParams.get('next') || '/'
         router.replace(next)
       }
